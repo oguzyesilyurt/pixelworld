@@ -632,9 +632,11 @@ function palms(z0,z1){const pm=std(0x9a7a50),lm=std(0x3d9a4a);for(let z=z0;z<=z1
 /* ---------- stilize ağaçlar (v11: gölge yuvarlağı, çok katlı taç, zeytin & servi) ---------- */
 class Inst{constructor(g,m){this.g=g;this.m=m;this.it=[]}
   add(x,y,z,sx,sy,sz,ry,col){const m=new T.Matrix4();m.compose(new T.Vector3(x,y,z),new T.Quaternion().setFromAxisAngle(new T.Vector3(0,1,0),ry),new T.Vector3(sx,sy,sz));this.it.push([m,col])}
-  build(){if(!this.it.length)return;const im=new T.InstancedMesh(this.g,this.m,this.it.length),c=new T.Color();this.it.forEach((v,i)=>{im.setMatrixAt(i,v[0]);c.set(v[1]);im.setColorAt(i,c)});
-    im.castShadow=this.g!==gDisc;im.receiveShadow=true;im.frustumCulled=false;im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;W.add(im)}}
-const gTrunk=new T.CylinderGeometry(.6,.9,1,7);gTrunk.translate(0,.5,0);const gCone=new T.ConeGeometry(1,1,7);gCone.translate(0,.5,0);const gIco=new T.IcosahedronGeometry(1,2),wm=std(0xffffff,{flatShading:false});
+  build(){if(!this.it.length)return;const CS=40,cells=new Map(),p=new T.Vector3();this.it.forEach(v=>{p.setFromMatrixPosition(v[0]);const k=Math.floor(p.x/CS)+','+Math.floor(p.z/CS);let L=cells.get(k);if(!L){L=[];cells.set(k,L)}L.push(v)});
+    const c=new T.Color(),off=new T.Matrix4();cells.forEach(L=>{let cx=0,cz=0;L.forEach(v=>{p.setFromMatrixPosition(v[0]);cx+=p.x;cz+=p.z});cx/=L.length;cz/=L.length;let r=0;L.forEach(v=>{p.setFromMatrixPosition(v[0]);r=Math.max(r,Math.hypot(p.x-cx,p.z-cz))});
+      const geo=this.g.clone();geo.boundingSphere=new T.Sphere(new T.Vector3(0,4,0),r+9);const im=new T.InstancedMesh(geo,this.m,L.length);im.position.set(cx,0,cz);off.makeTranslation(-cx,0,-cz);
+      L.forEach((v,i)=>{const mm=v[0].clone().premultiply(off);im.setMatrixAt(i,mm);c.set(v[1]);im.setColorAt(i,c)});im.castShadow=this.g!==gDisc;im.receiveShadow=true;im.frustumCulled=true;im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;im.userData.noMerge=true;im.userData.noCull=true;W.add(im)})}}
+const gTrunk=new T.CylinderGeometry(.6,.9,1,7);gTrunk.translate(0,.5,0);const gCone=new T.ConeGeometry(1,1,7);gCone.translate(0,.5,0);const gIco=new T.IcosahedronGeometry(1,1),wm=std(0xffffff,{flatShading:false});
 const gDisc=new T.CircleGeometry(1,14);gDisc.rotateX(-Math.PI/2);gDisc.translate(0,.03,0);
 const shMat=new T.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.22,depthWrite:false});
 let TR=null;
@@ -2135,7 +2137,7 @@ function openMall(cfg,rs){
 function closedMall(cfg,rs){
   const w=62,d=24,cz=-22;
   ground(0,-3,86,26,repeatMat(paverTex,86/5,26/5,.9),.045);
-  safe('AVM',()=>mallBuilding(0,cz,w,d,cfg));{const sg=new T.Mesh(new T.PlaneGeometry(20,3),new T.MeshBasicMaterial({map:textSign(cfg.name||'HILLTOWN',20,3,'#1b1424','#e8c86a')}));signMats.push(sg.material);sg.position.set(0,13.5,cz+d/2+.35);W.add(sg)}
+  safe('AVM',()=>mallBuilding(0,cz,w,d,cfg));{const sg=new T.Mesh(new T.PlaneGeometry(20,3),new T.MeshBasicMaterial({map:textSign(cfg.name||'HILLTOWN',20,3,'#1b1424','#e8c86a')}));signMats.push(sg.material);sg.position.set(0,13.5,cz+d/2+.35);W.add(sg)}safe('kafeler',hillCafes);
   const rc=new T.Mesh(new T.PlaneGeometry(5,15),new T.MeshStandardMaterial({color:0x8a1f2b,roughness:.9}));rc.rotation.x=-Math.PI/2;rc.position.set(0,.07,cz+d/2+8);W.add(rc);
   [-5,5].forEach(s=>{for(let k=0;k<4;k++){cyl(.08,.08,1.1,5,std(0xc9a24a),s*3.4,.55,cz+d/2+2.4+k*3.6);}});
   [-12,12,-24,24].forEach((x,i)=>{box(1.4,.9,1.4,std(0x2a2630),x,.45,-6);tree('cypress',x,-6,.7)});
@@ -2388,7 +2390,7 @@ function routeCfg(from,to){
 function curveAt(d){const c=DR.rc;if(!c)return 0;return c.curvy*(Math.sin(d*c.f1+c.p1)*.6+Math.sin(d*c.f2+c.p2)*.4)*.0014}
 function driveReset(to){
   const from=D2P[activeD.name],rc=routeCfg(from,to);DR.rc=rc;DR.dest=to;
-  DR.routeM=shortTest?560:rc.m;const sc=DR.routeM/rc.m;DR.jams=rc.jams.map(j=>[j[0]*sc,j[1]*sc]);
+  DR.routeM=tripM(rc.m);const sc=DR.routeM/rc.m;DR.jams=rc.jams.map(j=>[j[0]*sc,j[1]*sc]);
   DR.v=14;DR.vPrev=14;DR.lane=2;DR.px=LANES[2];DR.latV=0;DR.steer=0;DR.pl=false;DR.pr=false;DR.dragLatch=false;DR.dist=0;DR.hop=0;DR.hopV=0;DR.shake=0;DR.stress=0;DR.holes=0;DR.hits=0;DR.cool=0;DR.yaw=0;DR.pitch=0;DR.done=false;DR.jamNow=false;DR.camX=DR.px*.62;DR.flashT=0;DR.flashCd=0;DR.U.value=0;
   [-1,1].forEach(s=>{DR.sea[s].visible=rc.sea===s;DR.city[s].visible=rc.sea!==s;DR.bPool[s].forEach(o=>{o.visible=rc.theme!=='green'})});
   DR.traffic.forEach((t,i)=>{t.z=-50-i*28-rnd()*10;t.x=LANES[i%4];t.tx=t.x;t.v=t.v0;t.active=i<8;t.g.visible=t.active});
@@ -2464,16 +2466,16 @@ const cur={bg:new T.Color(TIMES.sunset.bg),fog:new T.Color(TIMES.sunset.fog),hs:
 let tgt=TIMES.sunset,tname='sunset',auto=false,autoT=0,shortTest=false;
 function setTime(n){tgt=TIMES[n];tname=n;document.querySelectorAll('[data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t===n))}
 $('zin').onclick=()=>{zoomT=clamp(zoomT*.8,3.5,32)};$('zout').onclick=()=>{zoomT=clamp(zoomT*1.25,3.5,32)};
-function applyTime(dt){const k=1-Math.exp(-dt*2.5),t=tgt;
-  cur.bg.lerp(new T.Color(t.bg),k);cur.fog.lerp(new T.Color(t.fog),k);cur.hs.lerp(new T.Color(t.hs),k);cur.hg.lerp(new T.Color(t.hg),k);cur.sc.lerp(new T.Color(t.sc),k);cur.sea.lerp(new T.Color(t.sea),k);
-  cur.hi+=(t.hi-cur.hi)*k;cur.si+=(t.si-cur.si)*k;cur.night+=(t.night-cur.night)*k;cur.off.lerp(new T.Vector3(...t.off),k);
+function applyTime(dt){const k=1-Math.exp(-dt*2.5),t=tgt;const c=t._c||(t._c={bg:new T.Color(t.bg),fog:new T.Color(t.fog),hs:new T.Color(t.hs),hg:new T.Color(t.hg),sc:new T.Color(t.sc),sea:new T.Color(t.sea),off:new T.Vector3(...t.off)});
+  cur.bg.lerp(c.bg,k);cur.fog.lerp(c.fog,k);cur.hs.lerp(c.hs,k);cur.hg.lerp(c.hg,k);cur.sc.lerp(c.sc,k);cur.sea.lerp(c.sea,k);
+  cur.hi+=(t.hi-cur.hi)*k;cur.si+=(t.si-cur.si)*k;cur.night+=(t.night-cur.night)*k;cur.off.lerp(c.off,k);
   scene.background.copy(cur.bg);scene.fog.color.copy(cur.fog);hemi.color.copy(cur.hs);hemi.groundColor.copy(cur.hg);hemi.intensity=cur.hi;sun.color.copy(cur.sc);sun.intensity=cur.si;seaMat.color.copy(cur.sea);
   if(DR.built){dscene.background.copy(cur.bg);dscene.fog.color.copy(cur.fog);DR.hemi.color.copy(cur.hs);DR.hemi.groundColor.copy(cur.hg);DR.hemi.intensity=cur.hi+.1;DR.sun.color.copy(cur.sc);DR.sun.intensity=cur.si;DR.skyM.color.copy(cur.bg);DR.seaMats.forEach(m=>m.color.copy(cur.sea).multiplyScalar(1.15));DR.sunSp.material.opacity=clamp(1-cur.night*1.7,0,1)*(.4+.6*(1-cur.night))}
   {const wr=WX.rain;if(wr>.01){scene.background.lerp(rainGray,wr*.4);scene.fog.color.lerp(rainGray,wr*.4);hemi.intensity*=1-.28*wr;sun.intensity*=1-.5*wr;
     if(DR.built){dscene.background.lerp(rainGray,wr*.4);dscene.fog.color.lerp(rainGray,wr*.4);DR.hemi.intensity*=1-.28*wr;DR.sun.intensity*=1-.5*wr;DR.skyM.color.lerp(rainGray,wr*.5)}}}
   document.body.style.background='#'+scene.background.getHexString();
-  const n=cur.night;facades.forEach(m=>{const u=m.userData||{};m.emissiveIntensity=(u.base||0)+n*(u.k||1.15)});
-  {const t2=clamp((n-.4)/.6,0,1),r=1-.58*t2,gg=1-.52*t2,bb=1-.28*t2;spriteMats.forEach(m=>{const b=m.userData&&m.userData.base;if(b)m.color.setRGB(b[0]*r,b[1]*gg,b[2]*bb);else m.color.setRGB(r,gg,bb)})}
+  const n=cur.night;applyTime.ok=Math.abs(n-(applyTime.ln==null?-9:applyTime.ln))>.002||(facades.length+spriteMats.length)!==applyTime.lf;if(applyTime.ok){applyTime.ln=n;applyTime.lf=facades.length+spriteMats.length;facades.forEach(m=>{const u=m.userData||{};m.emissiveIntensity=(u.base||0)+n*(u.k||1.15)})}
+  if(applyTime.ok){const t2=clamp((n-.4)/.6,0,1),r=1-.58*t2,gg=1-.52*t2,bb=1-.28*t2;spriteMats.forEach(m=>{const b=m.userData&&m.userData.base;if(b)m.color.setRGB(b[0]*r,b[1]*gg,b[2]*bb);else m.color.setRGB(r,gg,bb)})}
   glows.forEach(g=>{g.sp.material.opacity=clamp(n*g.k*1.1,0,1)});signMats.forEach(m=>m.color.setScalar(.8+.2*n));foamMat.opacity=.55+.35*(1-n)}
 
 /* ---------- oyuncu ve durum ---------- */
@@ -2722,7 +2724,7 @@ const hhmm=m=>{m=((m%1440)+1440)%1440;const h=Math.floor(m/60),n=Math.floor(m%60
 function emitSafe(k){try{emit(k)}catch(e){}}
 
 /* ---------- performans: kalite basamakları + dinamik çözünürlük ---------- */
-const QL=[{pr:2,sm:2048,n:1,sh:1},{pr:1.5,sm:1024,n:1,sh:1},{pr:1.25,sm:1024,n:2,sh:1},{pr:1,sm:1024,n:2,sh:1},{pr:1,sm:0,n:3,sh:0},{pr:.8,sm:0,n:3,sh:0}];
+const QL=[{pr:2,sm:2048,n:2,sh:1},{pr:1.5,sm:1024,n:2,sh:1},{pr:1.25,sm:1024,n:2,sh:1},{pr:1,sm:1024,n:3,sh:1},{pr:1,sm:0,n:3,sh:0},{pr:.8,sm:0,n:3,sh:0}];
 const DYN={i:isTouch?2:0,fps:60,low:0,hi:0,cool:4,fr:0,last:0};
 function qIndex(){return SET.q==='low'?4:SET.q==='mid'?2:SET.q==='high'?0:DYN.i}
 function curPR(){return QL[qIndex()].pr}
@@ -3173,11 +3175,11 @@ function openSettings(){openModal('⚙️ Ayarlar',b=>{
   const g2=el('div','sg');g2.appendChild(el('h4','','Grafik & performans'));b.appendChild(g2);
   segRow(g2,'Kalite','q',[['auto','Otomatik'],['low','Düşük'],['mid','Orta'],['high','Yüksek']],()=>{DYN.i=isTouch?2:0;applyQ();info()});
   const inf=el('div','sub');g2.appendChild(inf);const info=()=>{const q=QL[qIndex()];inf.textContent='Şu an: çözünürlük ×'+Math.min(devicePixelRatio||1,q.pr).toFixed(2)+' · gölge '+(SET.shadows&&q.sh?'açık':'kapalı')+' · ~'+Math.round(DYN.fps)+' FPS'};info();
-  segRow(g2,'FPS sınırı','fps',[['auto','Otomatik'],['30','30'],['60','60'],['off','Sınırsız']]);g2.appendChild(el('div','sub','Telefonda 30 FPS ısınmayı ve zamanla yavaşlamayı önler.'));swRow(g2,'🌗 Gölgeler','Kapatmak telefonda ısınmayı azaltır','shadows',()=>{applyQ();info()});swRow(g2,'👾 Piksel görünüm','Retro piksel efekti','pix',applyQ);
+  segRow(g2,'FPS sınırı','fps',[['auto','Otomatik'],['30','30'],['60','60'],['off','Sınırsız']]);g2.appendChild(el('div','sub','Otomatik: 60 FPS hedefler, düşerse çözünürlük ve gölge kalitesi kendiliğinden ayarlanır.'));swRow(g2,'🌗 Gölgeler','Kapatmak telefonda ısınmayı azaltır','shadows',()=>{applyQ();info()});swRow(g2,'👾 Piksel görünüm','Retro piksel efekti','pix',applyQ);
   const g3=el('div','sg');g3.appendChild(el('h4','','Oyun'));b.appendChild(g3);
   segRow(g3,'Gökyüzü','sky',[['clock','Saate göre'],['day','Gündüz'],['sunset','Gün batımı'],['night','Gece']]);
   rangeRow(g3,'🔍 Kamera uzaklığı','zoom',.6,1.5,.05,()=>{applyZoom();zoomT=mode==='int'?zoomI:zoomW});
-  swRow(g3,'🚗 Kısa yolculuk','Araba yolculukları ~25 sn sürer','shortTrip',()=>{shortTest=SET.shortTrip});
+  segRow(g3,'🚗 Yolculuk süresi','trip',[['auto','Normal'],['30','30 sn'],['45','45 sn'],['60','1 dk'],['120','2 dk']]);
   const bt=el('div');bt.style.cssText='display:flex;gap:8px;flex-wrap:wrap;margin-top:6px';const add=(t,fn,c)=>{const x=el('button','btn'+(c?' '+c:''),t);x.onclick=fn;bt.appendChild(x)};
   {const r=el('div','sr');r.appendChild(el('span','','💙 Sevgilinin adı'));const i=document.createElement('input');i.value=SET.gfName||'';i.placeholder='Denel';i.maxLength=16;i.style.cssText='width:130px;font:inherit;padding:6px 9px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.08);color:var(--ink)';i.addEventListener('keydown',e=>e.stopPropagation());i.oninput=()=>{SET.gfName=i.value.trim();saveSet()};r.appendChild(i);g3.appendChild(r)}
   if(mode!=='pick'){add('👥 Birlikte oyna',()=>{closeModal();phoneApp('mp')},'pri');add('💾 Kaydet',()=>{saveGame();toast('Oyun kaydedildi 💾')},'pri');add('❓ Kontroller',()=>{closeModal();showCtrl()});add('🏠 Ana menü',()=>{saveGame();location.reload()})}
@@ -3242,11 +3244,11 @@ function onEnterI(I){if(!I)return;ensureDrops(I);
   if(I.family&&I.name!==HOME.cur){const f=I.fam;if(HOME.visitDay!==HOME.day){HOME.visitDay=HOME.day;setTimeout(()=>{say(f.abla.p,'Hoş geldin canım! 🤗',3);f.yegen.lock=6;agentGo(f.yegen,clamp(pl.x+.9,-I.bx+.5,I.bx-.5),pl.z+1.1,()=>{faceEach(f.yegen);f.yegen.anim={k:'wave',t:1.6};say(f.yegen.p,'Teyzeeee! 🥰',3)})},700);emitSafe('visit');
       BONDS.cicom.v=clamp(BONDS.cicom.v+6,0,100);NEED.soc=clamp(NEED.soc+10,0,100)}
     if(OG.where==='comp')setTimeout(()=>say(f.eniste.p,'Oğuz hoş geldin! Gel tavla atalım 🎲'),2200)}}
-function onEnterD(d){if(!d)return;if(isTouch||qIndex()>=2)thinShadows(d.G);try{mergeStatic(d.G)}catch(e){showErrOnce(e)}d.walkers.forEach(w=>{if(w.who==='ogus'){w.who=null;w.p.visible=false}});if(OG.where==='comp'&&OG.p&&OG.arriveT<=0&&DATE&&DATE.d===d.name)setTimeout(()=>say(OG.p,'Geldik! Ne güzel burası 😍'),900)}
+function onEnterD(d){if(!d)return;thinShadows(d.G);try{mergeStatic(d.G)}catch(e){showErrOnce(e)}d.walkers.forEach(w=>{if(w.who==='ogus'){w.who=null;w.p.visible=false}});if(OG.where==='comp'&&OG.p&&OG.arriveT<=0&&DATE&&DATE.d===d.name)setTimeout(()=>say(OG.p,'Geldik! Ne güzel burası 😍'),900)}
 function life25(dt,t,inI,moving){
   if(HOME.cur.indexOf('ev_p_')===0&&!isMine(HOME.cur.slice(5))){HOME.cur=homeOf(me.key);me.home=distOf(HOME.cur);toast('Kira bitti, eski evine döndün 🏠')}
   if(curI!==LAST_I){LAST_I=curI;try{onEnterI(curI)}catch(e){showErrOnce(e)}}if(!inI&&activeD!==LAST_D){LAST_D=activeD;try{onEnterD(activeD)}catch(e){showErrOnce(e)}}if(inI)LAST_D=null;
-  life27(dt,t,inI);pwalkTick(dt,t);needsTick(dt,moving);actTick(dt,t,moving);mpTick(dt,t,inI);shadowFit();ogTick(dt,t,inI);agentsTick(dt,t,inI);cutTick(dt,t);deliveryTick(dt);dateTick(dt);tvTick(dt);aquaTick(t);bubblesTick(dt);hudTick(dt)}
+  life27(dt,t,inI);life30(dt);pwalkTick(dt,t);needsTick(dt,moving);actTick(dt,t,moving);mpTick(dt,t,inI);shadowFit();ogTick(dt,t,inI);agentsTick(dt,t,inI);cutTick(dt,t);deliveryTick(dt);dateTick(dt);tvTick(dt);aquaTick(t);bubblesTick(dt);hudTick(dt)}
 
 /* ================= v26: karakter seçimi, çok oyunculu, Aspava ikramları, mutfak animasyonları ================= */
 CH.kiz.n='Sevgilim';CH.sen.n='Oğuz';CH.sen.look=Object.assign({},OGLOOK);CH.abla.n='Çiço';CH.abla.look=Object.assign({},FAMLOOK.abla);CH.esi.n='Enişte';CH.esi.look=Object.assign({},FAMLOOK.eniste);CH.yegen.n='Yeğen';CH.yegen.look=Object.assign({},FAMLOOK.yegen);
@@ -3439,7 +3441,7 @@ function vendorWrap(fn,open,close){const n0=W.children.length,s0=C.spots.length,
 function boyozCart(x,z){const g=new T.Group();g.position.set(x,0,z);W.add(g);cartBase(g,0xb5532f);for(let i=0;i<4;i++)for(let k=0;k<2;k++){const b=new T.Mesh(new T.SphereGeometry(.1,8,6),std(0xe0a850));b.scale.set(1.3,.6,1);b.position.set(-.5+i*.32,.88,-.12+k*.24);g.add(b)}
   const sg=new T.Mesh(new T.PlaneGeometry(1.6,.36),new T.MeshBasicMaterial({map:textSign('SICAK BOYOZ',1.6,.36,'#b5532f','#fff4e0'),side:T.DoubleSide}));signMats.push(sg.material);sg.position.set(0,1.45,0);sg.rotation.y=Math.PI/2;g.add(sg);
   vendorPerson(x+1.7,z,-Math.PI/2,0xb5532f);C.boxes.push({x:x,z:z,hx:1.3,hz:1.3});C.spots.push({x:x,z:z+1.8,r:2.6,t:'E: Boyozcu 🥐 (24 saat açık)',fn:()=>openMenu('Seyyar Boyozcu',[{n:'Ispanaklı boyoz',p:25,h:24,m:7},{n:'Çikolatalı boyoz',p:30,h:22,m:12},{n:'Enginarlı boyoz',p:30,h:24,m:8},{n:'Sosisli boyoz',p:30,h:28,m:8},{n:'Peynirli boyoz',p:25,h:24,m:8},{n:'Çay',p:10,h:2,m:6}])})}
-function vendorTick(){const h=GT/60;VEND.forEach(v=>{const on=h>=v.open&&h<v.close;if(on===v.on)return;v.on=on;v.objs.forEach(o=>o.visible=on);v.boxes.forEach(q=>{q.b.hx=on?q.hx:0;q.b.hz=on?q.hz:0})})}
+function vendorTick(){const h=GT/60;VEND.forEach(v=>{const on=h>=v.open&&h<v.close;if(on===v.on)return;v.on=on;v.objs.forEach(o=>{o.visible=on;o.userData.hiddenByGame=!on});v.boxes.forEach(q=>{q.b.hx=on?q.hx:0;q.b.hz=on?q.hz:0})})}
 
 /* ---------- köpek/kedi gibi ev hayvanları ---------- */
 function petMesh(kind,col){if(kind==='dog'){const d=makePoodle();d.traverse(o=>{if(o.isMesh&&o.material&&o.material.color){const c=o.material.color;if(c.r>.3&&c.g>.2&&!(c.r<.15&&c.g<.15)){o.material=o.material.clone();o.material.color.setHex(col||0xf6f4ee)}}});d.scale.setScalar(.8);return d}
@@ -3702,7 +3704,7 @@ function hilltownInt(I){I.title='Hilltown · Kapalı Lüks AVM';I.zoom=isTouch?7
     else if(L[3]==='couture'){[-2.4,-.8,.8,2.4].forEach((dx,k)=>{const m=person({shirt:[0x111111,0xc9a24a,0xe87aa8,0x6a2a8a][k],top:k%2?'elbise':'ceket',jacket:0x111111,pants:0x1b1b1f,skin:0xf2efe8,hair:0xf2efe8,bald:true,fem:true});m.position.set(x+dx,0,6.6);W.add(m)});
       I.spots.push({x:x,z:4.6,r:2.2,t:'E: Lumière Couture · dene 👗',fn:()=>openStyle('cloth',{n:'Lumière Couture',cols:[0x111111,0xc9a24a,0xf6f2ea]})})}
     else{F(I,x+1.6,6.8,0,1.4,.45,fCounter(2.8));[[-2,5.4],[-1.4,7.4]].forEach(q=>bistroSet25(I,x+q[0],q[1]));I.spots.push({x:x,z:4.6,r:2.4,t:'E: Café Élan · sipariş ver ☕',fn:()=>openMenu('Café Élan',MENU_HT)})}});
-  F(I,-6,-2,0,.5,.5,fPlant);F(I,6,-2,0,.5,.5,fPlant);F(I,-21.6,-2,0,.5,.5,fPlant);F(I,20.6,-3.2,0,1.2,1.6,fEscal);I.spots.push({x:18.4,z:-3.4,r:2,t:'E: 🛗 2. kat · oyuncak & lego',fn:()=>enter('mall_hilltown2')},{x:18.4,z:-.6,r:1.7,t:'E: 🛗 3. kat · yemek katı',fn:()=>enter('mall_hilltown3')});
+  F(I,-6,-2,0,.5,.5,fPlant);F(I,6,-2,0,.5,.5,fPlant);F(I,-21.6,-2,0,.5,.5,fPlant);F(I,20.6,-2.5,0,.95,3.4,fEscal2);I.spots.push({x:18.4,z:-3.4,r:2,t:'E: 🛗 2. kat · oyuncak & lego',fn:()=>enter('mall_hilltown2')},{x:18.4,z:-.6,r:1.7,t:'E: 🛗 3. kat · yemek katı',fn:()=>enter('mall_hilltown3')});
   const lk=[{shirt:0x111111,pants:0x1b1b1f,hair:0x2a2018,top:'ceket',jacket:0x111111},{shirt:0xe8d8b8,pants:0x4a4a52,hair:0x9a6a3a,hs:'uzun',fem:true},{shirt:0x6a2a8a,pants:0x1b1b1f,hair:0x1a1414,hs:'topuz',fem:true}];
   [[-14,-3,-14,0,14,0],[8,-4,-8,-4,8,-1],[-2,1.5,16,1.5,-18,1.5]].forEach((r,i)=>{const p=person(lk[i]);W.add(p);const a={p:p,pts:[[r[0],r[1]],[r[2],r[3]],[r[4],r[5]]],i:0,x:r[0],z:r[1]};(I.walk||(I.walk=[])).push(a)});
   I.tick=(dt,t)=>{(I.walk||[]).forEach(a=>{const tg=a.pts[a.i],dx=tg[0]-a.x,dz=tg[1]-a.z,d=Math.hypot(dx,dz);if(d<.2)a.i=(a.i+1)%a.pts.length;else{a.x+=dx/d*1.4*dt;a.z+=dz/d*1.4*dt;a.p.rotation.y=Math.atan2(dx,dz)}a.p.position.set(a.x,0,a.z);walkAnim(a.p,true,t)})};
@@ -3754,7 +3756,7 @@ function recep(I){if(I.recep)return;const a=mkAgent('danisma','Danışma · Ahme
 
 /* ================= v28: Oğuz evde serbest, tabelalar, stad meydanı, deniz shader'ı, FPS sınırı ================= */
 if(SET.fps==null)SET.fps='auto';
-function fpsCap(){return SET.fps==='30'?30:SET.fps==='60'?60:SET.fps==='auto'?(isTouch?30:0):0}
+function fpsCap(){return SET.fps==='30'?30:SET.fps==='60'?60:SET.fps==='auto'?60:0}
 /* deniz dalgası artık GPU'da: her karede on binlerce noktayı işlemciyle güncellemiyoruz */
 const SEAU={value:0};
 seaMat.onBeforeCompile=sh=>{sh.uniforms.uT=SEAU;sh.vertexShader='uniform float uT;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\n vec4 wq=modelMatrix*vec4(position,1.0);transformed.y+=.14*sin(wq.x*.35+uT*1.2)+.1*sin(wq.z*.3-uT*.9)+.06*sin((wq.x+wq.z)*.8+uT*2.0);')};seaMat.needsUpdate=true;
@@ -3846,7 +3848,7 @@ function galleryOpen(name){const d=$('styl');uiPC=true;d.classList.remove('bld',
 const fEscal=g=>{const m=std(0xc8ccd4,{metalness:.5,roughness:.3});const s=hBox(1.6,.2,4,0x2a2a30,0,1.2,0,g);s.rotation.x=-.5;[-.85,.85].forEach(x=>{const r=hBox(.1,.9,4.2,m,x,1.6,0,g);r.rotation.x=-.5});hBox(1.8,.1,1,0x9a9aa4,0,.05,2.1,g)};
 function toyShop(nm,items){actionMenu('🧸 '+nm,items.map(it=>[it[0],it[1]+' · '+it[2]+'🪙',()=>{if(!canPay(it[2])){toast('Yeterli 🪙 yok');return}pay(it[2]);INV.push({n:it[1],e:it[0],toy:true,u:null});mood=clamp(mood+6,0,100);toast(it[0]+' '+it[1]+' çantana eklendi 🎒 (Gökay\'a hediye edebilirsin)')}]))}
 function mallFloor(I,title,back){I.title=title;I.back='mall_hilltown';I.backLabel='⬇ Zemin kata in';I.zoom=isTouch?7.4:9.6;room(I,44,16,{wall:'#f3eadc',trim:0xc9a24a,tile:['#f6f2ea','#e2d8c4'],winW:3.4});
-  F(I,-20,-2,0,1.2,1.6,fEscal);I.spots.push({x:-18,z:-2,r:2,t:'E: 🛗 Yürüyen merdiven · zemin kat',fn:()=>enter('mall_hilltown')});I.spawn=[-17.6,-3.4];
+  F(I,-20,-2.5,0,.95,3.4,fEscal2);I.spots.push({x:-18,z:-2,r:2,t:'E: 🛗 Yürüyen merdiven · zemin kat',fn:()=>enter('mall_hilltown')});I.spawn=[-17.6,-3.4];
   const kid=[{shirt:0xf4c542,pants:0x2a3a6a,hair:0x4a2c1a,scale:.72},{shirt:0xff5fa2,pants:0x1d2a4a,hair:0x6b3b1e,scale:.72,hs:'atkuyrugu',fem:true},{shirt:0x3a6a9a,pants:0x2a2a38,hair:0x2a2018},{shirt:0xe8d8b8,pants:0x4a4a52,hair:0x9a6a3a,hs:'uzun',fem:true}];
   I.walk=[];[[-12,0,12,0],[8,-1,-14,-1],[-4,3,16,3],[14,2,-6,2]].forEach((r,i)=>{const p=person(kid[i]);W.add(p);I.walk.push({p:p,pts:[[r[0],r[1]],[r[2],r[3]]],i:0,x:r[0],z:r[1]})});
   I.tick=(dt,t)=>{I.walk.forEach(a=>{const tg=a.pts[a.i],dx=tg[0]-a.x,dz=tg[1]-a.z,d=Math.hypot(dx,dz);if(d<.2)a.i=(a.i+1)%a.pts.length;else{a.x+=dx/d*1.3*dt;a.z+=dz/d*1.3*dt;a.p.rotation.y=Math.atan2(dx,dz)}a.p.position.set(a.x,0,a.z);walkAnim(a.p,true,t)});(I.crowd||[]).forEach(c=>c.tick(t))}}
@@ -3880,6 +3882,41 @@ function stadFans(x,z,id){const S=STAD[id],fz=z+15.2;
 $('zin').innerHTML='<svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 5v14M5 12h14" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg>';
 $('zout').innerHTML='<svg viewBox="0 0 24 24" width="20" height="20"><path d="M5 12h14" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg>';
 
+/* ================= v30: yolculuk süresi, yürüyen merdiven, Hilltown kafeleri, optimizasyon ================= */
+if(SET.trip==null)SET.trip='auto';
+function tripM(m){const k={'30':660,'45':990,'60':1320,'120':2640}[SET.trip];if(k){const hw=DR.rc&&DR.rc.noTraffic;return hw&&!TOLL?Math.round(k*1.5):k}return shortTest?560:m}
+/* DOM'a yalnız değişince yaz (her karede yazmak yavaşlatıyordu) */
+const _ui={};function uiText(id,v){if(_ui[id]===v)return;_ui[id]=v;$(id).textContent=v}function uiCls(id,c,on){const k=id+'.'+c;if(_ui[k]===on)return;_ui[k]=on;$(id).classList.toggle(c,on)}
+function uiDisp(id,v){const k=id+':d';if(_ui[k]===v)return;_ui[k]=v;$(id).style.display=v}
+/* uzak nesneleri gizle (mesafe tabanlı görünürlük ayıklaması) + uzaktaki insanların gölgesini kapat */
+const CULL={t:0};
+function cullBuild(G){if(G.userData.cull)return;const L=[];G.children.forEach(o=>{if(o===player||o===dog||o===myCar||(OG.p&&o===OG.p)||o.userData.noCull)return;if(o.isGroup||o.isSprite){let n=0;o.traverse(q=>{if(q.isMesh)n++});if(n>=3||o.isSprite){o.updateMatrixWorld();L.push(o)}}
+    if(o.userData&&o.userData.legs&&o!==player){o.traverse(q=>{if(q.isMesh)q.castShadow=false})}});G.userData.cull=L}
+function cullTick(dt){if(mode!=='world'||!activeD)return;CULL.t-=dt;if(CULL.t>0)return;CULL.t=.12;const G=activeD.G;if(!G.userData.cull)cullBuild(G);
+  const a=innerWidth/innerHeight,R=zoom*Math.max(a,1.6)*1.25+14,cx=camT.x-activeD.ox,cz=camT.z-activeD.oz,R2=R*R;
+  for(const o of G.userData.cull){if(!o.parent)continue;const dx=o.position.x-cx,dz=o.position.z-cz;const v=dx*dx+dz*dz<R2;if(o.visible!==v&&!o.userData.hiddenByGame)o.visible=v}}
+/* yürüyen merdiven: basamaklı, camlı, siyah tırabzanlı */
+const fEscal2=g=>{const steel=mt(0xb8bcc6,{metalness:.6,roughness:.3}),dark=mt(0x2a2a30),glass=new T.MeshStandardMaterial({color:0xcfe9f5,transparent:true,opacity:.3,roughness:.05});
+  const N=14,L=5.2,H=3.2;for(let i=0;i<N;i++){const z=L/2-i*(L/N),y=(i+1)*(H/N);hBox(1.3,.06,L/N+.02,0x3a3a42,0,y,z,g);hBox(1.3,H/N,.03,0x55555e,0,y-H/N/2,z+L/N/2,g);for(let k=0;k<5;k++)hBox(.02,.01,L/N-.02,0x9a9aa4,-.5+k*.25,y+.035,z,g)}
+  [-1,1].forEach(s=>{const sk=new T.Mesh(new T.BoxGeometry(.12,1,Math.hypot(L,H)+.4),glass);sk.position.set(s*.75,H/2+.5,0);sk.rotation.x=Math.atan2(H,L);g.add(sk);
+    const rl=new T.Mesh(new T.BoxGeometry(.14,.1,Math.hypot(L,H)+.6),dark);rl.position.set(s*.75,H/2+1.05,0);rl.rotation.x=Math.atan2(H,L);g.add(rl);
+    const sd=new T.Mesh(new T.BoxGeometry(.1,.5,Math.hypot(L,H)),steel);sd.position.set(s*.75,H/2-.1,0);sd.rotation.x=Math.atan2(H,L);g.add(sd)});
+  hBox(1.8,.08,1.2,0x9a9aa4,0,.04,L/2+.8,g);hBox(1.8,.08,1.2,0x9a9aa4,0,H+.04,-L/2-.6,g);hBox(1.8,3.2,.2,0xf3eadc,0,H/2,-L/2-1.25,g);
+  const sg=new T.Mesh(new T.PlaneGeometry(1.6,.45),new T.MeshBasicMaterial({map:textSign('▲ ÜST KAT',1.6,.45,'#1b1424','#e8c86a')}));sg.position.set(0,2.2,L/2+1.25);g.add(sg)};
+/* Hilltown önü: iki büyük kafe, şemsiyeler, kalabalık */
+function hillCafes(){const looks=[{shirt:0x3a6a9a,pants:0x2a2a38,hair:0x2a2018},{shirt:0xd86a4a,pants:0x3a3a48,hair:0x6b3b1e,long:true},{shirt:0x2f2f2f,pants:0x35363c,hair:0x1a1414,glasses:true},{shirt:0xe8d8b8,pants:0x4a4a52,hair:0x3b2416,hs:'topuz'},{shirt:0x4a8a5a,pants:0x2a2a30,hair:0x1a1414},{shirt:0xb08ad6,pants:0x3b5b9b,hair:0x9a6a3a,hs:'uzun'}];
+  [[-13,'STARBEANS COFFEE','#0f6b46','#ffffff',0x0f6b46,'#0f6b46'],[13,'KAHVE GALAKSİSİ','#3a1f5a','#ffd27a',0x3a1f5a,'#6a3aa8']].forEach((c,ci)=>{const x=c[0],sgn=ci?1:-1;
+    box(7,3,3.2,std(0xf2ede4),x,1.5,-.8);box(7.4,.3,3.6,std(c[4]),x,3.15,-.8);box(6.4,1.1,.12,std(0x2a2a30),x,1.2,.85);
+    const sg=new T.Mesh(new T.PlaneGeometry(6.4,.9),new T.MeshBasicMaterial({map:textSign(c[1],6.4,.9,c[2],c[3])}));signMats.push(sg.material);sg.position.set(x,3.7,.82);W.add(sg);
+    const logo=new T.Mesh(new T.CircleGeometry(.6,24),new T.MeshBasicMaterial({map:canvasTex(64,64,(g,w,h)=>{g.fillStyle=c[2];g.beginPath();g.arc(32,32,31,0,7);g.fill();g.fillStyle=c[3];g.font='bold 30px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(ci?'🪐':'★',32,34)})}));logo.position.set(x+sgn*3,2.4,.92);W.add(logo);
+    C.boxes.push({x:x,z:-.8,hx:3.7,hz:1.8});C.spots.push({x:x,z:1.9,r:2.4,t:'E: '+c[1]+' · sipariş ver ☕',fn:()=>openMenu(c[1],[{n:'Latte',p:30,h:2,m:12},{n:'Soğuk kahve',p:35,h:2,m:14},{n:'Filtre kahve',p:25,h:1,m:10},{n:'Cheesecake',p:45,h:18,m:12},{n:'Kurabiye',p:20,h:10,m:6}])});
+    const T2=[];for(let r=0;r<2;r++)for(let k=0;k<3;k++){const tx=x-4+k*4,tz=3.6+r*3.6;bistroSet(tx,tz,c[5]);T2.push([tx,tz])}
+    [[x-2,5.4],[x+2,5.4]].forEach(p=>{parasol(p[0],p[1],c[5]);const big=new T.Mesh(new T.ConeGeometry(2.9,.9,10),std(c[4]));big.position.set(p[0],3.05,p[1]);big.castShadow=true;W.add(big)});
+    T2.forEach((t,i)=>{if(i===2&&ci===0)return;[-1,1].forEach((s,j)=>{if((i+j+ci)%3===2)return;const n=seatedNpc(W,t[0]+s*.85,t[1],s>0?-Math.PI/2:Math.PI/2,looks[(i*2+j+ci)%looks.length],1);C.anim.push(n.tick)})});
+    const q=[];for(let k=0;k<3;k++){const p=person(looks[(k+ci*3)%looks.length]);p.position.set(x+sgn*-1+k*.9*sgn,0,2.6+k*.15);p.rotation.y=Math.PI;W.add(p);q.push(p)}const ph=rnd()*6;C.anim.push(t=>q.forEach((p,k)=>{p.userData.arms[0].rotation.x=-.3+Math.sin(t*.8+ph+k)*.15}))})}
+/* nesne başı kare kancası */
+function life30(dt){cullTick(dt)}
+
 /* ---------- döngü ---------- */
 const clock=new T.Clock();let hudT=0;
 if(/[?&]debug/.test(location.search))window.PW={ev:function(s){return eval(s)},renderer:renderer,scene:scene,iscene:iscene,get mode(){return mode},get D(){return D},get pl(){return pl}};
@@ -3899,7 +3936,7 @@ function frameBody(){
       const tx=pl.x-Math.sin(pl.face)*1.8,tz=pl.z-Math.cos(pl.face)*1.8,ddx=tx-dg.x,ddz=tz-dg.z,dd=Math.hypot(ddx,ddz);let dm=false;
       if(dd>.8){const s=Math.min(dd,(dd>4?9:5.4)*dt),ax=dg.x+ddx/dd*s,az=dg.z+ddz/dd*s;if(!blockedW(ax,az,.3)){dg.x=ax;dg.z=az}dg.face=Math.atan2(ddx,ddz);dm=true}
       dog.position.set(dg.x,0,dg.z);dog.rotation.y=dg.face-Math.PI/2;dog.userData.legs.forEach((lg,i)=>lg.rotation.z=dm?Math.sin(t*14+i*1.6)*.7:0);
-      const A=activeD;A.walkers.forEach(n=>{n.u+=n.sp*n.dir*dt;if(n.u>1){n.u=1;n.dir=-1}if(n.u<0){n.u=0;n.dir=1}const p=n.c.getPointAt(n.u),tg=n.c.getTangentAt(n.u).multiplyScalar(n.dir);n.p.position.set(p.x,0,p.z);n.p.rotation.y=Math.atan2(tg.x,tg.z);walkAnim(n.p,true,t+n.sp*30)});
+      const A=activeD;A.walkers.forEach(n=>{if(!n.p.visible)return;n.u+=n.sp*n.dir*dt;if(n.u>1){n.u=1;n.dir=-1}if(n.u<0){n.u=0;n.dir=1}const p=n.c.getPointAt(n.u),tg=n.c.getTangentAt(n.u).multiplyScalar(n.dir);n.p.position.set(p.x,0,p.z);n.p.rotation.y=Math.atan2(tg.x,tg.z);walkAnim(n.p,true,t+n.sp*30)});
       if(A.drivers.length||A.sig)driversTick(A,dt);
       A.anim.forEach(f=>f(t));if(!A.noSea){updateSeaGPU(t,pl.x+A.ox,pl.z+A.oz);sea.position.y=A.seaY!=null?A.seaY:-.5}
     }else if(curI.npcs){curI.npcs.forEach(n=>{
@@ -3911,8 +3948,8 @@ function frameBody(){
     const list=inI?curI.spots:activeD.spots;near=null;let bd=1e9;
     for(const s of list){if(s.cond&&!s.cond())continue;const dd=Math.hypot(s.x-pl.x,s.z-pl.z);if(dd<s.r&&dd<bd){bd=dd;near=s}}
     if(!inI)for(const w of activeD.walkers){if(!w.who)continue;const dd=Math.hypot(w.p.position.x-pl.x,w.p.position.z-pl.z);if(dd<3&&dd<bd){bd=dd;const who=w.who;near={t:'E: '+BONDS[who].n+' ile sohbet et 💬',fn:()=>talk(who)}}}
-    const pr=$('prompt');const can=!!(near&&!busy&&!uiPC);if(can){pr.textContent=(isTouch?'🖐️ ':'F · ')+near.t.replace(/^E: /,'');pr.classList.add('on')}else pr.classList.remove('on');$('actb').classList.toggle('on',can);
-    {const eb=$('exitb'),show=inI&&!busy&&!uiPC;eb.style.display=show?'inline-block':'none';if(show)eb.textContent=(curI.name==='of2'||curI.name==='of3')?'🛗 Zemin kata in':(curI.back?(curI.backLabel||'🚪 AVM koridoruna dön'):'🚪 Dışarı çık')}
+    const can=!!(near&&!busy&&!uiPC);if(can)uiText('prompt',(isTouch?'🖐️ ':'F · ')+near.t.replace(/^E: /,''));uiCls('prompt','on',can);uiCls('actb','on',can);
+    {const show=inI&&!busy&&!uiPC;uiDisp('exitb',show?'inline-block':'none');if(show)uiText('exitb',(curI.name==='of2'||curI.name==='of3')?'🛗 Zemin kata in':(curI.back?(curI.backLabel||'🚪 AVM koridoruna dön'):'🚪 Dışarı çık'))}
     zoom+=(zoomT-zoom)*Math.min(1,dt*6);const a=innerWidth/innerHeight;cam.left=-zoom*a;cam.right=zoom*a;cam.top=zoom;cam.bottom=-zoom;cam.updateProjectionMatrix();
     const target=inI?(BUILD.on&&BUILD.cx!=null?tmp.set(BUILD.cx,0,BUILD.cz):tmp.set(pl.x*.6,0,pl.z*.6)):tmp.set(pl.x+activeD.ox,0,pl.z+activeD.oz);if(LOOK.x||LOOK.z){target.x+=LOOK.x;target.z+=LOOK.z}camT.lerp(target,Math.min(1,dt*5));
     cam.position.copy(camT).add(camOff);cam.lookAt(camT);
