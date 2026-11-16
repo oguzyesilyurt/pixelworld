@@ -260,6 +260,11 @@ button{-webkit-tap-highlight-color:transparent}
 @media (max-width:640px){#pick .pk-l{width:100%}#pick{background:linear-gradient(180deg,rgba(26,16,48,.85),rgba(46,22,66,.7))}#pick .pk-r{display:none}}
 body.drive #goalb,body.drive #actchip,body.drive #bubbles{display:none!important}
 #pick [hidden]{display:none!important}
+#pick .pk-saves{display:grid;gap:7px}#pick .pk-saves:empty{display:none}#pick .pk-saves>small{font-size:12px;opacity:.75;letter-spacing:.06em;text-transform:uppercase}
+#pick .svc{display:flex;align-items:center;gap:10px;width:100%;text-align:left;font:inherit;color:var(--ink);padding:10px 12px;border-radius:14px;border:1px solid rgba(95,211,141,.5);background:rgba(95,211,141,.14);cursor:pointer}
+#pick .svc b{flex:1;font-size:15px}#pick .svc small{opacity:.85;font-size:12px}#pick .pk-l{justify-content:flex-start!important}#pick .svc>i{font-style:normal;font-weight:700;background:linear-gradient(135deg,var(--acc),var(--acc2));padding:6px 12px;border-radius:12px;font-size:13px}
+#pick .pkc{position:relative}#pick .pkc em{position:absolute;top:3px;right:5px;font-style:normal;font-size:11px}
+#savedot{font-size:11px;opacity:0;transition:opacity .4s;margin-left:4px}#savedot.on{opacity:.85}
 #dhud{flex-wrap:nowrap!important;gap:12px!important;width:min(620px,94vw);justify-content:space-between!important;font-variant-numeric:tabular-nums}#dhud .sp{min-width:78px!important;flex:none}#dhud .col{width:168px;min-width:0;flex:none}#dhud .col>span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#dhud .bar{width:100%!important}
 @media (max-width:700px){#dhud .col{width:128px}#dhud .col:last-child{display:none}}
 #bar .rb{padding:0!important;display:grid!important;place-items:center!important;line-height:0!important;font-size:0!important;background:linear-gradient(160deg,rgba(40,34,60,.82),rgba(22,18,36,.82))!important}#bar .rb svg{display:block}
@@ -291,7 +296,7 @@ body.pick #hud,body.pick #topr,body.pick #actb,body.pick #bar,body.pick #where,b
 <div id="stage"></div>
 <canvas id="rain"></canvas>
 <div id="hud" class="panel">
-  <div class="hd"><div class="av" id="avatar"></div><div class="nm"><b id="pname">Sen</b><small id="pclock">Gün 1 · 09:00</small></div><div id="coinr">🪙 <b id="coins">0</b></div></div>
+  <div class="hd"><div class="av" id="avatar"></div><div class="nm"><b id="pname">Sen</b><small id="pclock">Gün 1 · 09:00</small><small id="savedot">💾</small></div><div id="coinr">🪙 <b id="coins">0</b></div></div>
   <div class="needs">
     <div class="nd" title="Açlık"><span id="hi">🍽️</span><div class="bar"><i id="hf" style="width:70%"></i></div></div>
     <div class="nd" title="Enerji"><span>⚡</span><div class="bar"><i id="ef" style="width:80%"></i></div></div>
@@ -344,6 +349,7 @@ body.pick #hud,body.pick #topr,body.pick #actb,body.pick #bar,body.pick #where,b
   <div class="pk-l">
     <div class="pk-logo"><small>Buludex</small><b>PixelWorld</b></div>
     <div class="pk-tag">Kimi oynuyorsun?</div>
+    <div class="pk-saves" id="pksaves"></div>
     <div class="pk-chars" id="pkchars"></div>
     <div class="pk-menu" id="pkmenu">
       <button id="pkcont" class="pri">▶ Devam et<small id="pkinfo"></small></button>
@@ -3217,7 +3223,7 @@ function pickRender(dt,t){if(!PV){PV={s:new T.Scene(),c:new T.PerspectiveCamera(
 const CHSUB={kiz:'Çiğli · 35 CUL · Oğuz\'un sevgilisi',sen:'Çiğli · 35 CUL · Buludex',abla:'Karabağlar · 35 MKK · abla',esi:'Karabağlar · 35 MKK · enişte',yegen:'Karabağlar · ailenin neşesi'};
 function goChar(k){tryLandscape();SAVE=null;loadGame(k);if(!PNAME)PNAME=(SAVE&&SAVE.x&&SAVE.x.name)||CH[k].n;startGame(k)}
 function initMenu(){const box=$('pkchars');box.innerHTML='';CHORDER.forEach(c=>{const b=el('button','pkc'+(PKC===c[0]?' on':''));b.appendChild(el('span','',c[1]));b.appendChild(el('small','',c[2]));b.onclick=()=>{PKC=c[0];SET.lastChar=PKC;saveSet();$('pknewf').hidden=true;$('pkmenu').hidden=false;initMenu()};box.appendChild(b)});
-  const S=readSave(PKC),has=!!(S&&S.v),nm=CH[PKC].n;
+  const S=readSave(PKC),has=!!(S&&S.v),nm=CH[PKC].n;menuSaves();
   $('pkcont').style.display=has?'block':'none';$('pknew').classList.toggle('pri',!has);$('pkcname').textContent=nm||CH[PKC].n;$('pkcsub').textContent=CHSUB[PKC]||'';
   if(has)$('pkinfo').textContent=(nm?nm+' · ':'')+'Gün '+((S.home&&S.home.day)||1)+' · 🪙 '+(S.coins|0);
   $('pkcont').onclick=()=>{PNAME=nm||CH[PKC].n;goChar(PKC)};
@@ -3726,7 +3732,7 @@ function sealSave(o){o.sv=SAVEV;o.ck=null;const js=JSON.stringify(o);o.ck=fnv(js
 function openSave(raw){if(!raw)return null;let o;try{o=JSON.parse(raw)}catch(e){return null}if(!o||typeof o!=='object')return null;if(o.ck){const ck=o.ck;o.ck=null;const ok=fnv(JSON.stringify(o)+'|bx27')===ck;o.ck=ck;if(!ok){o.tampered=true}}
   if(typeof o.coins!=='number'||!isFinite(o.coins)||o.coins<-1e6||o.coins>1e8)o.coins=120;return o}
 function writeSave(k,obj){const key=saveKey(k),cur=PWStore.get(key);if(cur&&Date.now()-bkT>3e5){bkT=Date.now();const b=[PWStore.get(key+'_b1'),PWStore.get(key+'_b2')];PWStore.set(key+'_b3',b[1]||'');PWStore.set(key+'_b2',b[0]||'');PWStore.set(key+'_b1',cur)}
-  return PWStore.set(key,sealSave(obj))}
+  const raw=sealSave(obj);let ok=PWStore.set(key,raw);if(!ok){['_b1','_b2','_b3'].forEach(s=>PWStore.del(key+s));ok=PWStore.set(key,raw)}if(ok){const d=document.getElementById('savedot');if(d){d.classList.add('on');clearTimeout(d._t);d._t=setTimeout(()=>d.classList.remove('on'),900)}}else if(!writeSave.warned){writeSave.warned=1;toast('⚠️ Kayıt yazılamadı: telefonda depolama dolu ya da gizli sekmede olabilirsin')}return ok}
 function readSaveSafe(k){const key=saveKey(k);for(const kk of [key,key+'_b1',key+'_b2',key+'_b3']){const o=openSave(PWStore.get(kk));if(o&&o.v){if(kk!==key)toast('Kayıt bozuktu, yedekten geri yüklendi 💾');return o}}return null}
 let bkT=0;
 function exportSave(){if(!me)return;saveGame();const raw=PWStore.get(saveKey(me.key));const b=new Blob([raw||''],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='pixelworld-'+me.key+'-gun'+HOME.day+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}
@@ -3916,6 +3922,13 @@ function hillCafes(){const looks=[{shirt:0x3a6a9a,pants:0x2a2a38,hair:0x2a2018},
     const q=[];for(let k=0;k<3;k++){const p=person(looks[(k+ci*3)%looks.length]);p.position.set(x+sgn*-1+k*.9*sgn,0,2.6+k*.15);p.rotation.y=Math.PI;W.add(p);q.push(p)}const ph=rnd()*6;C.anim.push(t=>q.forEach((p,k)=>{p.userData.arms[0].rotation.x=-.3+Math.sin(t*.8+ph+k)*.15}))})}
 /* nesne başı kare kancası */
 function life30(dt){cullTick(dt)}
+
+/* ================= v31: kayıtlı oyunlar menüsü, kalıcı depolama ================= */
+function menuSaves(){const box=$('pksaves');if(!box)return;box.innerHTML='';const L=[];CHORDER.forEach(c=>{const S=readSave(c[0]);if(S&&S.v)L.push([c,S])});
+  document.querySelectorAll('#pkchars .pkc').forEach((b,i)=>{const c=CHORDER[i];if(c&&L.some(q=>q[0][0]===c[0])&&!b.querySelector('em'))b.appendChild(el('em','','💾'))});
+  if(!L.length)return;box.appendChild(el('small','','💾 Kayıtlı oyunlar'));L.sort((a,b)=>(b[1].t||0)-(a[1].t||0)).forEach(([c,S])=>{const b=el('button','svc');b.appendChild(el('span','',c[1]));const t=el('b','',c[2]);t.appendChild(el('small','',' · Gün '+((S.home&&S.home.day)||1)+' · 🪙 '+(S.coins|0)+(S.t?' · '+new Date(S.t).toLocaleString('tr-TR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'')));b.appendChild(t);b.appendChild(el('i','','▶ Devam'));
+    b.onclick=()=>{PKC=c[0];SET.lastChar=PKC;saveSet();PNAME=CH[PKC].n;goChar(PKC)};box.appendChild(b)})}
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{})}catch(e){}
 
 /* ---------- döngü ---------- */
 const clock=new T.Clock();let hudT=0;
