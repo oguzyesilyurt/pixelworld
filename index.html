@@ -3191,7 +3191,7 @@ function openSettings(){openModal('⚙️ Ayarlar',b=>{
   const bt=el('div');bt.style.cssText='display:flex;gap:8px;flex-wrap:wrap;margin-top:6px';const add=(t,fn,c)=>{const x=el('button','btn'+(c?' '+c:''),t);x.onclick=fn;bt.appendChild(x)};
   {const r=el('div','sr');r.appendChild(el('span','','💙 Sevgilinin adı'));const i=document.createElement('input');i.value=SET.gfName||'';i.placeholder='Denel';i.maxLength=16;i.style.cssText='width:130px;font:inherit;padding:6px 9px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.08);color:var(--ink)';i.addEventListener('keydown',e=>e.stopPropagation());i.oninput=()=>{SET.gfName=i.value.trim();saveSet()};r.appendChild(i);g3.appendChild(r)}
   if(mode!=='pick'){add('👥 Birlikte oyna',()=>{closeModal();phoneApp('mp')},'pri');add('💾 Kaydet',()=>{saveGame();toast('💾 Kaydedildi · Gün '+HOME.day+' · '+hhmm(GT))},'pri');add('❓ Kontroller',()=>{closeModal();showCtrl()});add('🏠 Ana menü',()=>{saveGame();location.reload()})}
-  if(mode!=='pick')add('📤 Kaydı dışa aktar',()=>exportSave());add('📥 Kayıt yükle',()=>importSave());add('🗑️ Kaydı sil',()=>{if(!confirm('Bu karakterin tüm ilerlemesi silinsin mi?'))return;try{localStorage.removeItem(saveKey(me?me.key:PKC))}catch(e){}SAVE=null;window.removeEventListener('beforeunload',saveGame);me=null;location.reload()});b.appendChild(bt)})}
+  if(mode!=='pick')add('📤 Kaydı dışa aktar',()=>exportSave());add('📥 Kayıt yükle',()=>importSave());add('📲 Cihazlar arası eşitle',()=>{closeModal();setTimeout(syncOpen,60)});add('🗑️ Kaydı sil',()=>{if(!confirm('Bu karakterin tüm ilerlemesi silinsin mi?'))return;try{localStorage.removeItem(saveKey(me?me.key:PKC))}catch(e){}SAVE=null;window.removeEventListener('beforeunload',saveGame);me=null;location.reload()});b.appendChild(bt)})}
 function openHelp(){openModal('❓ Nasıl oynanır?',b=>{const h=el('div','help');b.appendChild(h);[
   '🎮 <b>Hareket:</b> Telefonda ekranı sürükle, bilgisayarda WASD / ok tuşları. Etkileşim için 🖐️ butonu ya da F/E.',
   '❤️ <b>İhtiyaçlar:</b> Açlık, enerji, hijyen, eğlence ve sosyallik zamanla düşer. Hepsi iyi olursa ruh halin yükselir.',
@@ -5459,6 +5459,42 @@ infill4=function(){if(!C||C.bounds||C.air||C.inf4)return;C.inf4=1;C.trk=null;con
   for(let z=-58;z<=50;z+=4)for(let x=-10;x<=70;x+=4){if(cnt.low>=14)break;if(!areaLow(x,z,1.9))continue;const sp=C.spawn||[0,0];if(Math.hypot(sp[0]-x,sp[1]-z)<6)continue;lowDecor38(x,z,cnt.low);cnt.low++}
   C.inf4n=cnt};
 
+/* ================= v40: kalıcı kayıt (güncellemede kaybolmaz) + cihazlar arası eşitleme ================= */
+/* tarayıcıdan kalıcı depolama iste (telefon yer açarken silmesin) */
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persisted().then(p=>{if(!p)navigator.storage.persist().catch(()=>{})}).catch(()=>{})}catch(e){}
+/* --- IndexedDB yedek aynası: localStorage bozulur/silinirse buradan geri gelir --- */
+const IDB40={db:null};
+function idbOpen(cb){if(IDB40.db)return cb(IDB40.db);try{const r=indexedDB.open('pixelworld',1);r.onupgradeneeded=()=>{r.result.createObjectStore('kv')};r.onsuccess=()=>{IDB40.db=r.result;cb(IDB40.db)};r.onerror=()=>cb(null)}catch(e){cb(null)}}
+function idbPut(k,v){idbOpen(db=>{if(!db)return;try{db.transaction('kv','readwrite').objectStore('kv').put(v,k)}catch(e){}})}
+function idbAll(cb){idbOpen(db=>{if(!db)return cb({});try{const out={},tx=db.transaction('kv','readonly'),st=tx.objectStore('kv'),rq=st.openCursor();rq.onsuccess=()=>{const c=rq.result;if(c){out[c.key]=c.value;c.continue()}else cb(out)};rq.onerror=()=>cb(out)}catch(e){cb({})}})}
+const _writeSave40=writeSave;writeSave=function(k,obj){const ok=_writeSave40(k,obj);try{const key=saveKey(k),raw=PWStore.get(key);if(raw)idbPut(key,raw)}catch(e){}return ok};
+const saveT=raw=>{const o=openSave(raw);return o&&o.v?(o.t||1):0};
+function idbRestore(){idbAll(all=>{let n=0;Object.keys(all).forEach(k=>{if(!/^pw_save(_[a-z]+)?$/.test(k))return;const loc=PWStore.get(k);if(saveT(all[k])>saveT(loc)){PWStore.set(k,all[k]);n++}});
+  Object.keys(localStorage).forEach(k=>{if(/^pw_save(_[a-z]+)?$/.test(k)&&!all[k])idbPut(k,localStorage.getItem(k))});if(n&&!me&&mode==='pick'){try{initMenu()}catch(e){}toast('💾 '+n+' kayıt yedekten geri yüklendi')}})}
+setTimeout(idbRestore,300);
+/* --- güvenlik: kayıt okunamadıysa boş oyunla gerçek kaydın üstüne ASLA yazma --- */
+let LOADFAIL=false,SYNCLOCK=false;
+const _loadGame40=loadGame;loadGame=function(k){let had=false;try{had=!!readSaveSafe(k||'kiz')}catch(e){}_loadGame40(k);if(had&&!SAVE){LOADFAIL=true;setTimeout(()=>notify('⚠️ Kayıt açılamadı','Kaydın korunuyor, üzerine yazılmadı. Sayfayı yenile; düzelmezse "📲 Cihazlar arası eşitle" ya da "📤 Dışa aktar" ile yedeğini al.',[{t:'Yenile',fn:()=>location.reload()}]),2500)}};
+const _saveGame40=saveGame;saveGame=function(){if(LOADFAIL||SYNCLOCK)return;return _saveGame40()};
+window.__pwSave=()=>{try{saveGame()}catch(e){}};
+/* --- telefon ⇄ bilgisayar eşitleme (kodla, internet üzerinden doğrudan; her karakterde en yeni kayıt kazanır) --- */
+const SYNC40={p:null};
+function syncCollect(){if(me)try{saveGame()}catch(e){}const o={};Object.keys(localStorage).forEach(k=>{if(/^pw_save(_[a-z]+)?$/.test(k)||/^pw_pin_/.test(k))o[k]=localStorage.getItem(k)});return o}
+function syncMerge(saves){const got=[];let mine=false;Object.keys(saves||{}).forEach(k=>{const v=saves[k];if(/^pw_pin_/.test(k)){if(!localStorage.getItem(k))PWStore.set(k,v);return}if(!/^pw_save(_[a-z]+)?$/.test(k))return;
+    const tIn=saveT(v),tLoc=saveT(PWStore.get(k));if(tIn>tLoc+1000){const cur=PWStore.get(k);if(cur)PWStore.set(k+'_b1',cur);PWStore.set(k,v);idbPut(k,v);const o=openSave(v);const ch=(o.x&&o.x.ch)||(k==='pw_save'?'kiz':k.slice(8));got.push((CH[ch]?CH[ch].n:ch)+' · Gün '+((o.home&&o.home.day)||1));if(me&&saveKey(me.key)===k)mine=true}});return {got:got,mine:mine}}
+function syncClose(){try{SYNC40.p&&SYNC40.p.destroy()}catch(e){}SYNC40.p=null}
+function syncChan(c,st){c.on('open',()=>{st('🔗 Bağlandı · kayıtlar karşılaştırılıyor…');try{c.send({t:'pwsync',saves:syncCollect(),dev:isTouch?'telefon':'bilgisayar'})}catch(e){st('Gönderilemedi')}});
+  c.on('data',d=>{if(!d||d.t!=='pwsync')return;const r=syncMerge(d.saves);if(!SYNC40.sent){SYNC40.sent=1;try{c.send({t:'pwsync',saves:syncCollect(),dev:isTouch?'telefon':'bilgisayar'})}catch(e){}}
+    st(r.got.length?('✅ '+d.dev+' cihazından daha yeni kayıt alındı: '+r.got.join(', ')):'✅ Eşit · bu cihazdaki kayıtlar zaten en yeni (karşı cihaz güncellendi)');
+    if(r.mine){SYNCLOCK=true;window.removeEventListener('beforeunload',saveGame);setTimeout(()=>{toast('🔄 Yeni kayıt yükleniyor…');location.reload()},2200)}else if(!me&&mode==='pick'){try{initMenu()}catch(e){}}setTimeout(syncClose,4000)})}
+function syncOpen(){openModal('📲 Telefon ⇄ Bilgisayar',b=>{const st=el('div','sub','Aynı oyunu iki cihazda sürdürmek için: bir cihazda "Kod oluştur"a bas, diğerinde kodu girip bağlan. Her karakter için en yeni kayıt iki cihaza da yazılır.');b.appendChild(st);
+  const set=t=>{st.textContent=t};const big=el('div','');big.style.cssText='font:bold 34px monospace;letter-spacing:6px;text-align:center;margin:10px 0';b.appendChild(big);
+  const a=el('button','btn pri','📤 Kod oluştur (bu cihaz beklesin)');a.style.width='100%';a.onclick=()=>{syncClose();SYNC40.sent=0;const code=Math.random().toString(36).slice(2,8).toUpperCase().replace(/[^A-Z0-9]/g,'7');set('Bağlantı hazırlanıyor…');
+    mpLoad(()=>{const p=new Peer('pwsync-'+code);SYNC40.p=p;p.on('open',()=>{big.textContent=code;set('Diğer cihazda bu kodu gir 👆 (bu pencere açık kalsın)')});p.on('connection',c=>{SYNC40.sent=1;syncChan(c,set)});p.on('error',e=>set('Bağlantı hatası: '+(e&&e.type||e)))})};b.appendChild(a);
+  const r=el('div');r.style.cssText='display:flex;gap:8px;margin-top:10px';const i=document.createElement('input');i.placeholder='Kodu gir';i.maxLength=8;i.style.cssText='flex:1;min-width:0;font:inherit;padding:9px 11px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.08);color:var(--ink);text-transform:uppercase';i.addEventListener('keydown',e=>e.stopPropagation());
+  const j=el('button','btn pri','📥 Bağlan');j.onclick=()=>{const code=(i.value||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');if(!code){set('Kodu yaz');return}syncClose();SYNC40.sent=0;set('Bağlanıyor…');mpLoad(()=>{const p=new Peer();SYNC40.p=p;p.on('open',()=>{const c=p.connect('pwsync-'+code,{serialization:'json'});syncChan(c,set)});p.on('error',e=>set('Bağlanamadı: '+(e&&e.type||e)))})};
+  r.appendChild(i);r.appendChild(j);b.appendChild(r);b.appendChild(el('div','sub','İpucu: Uygulamayı silip yeniden ekleme! Güncellemeler artık kendiliğinden gelir. Ekstra güvence için ara sıra "📤 Kaydı dışa aktar" ile dosya yedeği al.'))})}
+
 /* ---------- döngü ---------- */
 const clock=new T.Clock();let hudT=0;
 if(/[?&]debug/.test(location.search))window.PW={ev:function(s){return eval(s)},renderer:renderer,scene:scene,iscene:iscene,get mode(){return mode},get D(){return D},get pl(){return pl}};
@@ -5532,6 +5568,9 @@ resize();applyTime(1);frame();
 }catch(err){const e=document.getElementById('err');e.style.display='block';e.textContent='Hata: '+(err&&err.stack||err)}
 })();
 </script>
-<script>if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("sw.js").catch(()=>{})</script>
+<script>if("serviceWorker" in navigator&&location.protocol.startsWith("http")){let hadCtl=!!navigator.serviceWorker.controller,shown=false;
+const banner=()=>{if(shown)return;shown=true;const b=document.createElement('div');b.style.cssText='position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 10px);transform:translateX(-50%);z-index:200;display:flex;gap:10px;align-items:center;padding:10px 14px;border-radius:16px;background:rgba(20,15,34,.92);color:#fff;font:14px Trebuchet MS,sans-serif;box-shadow:0 6px 20px rgba(0,0,0,.4)';b.innerHTML='🆕 Yeni sürüm hazır · ilerlemen korunur';const x=document.createElement('button');x.textContent='Kaydet ve güncelle';x.style.cssText='border:0;border-radius:12px;padding:6px 12px;cursor:pointer;font:inherit;background:#ffb347;color:#2a1a0a';x.onclick=()=>{try{window.__pwSave&&window.__pwSave()}catch(e){}setTimeout(()=>location.reload(),150)};b.appendChild(x);document.body.appendChild(b)};
+navigator.serviceWorker.register("sw.js").then(reg=>{const chk=()=>{try{reg.update()}catch(e){}};setInterval(chk,15*60*1000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)chk()});});
+navigator.serviceWorker.addEventListener('controllerchange',()=>{if(hadCtl)banner();hadCtl=true});}</script>
 </body>
 </html>
