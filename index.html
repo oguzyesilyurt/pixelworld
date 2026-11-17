@@ -6565,6 +6565,96 @@ const _render52=renderer.render.bind(renderer);renderer.render=function(s,c){try
 /* hangi karakterler V3: isimli olanlar (oyuncu, partner, aile, ajanlar, çok oyunculu) + menü önizlemesi */
 const _person52=person;person=function(o){if(SET.v3===false||!(o&&(o.label||o.v3force)))return _person52(o);try{return personV3(o)}catch(e){showErrOnce(e);return _person52(o)}};
 const _slim52=slim38;slim38=function(p){if(p.userData.v3)return;return _slim52(p)};
+/* ================= v53 · Faz 3: 3D karakter stüdyosu, menü akışı, kombinler ================= */
+let STU=null,PEND_LOOK=null;
+const STSKINS=[0xfbe3d0,0xf6d6bd,0xf1c9a0,0xe9c29e,0xd9a77e,0xc08a5e,0x9a6a44,0x6e4a2e],HAIRC=[0x1a1414,0x2b2118,0x3b2416,0x5a3a22,0x7e5a3a,0xa8845e,0xd8b878,0xe8d8b0,0x8a3a2a,0xb8b8c0],EYEC=[0x4a2e1c,0x6a4a2a,0x2a5a8a,0x3a7a5a,0x7a8a4a,0x5a6a7a,0x1a1a1a,0x8a6a3a];
+const CLOTHC=(typeof PCOL!=='undefined'&&PCOL.length)?PCOL.map(q=>q[1]):[0xffffff,0x1a1a1e,0x8a8a92,0x1d2a4a,0x2a6ab0,0x4ab8e0,0x2f8a3a,0xd8322c,0xf4c542,0xff8ab0,0x8a4ad6,0xc8873a,0xe8d8b0,0x6a3a2a];
+const LIPC=[null,0xc06070,0xd8322c,0xb8325a,0xe08a8a,0x8a2a3a,0xc8705a];
+const STTOPS=[['tisort','Tişört'],['gomlek','Gömlek'],['kazak','Kazak'],['sweat','Sweatshirt'],['hoodie','Kapüşonlu'],['zip','Fermuarlı'],['ceket','Ceket'],['elbise','Elbise']],BASIC_TOPS=new Set(['tisort','gomlek','kazak']);
+const STHAIRS=[['kisa','Kısa'],['ortauzun','Orta'],['uzun','Uzun'],['bob','Bob'],['kakul','Kâkül'],['topuz','Topuz'],['atkuyrugu','At kuyruğu'],['kivircik','Kıvırcık'],['kel','Kel']];
+const STBEARDS=[['yok','Yok'],['kirli','Kirli sakal'],['kisa','Kısa'],['uzun','Uzun'],['keci','Keçi']];
+const OUTCATS=[['gunluk','Günlük'],['is','İş'],['spor','Spor'],['gece','Gece'],['davet','Davet'],['yazlik','Yazlık'],['kislik','Kışlık'],['uyku','Uyku']];
+const OUTPRE={gunluk:{top:'tisort',shirt:0xffffff,pants:0x3a5a8a,shoes:0xf2f2f2},is:{top:'ceket',shirt:0xffffff,jacket:0x1d2a4a,pants:0x1d2a4a,shoes:0x1a1a1e},spor:{top:'hoodie',shirt:0x8a8a92,pants:0x1a1a1e,shoes:0xffffff},
+  gece:{top:'gomlek',shirt:0x1a1a1e,pants:0x1a1a1e,shoes:0x1a1a1e},davet:{top:'ceket',shirt:0xffffff,jacket:0x1a1a1e,pants:0x1a1a1e,shoes:0x1a1a1e},yazlik:{top:'tisort',shirt:0x4ab8e0,pants:0xe8d8b0,shoes:0xf2f2f2},kislik:{top:'zip',shirt:0x6a3a2a,inner:0xe8d8b0,pants:0x2a2a30,shoes:0x3a2a1e},uyku:{top:'tisort',shirt:0xb8c8e8,pants:0xb8c8e8,shoes:0xf4f4f4}};
+const OUTF=['top','shirt','pants','jacket','inner','shoes'];
+function baseLook(k){const S=SAVE||readSave(k);let lk=Object.assign({},CH[k].look);if(S&&S.lookv===2&&S.looks&&S.looks[k])lk=Object.assign(lk,S.looks[k]);return lk}
+/* ---------- arayüz ---------- */
+(function(){const st=document.createElement('style');st.textContent=`
+body.studio>*:not(#studio):not(#stage){visibility:hidden!important}
+#studio{position:fixed;inset:0;z-index:96;display:none;font:13px Trebuchet MS,sans-serif;color:#fff;touch-action:none}
+#studio .stsv{position:absolute;inset:0}
+#studio .sttop{position:absolute;left:50%;top:max(8px,env(safe-area-inset-top));transform:translateX(-50%);background:rgba(20,15,34,.8);padding:6px 14px;border-radius:14px;font-weight:bold}
+#studio .stcats{position:absolute;left:max(8px,env(safe-area-inset-left));top:50px;bottom:8px;width:96px;overflow:auto;display:flex;flex-direction:column;gap:5px}
+#studio .stcats button,#studio .stbar button,#studio .stpan button{border:0;border-radius:12px;padding:7px 8px;background:rgba(20,15,34,.82);color:#fff;font:inherit;cursor:pointer}
+#studio .stcats button.on{background:#ff8a5c;color:#2a1a0a}
+#studio .stpan{position:absolute;right:max(8px,env(safe-area-inset-right));top:50px;bottom:8px;width:min(300px,40vw);overflow:auto;background:rgba(20,15,34,.82);border-radius:14px;padding:10px;box-sizing:border-box}
+#studio .stpan h4{margin:6px 0 4px;font-size:13px;color:#ffd0a0}#studio .strow{display:flex;align-items:center;gap:8px;margin:4px 0}#studio .strow span{width:96px;font-size:12px;opacity:.9}#studio input[type=range]{flex:1;accent-color:#ff8a5c}
+#studio .stsw{display:flex;flex-wrap:wrap;gap:5px;margin:4px 0}#studio .stsw i{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid rgba(255,255,255,.25);display:inline-block}#studio .stsw i.on{border-color:#ff8a5c;box-shadow:0 0 0 2px #ff8a5c}
+#studio .stch{display:flex;flex-wrap:wrap;gap:5px}#studio .stch button{padding:5px 8px;border-radius:10px;font-size:12px}#studio .stch button.on{background:#ff8a5c;color:#2a1a0a}#studio .stch button.lk{opacity:.5}
+#studio .stbar{position:absolute;left:112px;right:calc(min(300px,40vw) + 16px);bottom:max(8px,env(safe-area-inset-bottom));display:flex;gap:5px;flex-wrap:wrap;justify-content:center}#studio .stbar button{padding:6px 8px;font-size:12px}@media (max-width:600px){#studio .stcats{top:46px;left:8px;right:8px;bottom:auto;width:auto;flex-direction:row;overflow-x:auto}#studio .stcats button{white-space:nowrap}#studio .stpan{top:auto;left:8px;right:8px;width:auto;bottom:96px;height:34vh}#studio .stbar{left:8px;right:8px}}
+#studio .stbar .go{background:#ff8a5c;color:#2a1a0a;font-weight:bold}`;document.head.appendChild(st)})();
+function studioDom(){let d=document.getElementById('studio');if(d)return d;d=document.createElement('div');d.id='studio';d.innerHTML='<div class="stsv"></div><div class="sttop"></div><div class="stcats"></div><div class="stpan"></div><div class="stbar"></div>';document.body.appendChild(d);
+  ['keydown','keyup'].forEach(e=>d.addEventListener(e,ev=>ev.stopPropagation()));const sv=d.querySelector('.stsv'),pts=new Map();let pd=0;
+  sv.addEventListener('pointerdown',e=>{pts.set(e.pointerId,[e.clientX,e.clientY]);sv.setPointerCapture(e.pointerId)});sv.addEventListener('pointerup',e=>{pts.delete(e.pointerId);pd=0});sv.addEventListener('pointercancel',e=>{pts.delete(e.pointerId);pd=0});
+  sv.addEventListener('pointermove',e=>{if(!STU||!pts.has(e.pointerId))return;const p=pts.get(e.pointerId);if(pts.size===1){STU.yaw-=(e.clientX-p[0])*.01;STU.pitch=clamp(STU.pitch+(e.clientY-p[1])*.005,-.4,.7)}pts.set(e.pointerId,[e.clientX,e.clientY]);
+    if(pts.size===2){const a=[...pts.values()],dd=Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1]);if(pd)STU.dist=clamp(STU.dist*pd/dd,.9,6);pd=dd}});
+  sv.addEventListener('wheel',e=>{if(STU){STU.dist=clamp(STU.dist*(e.deltaY>0?1.1:.9),.9,6);e.preventDefault()}},{passive:false});return d}
+function openStudio(k,look,how,done){const d=studioDom();const L=JSON.parse(JSON.stringify(look||CH[k].look));L.v3=Object.assign(V3D(),L.v3||{});
+  const s=new T.Scene();s.background=new T.Color(0x2a1d3d);s.add(new T.HemisphereLight(0xfff0e6,0x40284a,.95));const dl=new T.DirectionalLight(0xffe8d8,1.1);dl.position.set(-2,5,4);s.add(dl);const rl=new T.DirectionalLight(0x9ac8ff,.5);rl.position.set(3,3,-3);s.add(rl);
+  const fl=new T.Mesh(new T.CylinderGeometry(1.4,1.5,.12,48),std(0xf2e2d6));fl.position.y=-.06;s.add(fl);const rg=new T.Mesh(new T.TorusGeometry(1.45,.03,8,64),new T.MeshBasicMaterial({color:0xff8a5c}));rg.rotation.x=Math.PI/2;s.add(rg);
+  const stool=new T.Mesh(new T.CylinderGeometry(.35,.3,.5,16),std(0x8a6a4a));stool.position.set(0,.25,-.15);stool.visible=false;s.add(stool);
+  STU={k:k,L:L,how:how,done:done,s:s,c:new T.PerspectiveCamera(32,1,.05,60),yaw:.35,pitch:.12,dist:4.2,ty:.92,cat:'yuz',pose:'idle',undo:[],ch:null,dirty:true,stool:stool,t0:performance.now()};
+  document.body.classList.add('studio');d.style.display='block';d.querySelector('.sttop').textContent='🎨 '+CH[k].n+' · Görünüm stüdyosu';studioCats();studioPanel();studioBar()}
+function closeStudio(save){const S=STU;if(!S)return;STU=null;document.getElementById('studio').style.display='none';document.body.classList.remove('studio');if(S.ch)disposeObj(S.ch);if(save){S.L.custom=1;S.done&&S.done(S.L)}else if(S.how==='start'){S.done&&S.done(null)}}
+function disposeObj(o){if(o.parent)o.parent.remove(o);o.traverse(q=>{if(q.geometry)q.geometry.dispose()})}
+function stuSet(fn){STU.undo.push(JSON.stringify(STU.L));if(STU.undo.length>40)STU.undo.shift();fn(STU.L);STU.dirty=true}
+function studioBar(){const b=document.querySelector('#studio .stbar');b.innerHTML='';const add=(t,fn,cl)=>{const x=document.createElement('button');x.textContent=t;if(cl)x.className=cl;x.onclick=fn;b.appendChild(x)};
+  add('↶ Geri al',()=>{const u=STU.undo.pop();if(u){STU.L=JSON.parse(u);STU.dirty=true;studioPanel()}});add('🎲 Rastgele',()=>stuSet(L=>{const v=L.v3;['fw','fl','jaw','chb','chk','fh','es','esp','esh','brow','nw','nl','ntip','nbr','lf','mw','sh','wa','hi','wt','mu','h'].forEach(k=>v[k]=+(Math.random()*1.4-.7).toFixed(2));v.eye=pick(EYEC);L.hair=pick(HAIRC);L.shirt=pick(CLOTHC);L.pants=pick(CLOTHC)}));
+  add('⟲ Varsayılan',()=>stuSet(L=>{const D=JSON.parse(JSON.stringify(CH[STU.k].look));Object.keys(L).forEach(k=>delete L[k]);Object.assign(L,D);L.v3=V3D()}));
+  add('🔍 Yüz / Tam boy',()=>{if(STU.dist>2.5){STU.ty=1.56;STU.dist=2.1;STU.pitch=.05}else{STU.ty=.92;STU.dist=4.2}});
+  const PO=[['idle','Dur'],['walk','Yürü'],['sit','Otur'],['wave','El salla']];add('🕺 Poz: Dur',e=>{const i=(PO.findIndex(q=>q[0]===STU.pose)+1)%PO.length;STU.pose=PO[i][0];STU.stool.visible=STU.pose==='sit';e.target.textContent='🕺 Poz: '+PO[i][1]});
+  if(STU.how==='start'){add('Varsayılanla devam',()=>{STU.L=JSON.parse(JSON.stringify(baseLook(STU.k)));closeStudio(true)});add('Kaydet ve oyna ▶',()=>closeStudio(true),'go')}else{add('İptal',()=>closeStudio(false));add('Kaydet ✓',()=>closeStudio(true),'go')}}
+const STCATS=[['yuz','🙂 Yüz'],['goz','👁️ Gözler'],['burun','👃 Burun'],['dudak','👄 Dudak'],['sac','💇 Saç'],['sakal','🧔 Sakal'],['vucut','🧍 Vücut'],['cilt','🎨 Cilt'],['kiyafet','👕 Kıyafet'],['aks','⌚ Aksesuar'],['kombin','🧥 Kombinler']];
+function studioCats(){const c=document.querySelector('#studio .stcats');c.innerHTML='';STCATS.forEach(q=>{const b=document.createElement('button');b.textContent=q[1];if(STU.cat===q[0])b.className='on';b.onclick=()=>{STU.cat=q[0];studioCats();studioPanel();if(['yuz','goz','burun','dudak','sakal'].includes(q[0])){STU.ty=1.56;STU.dist=2.1}else if(['vucut','kiyafet','kombin'].includes(q[0])){STU.ty=.92;STU.dist=4.2}};c.appendChild(b)})}
+function studioPanel(){const p=document.querySelector('#studio .stpan');p.innerHTML='';const L=STU.L,v=L.v3;const H=t=>{const h=document.createElement('h4');h.textContent=t;p.appendChild(h)};
+  const S=(lab,key,obj)=>{obj=obj||v;const r=document.createElement('div');r.className='strow';const s=document.createElement('span');s.textContent=lab;const i=document.createElement('input');i.type='range';i.min=-1;i.max=1;i.step=.05;i.value=obj[key]||0;
+    i.onpointerdown=()=>{STU.undo.push(JSON.stringify(STU.L))};i.oninput=()=>{obj[key]=+i.value;STU.dirty=true};r.appendChild(s);r.appendChild(i);p.appendChild(r)};
+  const C=(lab,cols,get,set)=>{H(lab);const w=document.createElement('div');w.className='stsw';cols.forEach(c=>{const x=document.createElement('i');x.style.background=c==null?'repeating-linear-gradient(45deg,#ccc 0 4px,#888 4px 8px)':'#'+new T.Color(c).getHexString();if(get()===c)x.className='on';x.onclick=()=>{stuSet(()=>set(c));studioPanel()};w.appendChild(x)});p.appendChild(w)};
+  const B=(lab,opts,get,set,locked)=>{H(lab);const w=document.createElement('div');w.className='stch';opts.forEach(o=>{const x=document.createElement('button');const lk=locked&&locked(o[0]);x.textContent=(lk?'🔒 ':'')+o[1];x.className=(get()===o[0]?'on':'')+(lk?' lk':'');x.onclick=()=>{if(lk){toast('🔒 Bu parça Pazarcık\'ta · önce satın al');return}stuSet(()=>set(o[0]));studioPanel()};w.appendChild(x)});p.appendChild(w)};
+  const TG=(lab,get,set)=>B(lab,[[1,'Var'],[0,'Yok']],()=>get()?1:0,x=>set(x));
+  const c=STU.cat;
+  if(c==='yuz'){H('Yüz şekli');S('Genişlik','fw');S('Uzunluk','fl');S('Çene','jaw');S('Elmacık','chb');S('Yanak','chk');S('Alın','fh')}
+  if(c==='goz'){H('Göz');S('Büyüklük','es');S('Aralık','esp');S('Şekil (badem ↔ yuvarlak)','esh');C('Göz rengi',EYEC,()=>v.eye,x=>v.eye=x);H('Kaş');S('Şekil','brow');S('Kalınlık','browTh');C('Kaş rengi',[null].concat(HAIRC),()=>v.browCol,x=>v.browCol=x)}
+  if(c==='burun'){H('Burun');S('Genişlik','nw');S('Uzunluk','nl');S('Uç','ntip');S('Köprü','nbr')}
+  if(c==='dudak'){H('Dudak');S('Dolgunluk','lf');S('Ağız genişliği','mw');C('Dudak rengi',LIPC,()=>L.lip||null,x=>{if(x==null)delete L.lip;else L.lip=x})}
+  if(c==='sac'){B('Saç modeli',STHAIRS,()=>L.bald?'kel':(L.hs||(L.long?'uzun':'kisa')),x=>{L.bald=x==='kel';if(x!=='kel')L.hs=x});H('Uzunluk');S('Uzunluk','hlen');C('Saç rengi',HAIRC,()=>L.hair,x=>L.hair=x);TG('Başta güneş gözlüğü',()=>L.headSun,x=>L.headSun=!!x)}
+  if(c==='sakal'){B('Sakal',STBEARDS,()=>v.beard||'yok',x=>v.beard=x);TG('Bıyık',()=>v.mous,x=>v.mous=x);C('Sakal rengi',[null].concat(HAIRC),()=>v.beardCol,x=>v.beardCol=x)}
+  if(c==='vucut'){H('Vücut');S('Boy','h');S('Omuz','sh');S('Bel','wa');S('Kalça','hi');S('Kilo','wt');S('Kas','mu')}
+  if(c==='cilt'){C('Ten rengi',STSKINS,()=>L.skin||0xf1c9a0,x=>L.skin=x);H('Detaylar');const r=(lab,key)=>{const o={};o[key]=v[key]*2-1;S(lab,key,new Proxy(o,{set(t,k2,val){v[k2]=(val+1)/2;return true}}))};r('Çil','frk');r('Ben','mole');TG('Allık',()=>L.blush,x=>L.blush=!!x)}
+  if(c==='kiyafet'){const own=t=>STU.how==='game'&&!BASIC_TOPS.has(t)&&!(typeof OWN!=='undefined'&&OWN.has('top:'+t))&&(L.top||'tisort')!==t;B('Üst',STTOPS,()=>L.top||'tisort',x=>L.top=x,own);C('Üst rengi',CLOTHC,()=>L.shirt,x=>L.shirt=x);if(L.top==='ceket')C('Ceket rengi',CLOTHC,()=>L.jacket,x=>L.jacket=x);if(L.top==='zip')C('İç rengi',CLOTHC,()=>L.inner,x=>L.inner=x);
+    if(L.top!=='elbise')C('Alt rengi',CLOTHC,()=>L.pants,x=>L.pants=x);C('Ayakkabı',CLOTHC,()=>L.shoes,x=>L.shoes=x)}
+  if(c==='aks'){TG('Gözlük',()=>L.glasses,x=>L.glasses=!!x);TG('Saat',()=>v.watch,x=>v.watch=x);TG('Kolye',()=>v.neck,x=>v.neck=x);TG('Küpe',()=>L.earring,x=>L.earring=!!x);B('Çanta',[[0,'Yok'],[1,'Kahve'],[2,'Kırmızı'],[3,'Siyah']],()=>v.bag||0,x=>v.bag=x)}
+  if(c==='kombin'){L.outfits=L.outfits||{};const hint=document.createElement('div');hint.style.cssText='font-size:12px;opacity:.8';hint.textContent='Kategoriye kayıtlı kombinlerin. "＋" o anki kıyafeti kaydeder (her kategoride 3).';p.appendChild(hint);
+    OUTCATS.forEach(q=>{H(q[1]);const w=document.createElement('div');w.className='stch';const list=L.outfits[q[0]]||[];
+      const pr=document.createElement('button');pr.textContent='Hazır';pr.onclick=()=>{stuSet(()=>Object.assign(L,OUTPRE[q[0]]));studioPanel()};w.appendChild(pr);
+      list.forEach((o,i)=>{const b2=document.createElement('button');b2.textContent=q[1]+' '+(i+1);b2.style.borderLeft='6px solid #'+new T.Color(o.shirt||0x888888).getHexString();b2.onclick=()=>{stuSet(()=>OUTF.forEach(f=>{if(o[f]!==undefined)L[f]=o[f]}));studioPanel()};w.appendChild(b2)});
+      const sv2=document.createElement('button');sv2.textContent='＋';sv2.onclick=()=>{const o={};OUTF.forEach(f=>{if(L[f]!==undefined)o[f]=L[f]});const a=(L.outfits[q[0]]=L.outfits[q[0]]||[]);a.push(o);if(a.length>3)a.shift();toast('🧥 '+q[1]+' kombini kaydedildi');studioPanel()};w.appendChild(sv2);p.appendChild(w)})}}
+function studioRender(dt,t){const S=STU;if(S.dirty){S.dirty=false;if(S.ch)disposeObj(S.ch);const lk=Object.assign({},S.L,{v3force:1});delete lk.label;S.ch=personV3(lk);S.s.add(S.ch)}
+  const p=S.ch;resetLimbs(p);p.position.y=0;p.userData.legs.forEach(l=>l.rotation.x=0);p.userData.arms.forEach(a=>a.rotation.x=0);
+  if(S.pose==='walk'){walkAnim(p,true,t)}else if(S.pose==='sit'){poseSit(p,.5);p.position.z=-.05}else if(S.pose==='wave')poseApply(p,'wave',t);else{p.userData.arms.forEach((a,i)=>{a.rotation.x=Math.sin(t*1.2+i)*.04;a.rotation.z=(i?1:-1)*.06});p.userData.bones.chest.scale.setScalar(1+Math.sin(t*1.6)*.008)}
+  const c=S.c;c.aspect=innerWidth/innerHeight;c.updateProjectionMatrix();const off=innerWidth>700?.2*S.dist:0;const D=S.dist*(c.aspect<1?1.9:1);if(innerWidth<=600)S.ty2=S.ty-.5*S.dist/4.2;else S.ty2=S.ty;c.position.set(Math.sin(S.yaw)*D*Math.cos(S.pitch),S.ty2+Math.sin(S.pitch)*D,Math.cos(S.yaw)*D*Math.cos(S.pitch));c.lookAt(0,S.ty2,0);c.translateX(off);renderer.render(S.s,c)}
+const _frameBody53=frameBody;frameBody=function(){if(STU){const n=performance.now(),dt=Math.min(.05,(n-(STU.last||n))/1000);STU.last=n;try{studioRender(dt,n/1000)}catch(e){showErrOnce(e)}return}return _frameBody53()};
+/* ---------- menü akışı: ilk seçimde stüdyo; daha önce oynanmışta Devam / Görünümü düzenle ---------- */
+goChar2=function(k){tryLandscape();SAVE=null;loadGame(k);if(!PNAME)PNAME=(SAVE&&SAVE.x&&SAVE.x.name)||CH[k].n;const lk=baseLook(k);
+  if(lk.custom||/nostudio/.test(location.search))return startGame(k);openStudio(k,lk,'start',res=>{if(res)PEND_LOOK=res;startGame(k)})};
+function editFromMenu(k){pinGate(k,()=>{tryLandscape();SAVE=null;loadGame(k);if(!PNAME)PNAME=(SAVE&&SAVE.x&&SAVE.x.name)||CH[k].n;openStudio(k,baseLook(k),'start',res=>{if(res)PEND_LOOK=res;startGame(k)})})}
+const _initMenu53=initMenu;initMenu=function(){_initMenu53();try{let b=document.getElementById('pkedit');const cont=$('pkcont');if(!b){b=document.createElement('button');b.id='pkedit';b.textContent='🎨 Görünümü düzenle';cont.parentNode.insertBefore(b,cont.nextSibling)}b.style.display=cont.style.display;b.onclick=()=>editFromMenu(PKC)}catch(e){}};
+const _startGame53=startGame;startGame=function(k){const r=_startGame53(k);if(PEND_LOOK&&me){const L=PEND_LOOK;PEND_LOOK=null;try{applyLook(L);saveGame();toast('✨ Görünümün kaydedildi')}catch(e){showErrOnce(e)}}return r};
+/* ---------- oyunda: gardırop ve ayna stüdyoyu açar ---------- */
+function studioInGame(){if(busy||!me)return;openStudio(me.key,curLook(),'game',res=>{if(!res)return;applyLook(res);saveGame();toast('✨ Yeni görünüm kaydedildi');emitSafe('style')})}
+{const w0=USE.WARD,v0=USE.VAN;USE.WARD=['🚪 Gardırop',()=>actionMenu('🚪 Gardırop',[['🧥','Stüdyo · kıyafet & kombin',()=>{STU0='kiyafet';studioInGame()}],['👗','Klasik gardırop',w0[1]]])];
+  USE.VAN=['💄 Ayna & makyaj',()=>actionMenu('🪞 Ayna',[['🎨','Stüdyo · yüz, saç, makyaj',()=>{STU0='yuz';studioInGame()}],['💄','Klasik makyaj',v0[1]]])]}
+let STU0=null;const _openStudio53=openStudio;openStudio=function(k,l,h,d){_openStudio53(k,l,h,d);if(STU0&&STU){STU.cat=STU0;STU0=null;studioCats();studioPanel()}};
 
 /* ---------- döngü ---------- */
 const clock=new T.Clock();let hudT=0;
