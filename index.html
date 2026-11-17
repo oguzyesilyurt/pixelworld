@@ -5498,8 +5498,8 @@ function syncOpen(){openModal('📲 Telefon ⇄ Bilgisayar',b=>{const st=el('div
 /* ================= v41: Supabase bulut kaydı — cihazlar kapalıyken bile en yeni kayıt bulutta ================= */
 /* Proje adresi ve anon key buraya gömülebilir (anon key herkese açık olacak şekilde tasarlanmıştır; güvenliği RLS sağlar).
    Boş bırakılırsa oyun içinde Ayarlar → ☁️ Bulut kaydı ekranından bir kez girilir. */
-const CLOUD_CFG={url:'',key:''};
-const CLOUD=(()=>{let o={};try{o=JSON.parse(localStorage.getItem('pw_cloud')||'{}')}catch(e){}return Object.assign({url:CLOUD_CFG.url,key:CLOUD_CFG.key,sess:null,last:0,rt:{}},o)})();
+const CLOUD_CFG={url:'https://jkhzuvsqqiywlrqbgsbh.supabase.co',key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpraHp1dnNxcWl5d2xycWJnc2JoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ5MzkyMzQsImV4cCI6MjExMDUxNTIzNH0.FWcvMuGLoZkMt6aKO7NFeSsw1pmWzwZfeN9H6fc7Cco'};
+const CLOUD=(()=>{let o={};try{o=JSON.parse(localStorage.getItem('pw_cloud')||'{}')}catch(e){}const r=Object.assign({sess:null,last:0,rt:{}},o);if(CLOUD_CFG.url){r.url=CLOUD_CFG.url;r.key=CLOUD_CFG.key}return r})();
 function cloudSave(){try{localStorage.setItem('pw_cloud',JSON.stringify({url:CLOUD.url,key:CLOUD.key,sess:CLOUD.sess,last:CLOUD.last,rt:CLOUD.rt}))}catch(e){}}
 const cloudOn=()=>!!(CLOUD.url&&CLOUD.key&&CLOUD.sess);
 async function cAuth(path,body){const r=await fetch(CLOUD.url.replace(/\/$/,'')+'/auth/v1/'+path,{method:'POST',headers:{apikey:CLOUD.key,'Content-Type':'application/json'},body:JSON.stringify(body)});let j={};try{j=await r.json()}catch(e){}
