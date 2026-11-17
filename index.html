@@ -469,13 +469,13 @@ function dashes(pts,width,y,mat,on,off,skip){const pos=[],idx=[];let k=0;
   const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setIndex(idx);W.add(new T.Mesh(g,mat))}
 function nearestPt(pts,p){let b=pts[0],bd=1e9;for(const q of pts){const d=(q.x-p[0])*(q.x-p[0])+(q.z-p[1])*(q.z-p[1]);if(d<bd){bd=d;b=q}}return b}
 let ROADSKIP=[];function buildRoads(defs){
-  const rs=[];
+  const rs=[];if(C&&!C.bounds)roadAutoExtend(defs);
   defs.forEach(d=>{const ctrl=d.ctrl.map(p=>[p[0],p[1]]);
     if(d.from!=null){const q=nearestPt(rs[d.from].pts,ctrl[0]);ctrl[0]=[q.x,q.z]}
     if(d.to!=null){const q=nearestPt(rs[d.to].pts,ctrl[ctrl.length-1]);ctrl[ctrl.length-1]=[q.x,q.z]}
     const curve=new T.CatmullRomCurve3(ctrl.map(p=>new T.Vector3(p[0],0,p[1])),!!d.closed,'catmullrom',.5);
     const len=curve.getLength(),pts=curve.getSpacedPoints(Math.max(8,Math.floor(len/1.1)));
-    rs.push({curve:curve,pts:pts,width:d.width,closed:!!d.closed,center:d.center,len:len,from:d.from,to:d.to})});
+    rs.push({curve:curve,pts:pts,width:d.width,closed:!!d.closed,center:d.center,len:len,from:d.from,to:d.to})});if(C&&W===C.G)(C.roadList||(C.roadList=[])).push(...rs);
   const J=[];rs.forEach(r=>{if(r.from!=null)J.push(r.pts[0]);if(r.to!=null)J.push(r.pts[r.pts.length-1])});
   for(let a=0;a<rs.length;a++)for(let b=a+1;b<rs.length;b++){const A=rs[a],B=rs[b],lim=(A.width+B.width)/2;for(let i=0;i<A.pts.length;i+=2){const p=A.pts[i];let hit=false;for(let k=0;k<B.pts.length;k+=2){const q=B.pts[k];if(Math.abs(q.x-p.x)<lim&&Math.abs(q.z-p.z)<lim&&Math.hypot(q.x-p.x,q.z-p.z)<lim*.8){hit=true;break}}if(hit&&!J.some(j=>Math.hypot(j.x-p.x,j.z-p.z)<2.5))J.push(p)}}
   rs.forEach((r,i)=>ribbon(r.pts,r.width+2.6,.05+i*.002,walkMat,r.closed,.2));
@@ -621,7 +621,7 @@ function lamp(x,z,dx,dz){if(dx==null){dx=1;dz=0}const m=std(0x3b3e48),g=new T.Gr
   glow(1.25,5.0,0,4.4,.9,g);C.boxes.push({x:x,z:z,hx:.25,hz:.25})}
 function lampOld(x,z){const m=std(0x2f2c38);cyl(.07,.1,4.2,6,m,x,2.1,z);box(.9,.08,.08,m,x+.4,4.2,z);
   const lm=new T.MeshStandardMaterial({color:0xfff0c0,emissive:0xffd070,emissiveIntensity:0,roughness:.4});facades.push(lm);const b=new T.Mesh(new T.SphereGeometry(.2,6,5),lm);b.position.set(x+.8,4.1,z);W.add(b);glow(x+.8,4.1,z,4.2,.9)}
-function lampsAlong(r,sp,side){const n=Math.floor(r.len/sp);for(let i=1;i<n;i++){const u=i/n,p=r.curve.getPointAt(u),t=r.curve.getTangentAt(u),off=side*(r.width/2+1.3),x=p.x-t.z*off,z=p.z+t.x*off;
+function lampsAlong(r,sp,side){const n=Math.floor(r.len/sp);for(let i=1;i<n;i++){const u=i/n,p=r.curve.getPointAt(u),t=r.curve.getTangentAt(u),off=side*(r.width/2+1.3),x=p.x-t.z*off,z=p.z+t.x*off;if(!C.bounds&&(z<-72||z>66||x>86))continue;
   let bad=false;for(const b of C.boxes){if(Math.abs(x-b.x)<b.hx+.5&&Math.abs(z-b.z)<b.hz+.5)bad=true}if(!bad)lamp(x,z,side*t.z,-side*t.x)}}
 function benches(){for(let z=-30;z<=48;z+=13){const x=shore(z)+4.6,bm=std(0x7a4f2c);box(.7,.12,2.2,bm,x,.5,z);box(.12,.6,2.2,bm,x+.3,.8,z);addSeat(x-.05,z-.55,-Math.PI/2,.56);addSeat(x-.05,z+.55,-Math.PI/2,.56);C.boxes.push({x:x,z:z,hx:.4,hz:1.15});C.spots.push({x:x-1.1,z:z,r:1.7,t:'E: Banka otur 🪑',fn:()=>benchSit()})}}
 function bench(x,z){const bm=std(0x7a4f2c);box(2.2,.12,.7,bm,x,.5,z);box(2.2,.6,.12,bm,x,.8,z-.3);C.boxes.push({x:x,z:z,hx:1.2,hz:.5});addSeat(x-.5,z+.05,0,.56);addSeat(x+.5,z+.05,0,.56);C.spots.push({x:x,z:z+1.2,r:1.7,t:'E: Banka otur 🪑',fn:()=>benchSit()})}
@@ -669,7 +669,7 @@ function okTree(x,z,m){if(C.noTree)for(const q of C.noTree){if(Math.hypot(q[0]-x
   for(const b of C.boxes){if(x>b.x-b.hx-m-1.5&&x<b.x+b.hx+m+1.5&&z>b.z-b.hz-m-1.5&&z<b.z+b.hz+m+1.5)return false}
   for(const c of C.circles){if(Math.hypot(c.x-x,c.z-z)<c.r+m+2.5)return false}
   if(C.keep)for(const k of C.keep){if(x>k[0]&&x<k[1]&&z>k[2]&&z<k[3])return false}return true}
-function scatter(n,x0,x1,z0,z1,kinds,smin,smax){if(!C.infilled){C.infilled=true;try{citySpecials()}catch(e){showErrOnce(e)}try{infill()}catch(e){showErrOnce(e)}}if(C.urban)n=Math.round(n*.45);let c=0,t=0;while(c<n&&t<n*30){t++;const x=R(x0,x1),z=R(z0,z1);if(!okTree(x,z,1))continue;tree(pick(kinds),x,z,R(smin,smax));c++}}
+function scatter(n,x0,x1,z0,z1,kinds,smin,smax){if(!C.infilled){C.infilled=true;try{citySpecials()}catch(e){showErrOnce(e)}try{growPlots()}catch(e){showErrOnce(e)}try{infill()}catch(e){showErrOnce(e)}try{infill2()}catch(e){showErrOnce(e)}}if(C.urban)n=Math.round(n*.45);let c=0,t=0;while(c<n&&t<n*30){t++;const x=R(x0,x1),z=R(z0,z1);if(!okTree(x,z,1))continue;tree(pick(kinds),x,z,R(smin,smax));c++}}
 
 /* ---------- insanlar, köpek ---------- */
 function personOld(o){
@@ -1681,7 +1681,7 @@ USE.BED=['😴 Uyu / şekerleme',()=>actionMenu('🛏️ Yatak',[['😴','Sabaha
 /* ---------- yerleşim ---------- */
 function HF(I,key,x,z,q){const f0=FURN[key],pw=W;if(I.G)W=I.G;F(I,x,z,q,f0[4],f0[5],f0[3]());W=pw;const f=I.furn[I.furn.length-1];f.name=f0[0];f.price=f0[1];f.key=key;
   if(f0[6]&&USE[f0[6]]){const u=USE[f0[6]],dz=f0[7]||1.2,a=q*Math.PI/2,ox=dz*Math.sin(a),oz=dz*Math.cos(a);const sp={x:x+ox,z:z+oz,r:1.7,get t(){return f.broken?'E: ⚠️ '+(f.name||'Eşya')+' arızalı':'E: '+u[0]},fn:()=>{if(f.broken){brokenMenu(f);return}u[1]()}};I.spots.push(sp);f.spots=[{sp:sp,dx:ox,dz:oz,q0:q}]}return f}
-function wallSeg(I,x0,z0,x1,z1,wm,gaps){const H=1.05,tm=mt(0xf3ecdc);const horiz=Math.abs(z1-z0)<.01,a=horiz?x0:z0,b=horiz?x1:z1;let cuts=[[a,b]];
+function wallSeg(I,x0,z0,x1,z1,wm,gaps){const H=1.4,tm=mt(0xf3ecdc);const horiz=Math.abs(z1-z0)<.01,a=horiz?x0:z0,b=horiz?x1:z1;let cuts=[[a,b]];
   (gaps||[]).forEach(gp=>{const nc=[];cuts.forEach(c=>{if(gp[1]<=c[0]||gp[0]>=c[1]){nc.push(c);return}if(gp[0]>c[0])nc.push([c[0],gp[0]]);if(gp[1]<c[1])nc.push([gp[1],c[1]])});cuts=nc});
   cuts.forEach(c=>{const L=c[1]-c[0];if(L<.05)return;const m=(c[0]+c[1])/2;if(horiz){box(L,H,.14,wm,m,H/2,z0);box(L+.02,.06,.2,tm,m,H+.03,z0);I.boxes.push({x:m,z:z0,hx:L/2,hz:.12})}
     else{box(.14,H,L,wm,x0,H/2,m);box(.2,.06,L+.02,tm,x0,H+.03,m);I.boxes.push({x:x0,z:m,hx:.12,hz:L/2})}})}
@@ -1801,7 +1801,7 @@ function bankView(root){estCss();root.innerHTML='';const b=el('div','bnk');root.
   const em=el('button','','🏠 Emlak ilanları');em.onclick=()=>estateView(root);bt.appendChild(em)}
 function bankOpen(){const d=$('styl');uiPC=true;d.classList.add('on');bankView(d);const ft=el('div','foot');const ok=el('button','ok','Kapat');ok.onclick=estateClose;ft.appendChild(ok);d.appendChild(ft)}
 /* --- günler ve haftalık ödemeler --- */
-function newDay(){HOME.day++;try{day34()}catch(e){}try{payday()}catch(e){}try{goalsNewDay()}catch(e){}HOME.laundry++;HOME.dishes+=1;if(HOME.day%7===1){let t=0,s=[];const r=HOME.rent?lById(HOME.rent):null;if(r){t+=r.rent;s.push('kira '+r.rent)}
+function newDay(){HOME.day++;try{day34()}catch(e){}try{day35()}catch(e){}try{payday()}catch(e){}try{goalsNewDay()}catch(e){}HOME.laundry++;HOME.dishes+=1;if(HOME.day%7===1){let t=0,s=[];const r=HOME.rent?lById(HOME.rent):null;if(r){t+=r.rent;s.push('kira '+r.rent)}
     if(HOME.loan){const i=Math.min(HOME.loan.inst,HOME.loan.debt);t+=i;s.push('kredi taksiti '+i);HOME.loan.debt-=i;HOME.loan.weeks--;if(HOME.loan.debt<=0){HOME.loan=null;s.push('kredi bitti 🎉')}}
     if(t){coins-=t;notify('İzmir Bankası','Haftalık ödeme: '+s.join(' + ')+' = '+t+' 🪙'+(coins<0?' ⚠️ Hesabın eksiye düştü!':''),[{t:'Tamam',fn:()=>{}}])}}}
 /* --- Çiğli: emlak ofisi ve banka şubesi --- */
@@ -2753,7 +2753,7 @@ function applyAudio(){AU.on=!!SET.snd;if(!AU.ctx)return;const t=AU.ctx.currentTi
   if(AU.ambG)AU.ambG.gain.setTargetAtTime(SET.amb?SET.ambVol:0,t,.05);if(AU.fxG)AU.fxG.gain.setTargetAtTime(SET.fx?1:0,t,.05);if(AU.musG)AU.musG.gain.setTargetAtTime(SET.music?SET.musVol*.55:0,t,.3)}
 const MUS={t:0,i:0,ch:[[261.6,329.6,392,493.9],[220,261.6,329.6,392],[174.6,220,261.6,349.2],[196,246.9,293.7,392]]};
 function musicTick(){const c=AU.ctx;if(!c||!AU.musG||!SET.music||!SET.snd||mode==='drive')return;const t=c.currentTime;if(MUS.t>t+.3)return;if(MUS.t<t)MUS.t=t+.05;
-  const ch=MUS.ch[MUS.i%4],t0=MUS.t,dur=3.2,nightK=cur&&cur.night>.6?.7:1;MUS.i++;MUS.t+=dur;
+  const ch=MUS.ch[MUS.i%4],t0=MUS.t,dur=MUS.dur||3.2,nightK=cur&&cur.night>.6?.7:1;MUS.i++;MUS.t+=dur;
   ch.forEach((f,k)=>{[0,1].forEach(dd=>{const o=c.createOscillator(),g=c.createGain(),lp=c.createBiquadFilter();o.type='triangle';o.frequency.value=f*nightK*(dd?1.004:.996)/(k===0?2:1);lp.type='lowpass';lp.frequency.value=900;
     g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(.05,t0+.9);g.gain.linearRampToValueAtTime(.035,t0+dur-.4);g.gain.linearRampToValueAtTime(0,t0+dur+.3);o.connect(lp);lp.connect(g);g.connect(AU.musG);o.start(t0);o.stop(t0+dur+.4)})});
   for(let i=0;i<4;i++){const f=ch[(i*2+MUS.i)%4]*2*nightK,o=c.createOscillator(),g=c.createGain(),ts=t0+i*.8+.05;o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,ts);g.gain.linearRampToValueAtTime(.045,ts+.02);g.gain.exponentialRampToValueAtTime(.001,ts+.7);o.connect(g);g.connect(AU.musG);o.start(ts);o.stop(ts+.75)}}
@@ -2909,7 +2909,7 @@ function ogMenu(){const inHome=mode==='int'&&curI&&curI.name===ogHome(),comp=OG.
     if(furnIn(curI,['stove']).length)A.push(['👩‍🍳','Birlikte yemek yapın',()=>cookTogether(OG)]);A.push(['🛵','Birlikte yemek söyleyin',()=>phoneApp('food')]);
     A.push(['💆','Masaj yap',()=>simpleTogether('Oğuz\'a masaj yaptın 💆 Çok mutlu oldu',8,6,'Ahh harikasın 😌')]);A.push(['💃','Birlikte dans edin',()=>danceTogether()]);
     if(GT>=21*60||GT<5*60)A.push(['🌙','Birlikte uyuyun',()=>{compOff(true);sleep()}]);if(FEM[me.key])A.push(['📦','Komşuya bir şey götürür müsün?',()=>agentErrand(OG)]);if(PILL){A.unshift(['🍲','Ona çorba yap (hasta)',()=>{cookTogether(OG);supportPartner('soup')}],['💊','İlaç ver',()=>supportPartner('med')])}}
-  A.push(['😂','Şaka yap',()=>{const ok=rnd()<.65;faceEach(OG);say(player,pick(['Temel bir gün...','Bil bakalım ne oldu? 😏','Neden bilgisayar soğuk? Windows açık 😂']),2.2);setTimeout(()=>say(OG.p,ok?'Hahahaha 😂😂':'Anlamadım ama gülüyorum 😅'),1300);BONDS.ogus.v=clamp(BONDS.ogus.v+(ok?6:2),0,100);NEED.fun=clamp(NEED.fun+8,0,100)}]);
+  if(SEC&&me.key==='kiz')A.unshift(['🤔','Bir şey mi saklıyorsun?',()=>secAsk()],['🕵️','Tahminimi söyleyeyim',()=>{const d=$('phbody');phoneApp('ach');const b=$('phbody');b.innerHTML='';secView(b)}]);{const kl=knowLine();if(kl)A.push(['📰','Duyduğun bir şeyi anlat',()=>chatWith(OG,[kl],4)])}A.push(['😂','Şaka yap',()=>{const ok=rnd()<.65;faceEach(OG);say(player,pick(['Temel bir gün...','Bil bakalım ne oldu? 😏','Neden bilgisayar soğuk? Windows açık 😂']),2.2);setTimeout(()=>say(OG.p,ok?'Hahahaha 😂😂':'Anlamadım ama gülüyorum 😅'),1300);BONDS.ogus.v=clamp(BONDS.ogus.v+(ok?6:2),0,100);NEED.fun=clamp(NEED.fun+8,0,100)}]);
   if(comp&&mode==='world'&&isCouple()){A.push(OG.hold?['🤝','Elini bırak',()=>{OG.hold=false}]:['🤝','El ele tutuşun',()=>{OG.hold=true;fxPop(OG.p,'💞',2);BONDS.ogus.v=clamp(BONDS.ogus.v+4,0,100);toast('El ele yürüyorsunuz 💞')}]);
     A.push(['📸','Fotoğraf çekilin',()=>photoWith()])}
   if(!comp)A.push(['🚶','Hadi dışarı çıkalım!',()=>compOn()]);else A.push(inHome?['🏠','Evde kalalım',()=>compOff(true)]:['🏠','Oğuz eve dönsün',()=>compOff(false)]);
@@ -2944,7 +2944,7 @@ USE.CON=['🎮 Konsolda oyna',()=>{const f=nearestF(curI,['con'],pl.x,pl.z);cons
   startAct({name:'Oyun oynuyorsun',ic:'🎮',dur:12,tm:4,seat:s,pose:'phone',per:{fun:2.4,en:-.15},start:()=>tvGlow(f,true,[0xd8322c,0x4ac0f0,0xf4c542]),stop:()=>tvGlow(f,false),end:()=>toast(pick(['🎮 Yarışta birinci oldun! 🏁','🎮 Bölüm sonu canavarını yendin 🐉','🎮 Futbol maçını 3-1 kazandın ⚽']))})}];
 USE.SOFA=['🛋️ Otur',()=>actionMenu('🛋️ Kanepe',[['😌','Otur, dinlen',()=>sitAct('Dinleniyorsun','😌',10,{en:1.4,mood:.4})],['📱','Telefonla takıl',()=>sitAct('Sosyal medyada geziniyorsun','📱',10,{fun:1.5,soc:.6},null,null,'phone')],['😴','Kestirme yap',()=>sitAct('Kestiriyorsun','😴',12,{en:3.5},()=>toast('Kısa bir kestirme 💤 Enerji doldu'))]])];
 USE.BOOK=['📖 Kitap oku',()=>sitAct('Kitap okuyorsun','📖',12,{fun:1.2,mood:.6},()=>toast(pick(['Romanın en heyecanlı yerindesin 📖','Bir şiir kitabı bitirdin ✍️'])),null,'phone')];
-USE.MUS=['🎵 Müzik & dans',()=>actionMenu('🎵 Pikap',[['🎶','Müzik aç, dinle',()=>{[523,659,784,1046].forEach((f,i)=>tone(f,.3,'triangle',.08,0,i*.18));sitAct('Müzik dinliyorsun','🎶',10,{fun:1.4,mood:.8})}],['💃','Dans et',()=>startAct({name:'Dans ediyorsun',ic:'💃',dur:10,tm:2,pose:'dance',per:{fun:2.6,en:-.8},end:()=>{toast('💃 Harika dans ettin!');emitSafe('dance')}})]])];
+USE.MUS=['🎵 Müzik & dans',()=>actionMenu('🎵 Pikap',[['🎶','Müzik seç & dinle',()=>musicMenu()],['🛋️','Oturup dinle',()=>sitAct('Müzik dinliyorsun','🎶',10,{fun:1.4,mood:.8})],['💃','Dans et',()=>startAct({name:'Dans ediyorsun',ic:'💃',dur:10,tm:2,pose:'dance',per:{fun:2.6,en:-.8},end:()=>{toast('💃 Harika dans ettin!');emitSafe('dance')}})]])];
 USE.WATER=USE.WATER||['💧 Bitkiyi sula',()=>{}];
 {const c0=USE.COFFEE[1];USE.COFFEE[1]=()=>{c0();NEED.en=clamp(NEED.en+22,0,100)}}
 {const s0=USE.SHOWER[1];USE.SHOWER[1]=()=>{s0();emitSafe('shower')}}{const b0=USE.TUB[1];USE.TUB[1]=()=>{b0();emitSafe('shower')}}
@@ -3238,9 +3238,9 @@ function initMenu(){const box=$('pkchars');box.innerHTML='';CHORDER.forEach(c=>{
     if(nn!=null){let o;try{o=JSON.parse(nn)}catch(e){o={k:'kiz',n:nn}}if(!o||!o.k)o={k:'kiz',n:String(nn)};PKC=o.k;PNAME=o.n;setTimeout(()=>{SAVE=null;startGame(PKC)},80)}}}
 
 /* ---------- kayıt ---------- */
-function save25(){return {ill:ILL,pill:PILL,nb:Object.fromEntries(Object.keys(NB).map(k=>[k,NB[k].v])),nbhelp:NBHELP,broken:BROKEN,jobs:JOBS.map(j=>({k:j.k,eta:j.eta,st:j.st})),stats:STATS,mem:MEM,ach:ACHV,trips:TRIPS,inclast:INC.last,card:CARD,cars:OWNCARS,carKey:me&&me.carKey,ch:me&&me.key,tk:TICKETS,name:me&&me.n,need:NEED,gt:GT,sk:SK,depo:DEPO,inv:INV,goals:GOALS,cur:HOME.cur,home:me&&me.home,og:OG.where==='comp'?'home':OG.where,
+function save25(){return {know:KNOW,staff:STAFF,sec:SEC,grow:GROW,genre:GENRE,ill:ILL,pill:PILL,nb:Object.fromEntries(Object.keys(NB).map(k=>[k,NB[k].v])),nbhelp:NBHELP,broken:BROKEN,jobs:JOBS.map(j=>({k:j.k,eta:j.eta,st:j.st})),stats:STATS,mem:MEM,ach:ACHV,trips:TRIPS,inclast:INC.last,card:CARD,cars:OWNCARS,carKey:me&&me.carKey,ch:me&&me.key,tk:TICKETS,name:me&&me.n,need:NEED,gt:GT,sk:SK,depo:DEPO,inv:INV,goals:GOALS,cur:HOME.cur,home:me&&me.home,og:OG.where==='comp'?'home':OG.where,
   ord:ORD.filter(o=>o.st!=='alindi').map(o=>({id:o.id,k:o.k,i:o.i,n:o.n,e:o.e,items:o.items,two:o.two,addr:o.addr,t0:o.t0,eta:o.eta,st:o.st}))}}
-function load25(x){try{if(x.ill!==undefined)ILL=x.ill;if(x.pill!==undefined)PILL=x.pill;if(x.nb)Object.keys(x.nb).forEach(k=>{if(NB[k])NB[k].v=x.nb[k]});if(x.nbhelp)NBHELP=x.nbhelp;if(x.broken)BROKEN=x.broken;if(x.jobs)JOBS=x.jobs;if(x.stats)Object.assign(STATS,x.stats);if(x.mem)MEM.push(...x.mem);if(x.ach)Object.assign(ACHV,x.ach);if(x.trips)TRIPS=x.trips;if(x.inclast!=null)INC.last=x.inclast;if(x.card)R25.card=x.card;if(x.cars)R25.cars=x.cars;if(x.carKey)R25.carKey=x.carKey;if(x.tk)Object.assign(TICKETS,x.tk);if(x.name)PNAME=x.name;if(x.need)Object.assign(NEED,x.need);if(typeof x.gt==='number')GT=x.gt;if(x.sk)Object.assign(SK,x.sk);if(x.depo)DEPO=x.depo.filter(k=>FURN[k]);if(x.inv)INV=x.inv;if(x.goals)GOALS=x.goals;
+function load25(x){try{if(x.know)KNOW.push(...x.know);if(x.staff)STAFF=x.staff;if(x.sec!==undefined)SEC=x.sec;if(x.grow)GROW=x.grow;if(x.ill!==undefined)ILL=x.ill;if(x.pill!==undefined)PILL=x.pill;if(x.nb)Object.keys(x.nb).forEach(k=>{if(NB[k])NB[k].v=x.nb[k]});if(x.nbhelp)NBHELP=x.nbhelp;if(x.broken)BROKEN=x.broken;if(x.jobs)JOBS=x.jobs;if(x.stats)Object.assign(STATS,x.stats);if(x.mem)MEM.push(...x.mem);if(x.ach)Object.assign(ACHV,x.ach);if(x.trips)TRIPS=x.trips;if(x.inclast!=null)INC.last=x.inclast;if(x.card)R25.card=x.card;if(x.cars)R25.cars=x.cars;if(x.carKey)R25.carKey=x.carKey;if(x.tk)Object.assign(TICKETS,x.tk);if(x.name)PNAME=x.name;if(x.need)Object.assign(NEED,x.need);if(typeof x.gt==='number')GT=x.gt;if(x.sk)Object.assign(SK,x.sk);if(x.depo)DEPO=x.depo.filter(k=>FURN[k]);if(x.inv)INV=x.inv;if(x.goals)GOALS=x.goals;
   if(x.cur&&(x.cur==='ev_cigli'||x.cur==='ev_karabaglar'||x.cur==='ev_koc_ust'||(x.cur.indexOf('ev_p_')===0&&isMine(x.cur.slice(5)))))HOME.cur=x.cur;if(x.home)R25.home=x.home;if(x.ord)ORD=x.ord}catch(e){}}
 function homeSpawn(){if(HOME.cur==='ev_cigli'||HOME.cur==='ev_karabaglar'||HOME.cur==='ev_koc_ust'||!activeD)return D[me.home].spawn;const P=resInfo(HOME.cur);return [P.door[0]+1.2,P.door[1]+1.6]}
 
@@ -3252,11 +3252,11 @@ function onEnterI(I){if(!I)return;ensureDrops(I);
   if(I.family&&I.name!==HOME.cur){const f=I.fam;if(HOME.visitDay!==HOME.day){HOME.visitDay=HOME.day;setTimeout(()=>{say(f.abla.p,'Hoş geldin canım! 🤗',3);f.yegen.lock=6;agentGo(f.yegen,clamp(pl.x+.9,-I.bx+.5,I.bx-.5),pl.z+1.1,()=>{faceEach(f.yegen);f.yegen.anim={k:'wave',t:1.6};say(f.yegen.p,pick(['Ablam! Ablam! 🥰','Ablaaa! Geldin mi? 🤗','Abla bak ne yaptım! 🧱']),3)})},700);emitSafe('visit');
       BONDS.cicom.v=clamp(BONDS.cicom.v+6,0,100);NEED.soc=clamp(NEED.soc+10,0,100)}
     if(OG.where==='comp')setTimeout(()=>say(f.eniste.p,'Oğuz hoş geldin! Gel tavla atalım 🎲'),2200)}}
-function onEnterD(d){if(!d)return;try{nbSpots(d)}catch(e){}thinShadows(d.G);try{mergeStatic(d.G)}catch(e){showErrOnce(e)}d.walkers.forEach(w=>{if(w.who==='ogus'){w.who=null;w.p.visible=false}});if(OG.where==='comp'&&OG.p&&OG.arriveT<=0&&DATE&&DATE.d===d.name)setTimeout(()=>say(OG.p,'Geldik! Ne güzel burası 😍'),900)}
+function onEnterD(d){if(!d)return;try{nbSpots(d)}catch(e){}try{growApply(d)}catch(e){}thinShadows(d.G);try{mergeStatic(d.G)}catch(e){showErrOnce(e)}d.walkers.forEach(w=>{if(w.who==='ogus'){w.who=null;w.p.visible=false}});if(OG.where==='comp'&&OG.p&&OG.arriveT<=0&&DATE&&DATE.d===d.name)setTimeout(()=>say(OG.p,'Geldik! Ne güzel burası 😍'),900)}
 function life25(dt,t,inI,moving){
   if(HOME.cur.indexOf('ev_p_')===0&&!isMine(HOME.cur.slice(5))){HOME.cur=homeOf(me.key);me.home=distOf(HOME.cur);toast('Kira bitti, eski evine döndün 🏠')}
   if(curI!==LAST_I){LAST_I=curI;try{onEnterI(curI)}catch(e){showErrOnce(e)}}if(!inI&&activeD!==LAST_D){LAST_D=activeD;try{onEnterD(activeD)}catch(e){showErrOnce(e)}}if(inI)LAST_D=null;
-  life27(dt,t,inI);life30(dt);life33(dt,t,inI);life34(dt,t,inI);pwalkTick(dt,t);needsTick(dt,moving);actTick(dt,t,moving);mpTick(dt,t,inI);shadowFit();ogTick(dt,t,inI);agentsTick(dt,t,inI);cutTick(dt,t);deliveryTick(dt);dateTick(dt);tvTick(dt);aquaTick(t);bubblesTick(dt);hudTick(dt)}
+  life27(dt,t,inI);life30(dt);life33(dt,t,inI);life34(dt,t,inI);life35(dt,t,inI);pwalkTick(dt,t);needsTick(dt,moving);actTick(dt,t,moving);mpTick(dt,t,inI);shadowFit();ogTick(dt,t,inI);agentsTick(dt,t,inI);cutTick(dt,t);deliveryTick(dt);dateTick(dt);tvTick(dt);aquaTick(t);bubblesTick(dt);hudTick(dt)}
 
 /* ================= v26: karakter seçimi, çok oyunculu, Aspava ikramları, mutfak animasyonları ================= */
 CH.kiz.n='Sevgilim';CH.sen.n='Oğuz';CH.sen.look=Object.assign({},OGLOOK);CH.abla.n='Çiço';CH.abla.look=Object.assign({},FAMLOOK.abla);CH.esi.n='Enişte';CH.esi.look=Object.assign({},FAMLOOK.eniste);CH.yegen.n='Yeğen';CH.yegen.look=Object.assign({},FAMLOOK.yegen);
@@ -3746,10 +3746,10 @@ function life27(dt,t,inI){lookTick(dt);petsTick(dt,t);if(mode==='world'&&dog&&do
   if(inI&&curI&&curI.heightAt&&!ACT.on&&!curI.match)player.position.y=curI.heightAt(pl.x,pl.z);
   if(inI&&curI&&curI.tick&&!curI.agents)curI.tick(dt,t);
   selFlashTick(t);
-  if(curI!==LAST_I27){LAST_I27=curI;try{onEnter33(curI)}catch(e){}try{onEnter34(curI)}catch(e){}if(curI&&curI.name==='mall_hilltown2')emitSafe('hill2');if(curI&&curI.name==='mall_hilltown3')emitSafe('hill3');if(curI&&curI.name==='of1')recep(curI);if(curI&&curI.stad&&!(ACT.on)){curI.passed=false;const gb=curI.boxes.find(b=>b.x===-26.4&&b.z===15);if(gb){gb.hx=5;gb.hz=.3}curI.G.traverse(o=>{if(o.isMesh&&o.position.x===-26.4&&o.position.z===15.2)o.visible=true})}
+  if(curI!==LAST_I27){LAST_I27=curI;try{onEnter33(curI)}catch(e){}try{onEnter34(curI)}catch(e){}try{onEnter35(curI)}catch(e){}if(curI&&curI.name==='mall_hilltown2')emitSafe('hill2');if(curI&&curI.name==='mall_hilltown3')emitSafe('hill3');if(curI&&curI.name==='of1')recep(curI);if(curI&&curI.stad&&!(ACT.on)){curI.passed=false;const gb=curI.boxes.find(b=>b.x===-26.4&&b.z===15);if(gb){gb.hx=5;gb.hz=.3}curI.G.traverse(o=>{if(o.isMesh&&o.position.x===-26.4&&o.position.z===15.2)o.visible=true})}
     if(curI&&curI.family){const F2=curI.fam,mine=me&&me.key;Object.entries({abla:F2.abla,esi:F2.eniste,yegen:F2.yegen}).forEach(([k,a])=>{a.char=k})}}}
 let SELR=null;
-function clock27(){const h=Math.floor(GT/60);if(h===lastH)return;const prev=lastH;lastH=h;if(h===3&&mode==='world')emitSafe('night_owl');try{clock33(h)}catch(e){}try{nbEventCheck(h)}catch(e){}vendorTick();OFFOPEN=officeOpen();
+function clock27(){const h=Math.floor(GT/60);if(h===lastH)return;const prev=lastH;lastH=h;if(h===3&&mode==='world')emitSafe('night_owl');try{clock33(h)}catch(e){}try{nbEventCheck(h)}catch(e){}try{clock35(h)}catch(e){}vendorTick();OFFOPEN=officeOpen();
   if(prev>=0&&h===19&&mode==='int'&&curI&&/^of\d/.test(curI.name)){notify('🏢 Buludex','Saat 19:00 · Ofis kapanıyor. Yarın 08:00\'de görüşmek üzere 👋',[{t:'Çıkış yap',fn:()=>{if(curI&&/^of\d/.test(curI.name))leave()}}]);setTimeout(()=>{if(mode==='int'&&curI&&/^of\d/.test(curI.name)&&!busy){if(curI.name!=='of1')enter('of1');setTimeout(()=>{if(curI&&curI.name==='of1'&&!busy)leave()},1600)}},6000)}}
 function start27(){lastH=-1;clock27();const P=contacts();$('b1').querySelector('em').textContent=P[0]&&P[0][0]==='P'?P[0][1]:'—';const S2=P.find(q=>q[0]==='S');$('b2').querySelector('em').textContent=S2?S2[1]:'—';BONDS.ogus.n=P[0]&&P[0][0]==='P'?P[0][1]:'Oğuz';BONDS.cicom.n=S2?S2[1]:'Çiço';
   if(me.key==='yegen'){$('b1').style.display='flex';$('b1').querySelector('em').textContent='Annem'}{const a=APPS.find(q=>q[0]==='oguz'),P=partnerInfo();a[1]=P[1];a[2]=P[0]}if(INVITE)setTimeout(()=>{if(!MP.peer){toast('👥 '+INVITE+' odasına bağlanılıyor…');mpJoin(INVITE)}},1800)}
@@ -4047,9 +4047,9 @@ function reserveSpot(r,pref){const L=[];for(let z=-50;z<=46;z+=4)for(let x=-12;x
 const CITYSPEC={karsiyaka:['market','itfaiye','fishing'],karabaglar:['market','karakol'],cigli:['market'],kocaeli:['hastane','karakol','itfaiye'],bostanli:['fishing']};
 function citySpecials(){const S=CITYSPEC[C.name];if(!S)return;S.forEach(k=>{try{
   if(k==='market'){const p=reserveSpot(9,[20,6]);if(p)marketB(p[0],p[1])}
-  else if(k==='itfaiye'){const p=reserveSpot(8,[50,10]);if(p){itfaiyeB(p[0],p[1]);C.noInfill.push([p[0]-9,p[1],p[0]+9,p[1]+22])}}
-  else if(k==='karakol'){const p=reserveSpot(7,[36,20]);if(p){karakolB(p[0],p[1]);C.noInfill.push([p[0]-8,p[1],p[0]+8,p[1]+22])}}
-  else if(k==='hastane'){const p=reserveSpot(10,[58,-40]);if(p){hospitalB(p[0],p[1]);C.noInfill.push([p[0]-12,p[1],p[0]+12,p[1]+26])}}
+  else if(k==='itfaiye'){const p=reserveSpotF(8,[50,10]);if(p){itfaiyeB(p[0],p[1]);C.noInfill.push([p[0]-9,p[1],p[0]+9,p[1]+22])}}
+  else if(k==='karakol'){const p=reserveSpotF(7,[36,20]);if(p){karakolB(p[0],p[1]);C.noInfill.push([p[0]-8,p[1],p[0]+8,p[1]+22])}}
+  else if(k==='hastane'){const p=reserveSpotF(10,[58,-40]);if(p){hospitalB(p[0],p[1]);C.noInfill.push([p[0]-12,p[1],p[0]+12,p[1]+26])}}
   else if(k==='fishing')fishingShore()}catch(e){showErrOnce(e)}})}
 /* ---------- semt pazarı ---------- */
 const STALLS=[['Domates & Biber',0xd8322c,[['Domates (1 kg)',18,10,3,'🍅'],['Sivri biber',14,6,2,'🌶️'],['Patlıcan',16,8,2,'🍆']]],['Meyve',0xf4a030,[['Çilek (kase)',25,8,8,'🍓'],['Karpuz',40,15,10,'🍉'],['Elma (1 kg)',20,10,4,'🍎']]],
@@ -4180,7 +4180,7 @@ function clock33(h){if(h===7&&me){const mk=Object.keys(MARKETDAY).filter(k=>MARK
 function cityView(root){root.innerHTML='';root.appendChild(el('h3','','🧺 Pazarlar'));Object.keys(MARKETDAY).forEach(k=>{const today=MARKETDAY[k]===wday();root.appendChild(el('div','row2',(today?'🟢 ':'⚪ ')+MKNAME[k]+' · her '+GUN[MARKETDAY[k]]+' · 07:00–18:00'+(today?' · BUGÜN':'')))});
   root.appendChild(el('h3','','🎣 Balık'));root.appendChild(el('div','row2','Karşıyaka & Bostanlı sahili · en verimli: 05–08 ve 17–20 · '+(STATS.rod?'oltan var ✅':'olta: sahildeki malzemeciden')));
   root.appendChild(el('h3','','🏥 Kamu'));root.appendChild(el('div','row2','Kocaeli Şehir Hastanesi · 7/24 · Almira\'nın nöbeti: Pzt–Cmt 08:00–16:00'));root.appendChild(el('div','row2','Polis karakolu: Karabağlar & Kocaeli · İtfaiye: Karşıyaka & Kocaeli'));
-  root.appendChild(el('div','sub','Bugün: '+GUN[wday()]+' · Gün '+HOME.day))}
+  root.appendChild(el('div','sub','Bugün: '+GUN[wday()]+' · Gün '+HOME.day));root.appendChild(el('h3','','💬 Duyduklarım'));if(!KNOW.length)root.appendChild(el('div','sub','Henüz bir şey duymadın. İş yerinde ve komşularla vakit geçir.'));KNOW.slice().reverse().slice(0,15).forEach(k=>root.appendChild(el('div','row2',(k.k==='rumor'?'❓ Söylenti · ':'✅ Haber · ')+k.t+' — '+k.from+', gün '+k.d)));if(me&&me.key==='kiz')secView(root)}
 
 /* ================= v34: aşama 5 – hastalık + sürprizler, komşuluk, eşya bozulma + teknik servis, kişisel bakım animasyonları ================= */
 ACH.push(['surprise','💝','Sürpriz!','Hastayken eşinden/sevgilinden sürpriz al','surprise_got',1],['support','🍲','Şefkat','Hasta olan eşine/sevgiline destek ol','support',1],['nbfood','🥘','Komşu eli','Bir komşudan yemek al','nb_food',1],
@@ -4284,6 +4284,124 @@ function onEnter34(I){if(!I)return;if(I.name===HOME.cur||(HOME.cur==='ev_koc_ust
   if(I.name==='hastane'&&!I.muayene){I.muayene=1;I.spots.push({x:-8,z:-4.8,r:1.8,t:'E: 🩺 Muayene ol',fn:()=>{if(!ILL){toast('👩‍⚕️ "Sağlığınız gayet iyi görünüyor!"');return}if(!canPay(100)){toast('Muayene 100🪙');return}pay(100);ILL.days=Math.max(0,ILL.days-1);INV.push({n:'Reçeteli ilaç',e:'💊',u:'med'});toast('👩‍⚕️ Muayene oldun, reçeteni aldın 💊');if(ILL.days<=0){ILL=null;toast('💪 İyileştin!')}}})}
   if(/^of\d/.test(I.name)&&ILL&&I.cicom&&me.key!=='abla')setTimeout(()=>{try{say(I.cicom.p,'Geçmiş olsun, bugün dinlenseydin keşke 😟',3)}catch(e){}},2500)}
 function day34(){illDaily();breakDaily()}
+
+/* ================= v35: harita doldurma + yol uzatma, aşama 6 (dedikodu, iş yeri, sır, müzik, evlilik teklifi), şehir gelişimi ================= */
+/* ---------- yollar harita içinde bitmesin: uçları ufka uzat ---------- */
+function roadAutoExtend(defs){const inside=p=>p[0]>-32&&p[0]<84&&p[1]>-70&&p[1]<64;const segD=(p,a,b)=>{const dx=b[0]-a[0],dz=b[1]-a[1],l=dx*dx+dz*dz||1;let t=((p[0]-a[0])*dx+(p[1]-a[1])*dz)/l;t=clamp(t,0,1);return Math.hypot(p[0]-a[0]-t*dx,p[1]-a[1]-t*dz)};
+  const near=(p,d)=>defs.some(o=>{if(o===d)return false;for(let i=0;i<o.ctrl.length-1;i++)if(segD(p,o.ctrl[i],o.ctrl[i+1])<(o.width+d.width)/2+1.5)return true;return false});
+  defs.forEach(d=>{if(d.closed||d.ctrl.length<2)return;const c=d.ctrl;if(d.from==null&&inside(c[0])&&!near(c[0],d)){const a=c[0],b=c[1],dx=a[0]-b[0],dz=a[1]-b[1],l=Math.hypot(dx,dz)||1;c.unshift([a[0]+dx/l*60,a[1]+dz/l*60]);c.unshift([a[0]+dx/l*220,a[1]+dz/l*220])}
+    const n=c.length;if(d.to==null&&inside(c[n-1])&&!near(c[n-1],d)){const a=c[n-1],b=c[n-2],dx=a[0]-b[0],dz=a[1]-b[1],l=Math.hypot(dx,dz)||1;c.push([a[0]+dx/l*60,a[1]+dz/l*60]);c.push([a[0]+dx/l*220,a[1]+dz/l*220])}})}
+const payOk=n=>{if(!canPay(n)){toast('Yeterli 🪙 yok');return false}return true};
+/* ---------- kamu binalarının önü açık olsun ---------- */
+function frontClear(x,z,r){for(let k=1;k<=3;k++){const fz=z+r+k*6;for(const b of C.boxes){if(Math.abs(b.x-x)<b.hx+r*.8&&Math.abs(b.z-fz)<b.hz+3)return false}}return true}
+function reserveSpotF(r,pref){const L=[];for(let z=-50;z<=40;z+=4)for(let x=-12;x<=66;x+=4)L.push([x,z]);if(pref)L.sort((a,b)=>Math.hypot(a[0]-pref[0],a[1]-pref[1])-Math.hypot(b[0]-pref[0],b[1]-pref[1]));
+  for(const p of L){if(freeArea(p[0],p[1],r)&&frontClear(p[0],p[1],r)){(C.noInfill||(C.noInfill=[])).push([p[0]-r,p[1]-r,p[0]+r,p[1]+r],[p[0]-r,p[1],p[0]+r,p[1]+r+20]);(C.noTree||(C.noTree=[])).push([p[0],p[1],r+1]);return p}}return reserveSpot(r,pref)}
+/* ---------- ikinci doldurma geçişi: evler, küçük dükkânlar, kamu binaları ---------- */
+const PUB=[['İLKOKUL','#c8822a','okul',[['📚','Veli toplantısı',()=>toast('🏫 Öğretmen: "Çocuklar çok başarılı!"')]]],['PTT','#f4c21a','ptt',[['📮','Mektup gönder (10🪙)',()=>{if(!payOk(10))return;pay(10);mood=clamp(mood+4,0,100);toast('📮 Mektubun yola çıktı')}]]],
+  ['KÜTÜPHANE','#3a6a9a','kitap',[['📖','Kitap oku',()=>startAct({name:'Kütüphanede kitap okuyorsun',ic:'📖',dur:14,tm:3,pose:'phone',per:{fun:1.2,mood:.6},end:()=>toast('📖 Güzel bir roman bitirdin')})]]],['SPOR SALONU','#2a2a32','spor',[['🏋️','Antrenman yap (40🪙)',()=>{if(!payOk(40))return;pay(40);startAct({name:'Spor yapıyorsun',ic:'🏋️',dur:12,tm:4,pose:'dance',per:{en:-1,mood:1.2,hyg:-.6,fun:.8},end:()=>{toast('💪 Harika antrenman')}})}]]],
+  ['ECZANE','#2f8a3a','ecz',[['💊','Grip ilacı (60🪙)',()=>{if(!payOk(60))return;pay(60);INV.push({n:'Grip ilacı',e:'💊',u:'med'});toast('💊 Çantana eklendi')}]]],['FIRIN','#b5532f','firin',[['🥖','Sıcak ekmek (8🪙)',()=>{if(!payOk(8))return;pay(8);INV.push({n:'Sıcak ekmek',e:'🥖',u:'gida',h:15,m:4});toast('🥖 Mis gibi!')}]]]];
+function pubB(x,z,k){const P=PUB[k%PUB.length];building2({x:x,z:z,w:8,d:7,floors:2,pi:(k+2)%6,seed:500+k});const sg=new T.Mesh(new T.PlaneGeometry(4.4,.75),new T.MeshBasicMaterial({map:textSign(P[0],4.4,.75,P[1],'#ffffff')}));signMats.push(sg.material);sg.position.set(x,4.2,z+3.85);W.add(sg);
+  box(1.4,2.4,.15,std(0x3a2a20),x,1.2,z+3.6);C.spots.push({x:x,z:z+5,r:2.2,t:'E: '+P[0].charAt(0)+P[0].slice(1).toLowerCase()+' 🏛️',fn:()=>actionMenu('🏛️ '+P[0],P[3])})}
+function infill2(){if(C.bounds||C.noInfill2)return;C.noInfill2=1;let n=0;const T3=['ev','ev','dukkan','bina','kamu','ev','dukkan','bina','ev','kamu'];
+  for(let z=-60;z<=52;z+=8)for(let x=-14;x<=72;x+=8){const jx=x+((x*5+z*3)%3)-1,jz=z+((x*3+z*7)%3)-1;if(!freeArea(jx,jz,5))continue;const t=(n%4===1&&(C.pubN||0)<3)?'kamu':T3[(n+Math.abs((jx*7+jz*3)|0))%T3.length];
+    ground(jx,jz,10,10,repeatMat(paverTex,2,2,.9),.043);
+    if(t==='ev'){townHouse({x:jx,z:jz,w:6,d:5,floors:1+(n%2),wall:['#f2e4cc','#e8d5b5','#dfe8f0','#f0d8d8','#e0e8d0'][n%5],seed:600+n});C.boxes.push({x:jx,z:jz,hx:3.2,hz:2.8})}
+    else if(t==='dukkan'){const s=CARSI[(n*3)%CARSI.length];shop(jx,jz,5.4,s[0],s[1],'#ffffff','#efe6d6',700+n);C.boxes.push({x:jx,z:jz,hx:2.8,hz:3});C.spots.push({x:jx,z:jz+4.4,r:2.2,t:'E: '+s[0]+' 🛍️',fn:()=>openMenu(s[0],s[2])})}
+    else if(t==='kamu'&&(C.pubN||0)<3){C.pubN=(C.pubN||0)+1;pubB(jx,jz,n)}
+    else building2({x:jx,z:jz,w:5+(n%3),d:5,floors:2+(n%4),pi:n%6,seed:800+n});n++;C.inf2n=n;if(n>30){infill3();return}}infill3()}
+function townHouse(o){building({x:o.x,z:o.z,w:o.w,d:o.d,floors:o.floors,fh:3,wall:o.wall,roof:0x9a8a78,seed:o.seed,lit:.85});const top=o.floors*3;gable(o.x,o.z,o.w,o.d,2.2,.4,o.wall,top,[0xc4482c,0x8a4a3a,0x5a6a7a][o.seed%3]);box(.9,2.2,.15,std(0x7a4426),o.x-o.w/4,1.1,o.z+o.d/2+.08);box(1.1,.25,.8,std(0xcfc3b0),o.x-o.w/4,.12,o.z+o.d/2+.5);sph(.45,0x4a8a3a,o.x+o.w/4,.4,o.z+o.d/2+.6,W)}
+function infill3(){let n=0;const KC=['#2a6fb0','#c8322a','#2f8a3a','#f4a020','#6a4a9a'];
+  for(let z=-60;z<=52;z+=6)for(let x=-14;x<=72;x+=6){if(!freeArea(x,z,3.4))continue;ground(x,z,7,7,repeatMat(paverTex,2,2,.9),.043);
+    if(n%3===2){const s=CARSI[(n*5+1)%CARSI.length];shop(x,z,3.8,s[0],s[1],'#ffffff','#efe6d6',1000+n);C.boxes.push({x:x,z:z,hx:2,hz:2.2});C.spots.push({x:x,z:z+3.4,r:1.9,t:'E: '+s[0]+' 🛍️',fn:()=>openMenu(s[0],s[2])})}
+    else{townHouse({x:x,z:z,w:4.4,d:4,floors:1+(n%2),wall:['#f2e4cc','#e8d5b5','#dfe8f0','#f0d8d8','#e0e8d0'][n%5],seed:1100+n});C.boxes.push({x:x,z:z,hx:2.4,hz:2.2})}n++;C.inf3n=n;if(n>28)return}}
+/* ---------- dedikodu ---------- */
+const KNOW=[];const GOSPOOL=[['g1','Duydun mu, muhasebeden biri başka şirkete geçecekmiş 🤫','rumor'],['g2','Karşıyaka çarşıda yeni bir kahveci açılacakmış diyorlar ☕','rumor'],['g3','Bizim apartmanın asansörü yine bozulmuş, yönetici kızgın 😤','fact'],
+  ['g4','Kordon\'da dün akşam biri evlenme teklif etmiş, herkes alkışlamış 💍','rumor'],['g5','Pazarda domates fiyatları düşmüş, millet kuyrukta 🍅','fact'],['g6','Patronun yeni arabası varmış, kimse görmemiş ama 🚗','rumor'],['g7','Bostanlı\'da martılar bir çocuğun simidini kapmış 😂','fact'],['g8','Stadın çimleri yenilenecekmiş ⚽','rumor']];
+function gosAdd(id,txt,kind){if(KNOW.some(k=>k.id===id)||GOSQ.some(k=>k[0]===id))return;GOSQ.push([id,txt,kind])}const GOSQ=[];
+function gossipTick(dt){if(!me||mode!=='int'&&mode!=='world')return;STATS.gosCd=(STATS.gosCd||0)-dt;if(STATS.gosCd>0)return;
+  const src=(mode==='int'&&curI&&curI.agents?curI.agents:[]).filter(a=>a.p&&a.p.visible&&a.p.parent&&a.menu&&!['kurye','garson','polis','ziyaret'].includes(a.who)&&a!==OG&&Math.hypot(a.x-pl.x,a.z-pl.z)<4)[0]||((mode==='int'&&curI&&/^of\d/.test(curI.name)&&curI.cicom)?curI.cicom:null);
+  if(!src)return;const pool=GOSQ.length?GOSQ:GOSPOOL.filter(g=>!KNOW.some(k=>k.id===g[0]));if(!pool.length){STATS.gosCd=600;return}if(rnd()>.5){STATS.gosCd=90;return}
+  const g=GOSQ.length?GOSQ.shift():pick(pool);KNOW.push({id:g[0],t:g[1],k:g[2],d:HOME.day,from:src.label||'Biri'});STATS.gosCd=420+rnd()*300;say(src.p,g[1],4.5);toast('💬 '+(g[2]==='rumor'?'Söylenti: ':'Haber: ')+g[1]);emitSafe('gossip')}
+function knowLine(){const k=KNOW.filter(x=>HOME.day-x.d<=4);if(!k.length)return null;const g=pick(k);return [g.k==='rumor'?'Bir şey duydum ama emin değilim: '+g.t:'Biliyor musun? '+g.t,g.k==='rumor'?'Söylentiye pek güvenme bence 😄':'Vay, hiç duymamıştım!']}
+/* ---------- iş yeri: personel değişimleri, Gökhan, Gökay ziyareti ---------- */
+let STAFF=null;const NEWNAMES=['Kaan','Ece','Onur','İrem','Barış','Pelin','Tolga','Seda','Cem','Gizem'];
+function staffInit(){if(STAFF)return;STAFF={list:[['Burak','Muhasebe'],['Zeynep','İK'],['Emre','Yazılım'],['Derya','Satış'],['Mert','Destek'],['Ayşe Hanım','Müdür']],log:[],next:HOME.day+4}}
+function staffDaily(){staffInit();if(HOME.day<STAFF.next)return;STAFF.next=HOME.day+5+((rnd()*5)|0);const L=STAFF.list,r=rnd();let msg;
+  if(r<.3){const n=pick(NEWNAMES.filter(q=>!L.some(x=>x[0]===q)))||'Yeni biri';const dep=pick(['Yazılım','Satış','Destek','Muhasebe']);L.push([n,dep]);msg=n+' '+dep+' ekibine yeni başladı'}
+  else if(r<.5&&L.length>5){const i=1+((rnd()*(L.length-2))|0);const q=L.splice(i,1)[0];msg=q[0]+' ('+q[1]+') işten ayrıldı, başka şirkete geçti'}
+  else if(r<.75){const q=pick(L.filter(x=>x[1]!=='Müdür'));msg=q[0]+' terfi aldı, artık '+q[1]+' takım lideri 🎉';q[1]=q[1]+' (lider)'}
+  else if(r<.9){const q=pick(L.filter(x=>x[1]!=='Müdür'));const nd=pick(['Yazılım','Satış','Destek','Muhasebe','İK'].filter(d=>d!==q[1]));msg=q[0]+' '+nd+' departmanına geçti';q[1]=nd}
+  else{const i=L.findIndex(x=>x[1]==='Müdür');const n=pick(['Kemal Bey','Nilay Hanım','Serkan Bey']);if(i>=0)L[i]=[n,'Müdür'];msg='Ofise yeni müdür geldi: '+n}
+  STAFF.log.push({d:HOME.day,t:msg});if(STAFF.log.length>20)STAFF.log.shift();gosAdd('st'+HOME.day,'Duydun mu? '+msg,'fact')}
+function officeBoard(){staffInit();actionMenu('📋 Ofis panosu',STAFF.list.map(s=>['👤',s[0]+' · '+s[1],()=>{}]).concat(STAFF.log.slice(-4).reverse().map(l=>['📰','Gün '+l.d+': '+l.t,()=>{}])))}
+const workHours=()=>wday()!==0&&wday()!==6&&GT>=9*60&&GT<18*60;
+function onEnterOffice(I){if(!I.board){I.board=1;I.spots.push({x:-3.4,z:-5.7,r:1.3,t:'E: 📋 Ofis panosu (personel)',fn:officeBoard})}
+  if(me.key!=='esi'&&workHours()&&!I.gokhan){const g=mkAgent('eniste','Gökhan',FAMLOOK.eniste);g.char='esi';g.ic='💼';g.brain=()=>{};g.pose='work';g.menu=a=>{faceEach(a);if(isSpouse(a)){actionMenu('❤️ Gökhan · iş yerinde',romanceActs(a).slice(0,4));return}
+      actionMenu('💼 Gökhan',[['💬','Sohbet',()=>chatWith(a,[['İş nasıl?','Sprint bitmek üzere, yoğunuz 😅'],['Öğle yemeği?','Aspava\'ya gidelim mi? 🍖'],['Gökay nasıl?','Okulda, akşam seni sordu 🥰']],5)],['☕','Kahve molası',()=>{NEED.soc=clamp(NEED.soc+10,0,100);say(a.p,'Tam zamanında ☕',2)}]])};
+    agentPlace(g,I,-.5,3.4);g.face=Math.PI;agentSit(g,{x:-.5,z:3.4,face:Math.PI,h:.54},'work');I.gokhan=g}
+  if(I.gokhan){const show=me.key!=='esi'&&workHours();I.gokhan.p.visible=show}
+  if(me.key==='kiz'&&!I.gokay&&wday()!==0&&GT>=15*60&&GT<17.5*60&&STATS.gokayDay!==HOME.day&&rnd()<.5){STATS.gokayDay=HOME.day;setTimeout(()=>gokayVisit(I),6000)}}
+const GOKAYL=['Ablam! Ablaaam! 🥰','Ablaaa! Sürpriz! 🎒','Abla bak ne getirdim! 🖍️','Ablam! Seni çok özledim! 🤗','Abla abla! Okul bitti! 🎉'];
+function gokayVisit(I){if(curI!==I)return;const dp=doorPt(I);const k=tempVisitor(I,'Gökay',FAMLOOK.yegen,dp[0],dp[1]);k.sp=3.4;let li=STATS.gokayLine||0;li=(li+1+((rnd()*3)|0))%GOKAYL.length;STATS.gokayLine=li;say(k.p,GOKAYL[li],3);
+  agentGo(k,clamp(pl.x+.8,-I.bx+.5,I.bx-.5),pl.z+.5,()=>{faceEach(k);k.anim={k:'hug',t:2};playerAnim('hug',2);fxPop(k.p,'💛',3);setTimeout(()=>say(player,pick(['Canım benim! 🥰','Kuzum gelmiş! 💛','Seni kim getirdi bakayım? 😄']),2.6),1200);
+    mood=clamp(mood+15,0,100);if(BONDS.yegen)BONDS.yegen.v=clamp(BONDS.yegen.v+10,0,100);memAdd('🎒','Gökay işime ziyarete geldi, "Ablam!" diye koştu');setTimeout(()=>{say(k.p,'Annemle eve gidiyorum, bay bay! 👋',2.4);agentGo(k,dp[0],dp[1],()=>agentDetach(k))},9000)})}
+function onEnterFamily(I){const f=I.fam;if(!f)return;const wh=workHours(),school=wday()!==0&&wday()!==6&&GT>=8*60&&GT<15*60;[[f.abla,'abla',wh],[f.eniste,'esi',wh],[f.yegen,'yegen',school]].forEach(([a,k,away])=>{if(!a||a.gone||me.key===k)return;a.p.visible=!away;a.away=away})}
+/* ---------- gizli olay: Oğuz'un gizli iş başvurusu ---------- */
+let SEC=null;const SECCLUES=[['📞','Oğuz gece geç saatte fısıldayarak telefonla konuşuyordu','phone'],['👔','Oğuz bugün takım elbise giymiş, "toplantı var" dedi','suit'],['📩','Oğuz\'un telefonuna "Görüşme saatiniz onaylandı" diye bir bildirim geldi','notif'],['🗂️','Masasında bir dosya gördün: "Özgeçmiş – güncel"','cv'],['🤐','Ne olduğunu sorunca konuyu değiştirdi','dodge']];
+function secDaily(){if(!me||me.key!=='kiz')return;if(!SEC&&HOME.day>=4&&!STATS.secDone&&rnd()<.25){SEC={id:'og_job',d0:HOME.day,clues:[],sus:10,stage:0,guess:null};return}
+  if(SEC&&!SEC.over){const c=SECCLUES[SEC.clues.length];if(c&&rnd()<.75){SEC.clues.push(c[2]);SEC.sus=clamp(SEC.sus+15,0,100);setTimeout(()=>notify('🤔 Bir tuhaflık var','İpucu: '+c[1],[{t:'Not aldım 📓',fn:()=>{}}]),5000);memAdd('🕵️',c[1])}
+    if(HOME.day-SEC.d0>=7)secReveal(false)}}
+function secAsk(){if(!SEC)return;const st=SEC.clues.length,a=st<2?pick(['Ne saklayacağım ya? 😅','Hiç, iş yoğun sadece']):st<4?pick(['Şey… sonra anlatırım 🙈','Biraz sabret, söz anlatacağım']):'Az kaldı, inan bana güzel bir şey 😊';say(OG.p,a,3);SEC.sus=clamp(SEC.sus+(st<2?3:8),0,100)}
+function secGuess(g){if(!SEC||SEC.over)return;SEC.guess=g;if(g==='job'&&SEC.clues.length>=3)secReveal(true);else if(g==='job'){say(OG.p,'Hmm… kim söyledi? 😳 Daha netleşmedi',3);SEC.sus=clamp(SEC.sus+10,0,100)}else{BONDS.ogus.v=clamp(BONDS.ogus.v-6,0,100);say(OG.p,g==='other'?'Ne alakası var?! 😳 Asla!':'Yok be, hasta falan değilim 😅',3);SEC.sus=clamp(SEC.sus-10,0,100)}}
+function secReveal(found){if(!SEC)return;SEC.over=true;STATS.secDone=1;const t='Oğuz: "Seni şaşırtmak istedim… Yeni işe kabul edildim! 🎉 Maaşım da arttı!"';notify('💙 Oğuz',t,[{t:found?'Biliyordum! 😎':'Ayyy tebrikler! 🎉',fn:()=>{}}]);memAdd('🎉','Oğuz gizlice başvurduğu yeni işe kabul edildi');
+  if(found){emitSafe('secret_found');BONDS.ogus.v=clamp(BONDS.ogus.v+10,0,100)}SEC=null}
+function secView(root){root.appendChild(el('h3','','🕵️ Merak ettiklerim'));if(!SEC){root.appendChild(el('div','sub','Şu an aklını kurcalayan bir şey yok.'));return}
+  root.appendChild(el('div','row2','Şüphe: %'+Math.round(SEC.sus)));SEC.clues.forEach(c=>{const q=SECCLUES.find(x=>x[2]===c);root.appendChild(el('div','row2',q[0]+' '+q[1]))});
+  const r=el('div','chips');[['job','Yeni işe başvuruyor'],['surprise','Sürpriz hazırlıyor'],['other','Başka biri var'],['sick','Hasta, saklıyor']].forEach(o=>{const b=el('button','',o[1]);b.onclick=()=>{secGuess(o[0]);$('phone').classList.remove('on')};r.appendChild(b)});root.appendChild(el('div','sub','Tahminini Oğuz\'un yanındayken yap:'));root.appendChild(r)}
+/* ---------- müzik zevkleri ---------- */
+const GENRES={pop:['Türk pop',[[261.6,329.6,392,493.9],[220,261.6,329.6,392],[174.6,220,261.6,349.2],[196,246.9,293.7,392]],3.2],rock:['Rock',[[164.8,246.9,329.6,415.3],[146.8,220,293.7,370],[196,293.7,392,493.9],[220,329.6,440,554.4]],2.2],
+  caz:['Caz',[[146.8,174.6,220,261.6],[196,233.1,293.7,349.2],[130.8,164.8,196,246.9],[220,261.6,329.6,392]],3.8],lofi:['Lo-fi',[[220,261.6,329.6,392],[174.6,220,261.6,329.6],[196,246.9,293.7,349.2],[164.8,196,246.9,293.7]],4.2],
+  arabesk:['Arabesk',[[220,261.6,329.6,415.3],[146.8,174.6,220,293.7],[164.8,207.7,246.9,329.6],[220,261.6,329.6,440]],3.6],klasik:['Klasik',[[261.6,329.6,392,523.3],[196,246.9,293.7,392],[220,261.6,329.6,440],[174.6,220,261.6,349.2]],3.4]};
+const TASTE={kiz:{like:['pop','lofi'],no:['rock'],fav:'Körfezde Gün Batımı'},sen:{like:['rock','caz'],no:['arabesk'],fav:'Gece Yolculuğu'},abla:{like:['pop','klasik'],no:['rock'],fav:'Kordon Akşamları'},esi:{like:['arabesk','pop'],no:['caz'],fav:'Eski Plaklar'},
+  yegen:{like:['pop'],no:['klasik'],fav:'Zıp Zıp Şarkısı'},almira:{like:['lofi','klasik'],no:['arabesk'],fav:'Sessiz Nöbet'},berke:{like:['rock','lofi'],no:['pop'],fav:'Körfez Rüzgârı'}};
+let GENRE='pop';function playGenre(g,withP){GENRE=g;MUS.ch=GENRES[g][1];MUS.dur=GENRES[g][2];MUS.t=0;SET.music=true;applyAudio();const t=TASTE[me.key]||{like:[],no:[]};const like=t.like.includes(g),no=t.no.includes(g);
+  mood=clamp(mood+(like?10:no?-6:3),0,100);NEED.fun=clamp(NEED.fun+(like?10:no?0:4),0,100);toast('🎵 '+GENRES[g][0]+(like?' · en sevdiğin tür 😍':no?' · pek sevmezsin 😕':''));
+  const pk=COUPLE[me.key];if(pk&&withP&&withP.p&&withP.p.visible){const pt=TASTE[pk];setTimeout(()=>say(withP.p,pt.like.includes(g)?pick(['Bayılırım buna 💃','Açık kalsın bu! 🎶']):pt.no.includes(g)?pick(['Yine mi bu? 😅 Biraz '+GENRES[pt.like[0]][0]+' açsak?','Kulaklarım… 🙉']):'Fena değil 🎵',3),1200)}}
+function musicMenu(){const t=TASTE[me.key]||{like:[]};const pa=(mode==='int'&&curI&&curI.agents||[]).find(a=>isSpouse(a))||((OG.p&&OG.p.parent&&OG.p.visible)?OG:null);
+  actionMenu('🎵 Ne dinleyelim? · favorin: "'+t.fav+'"',Object.keys(GENRES).map(g=>['🎶',GENRES[g][0]+(t.like.includes(g)?' ❤️':''),()=>playGenre(g,pa)]).concat([['⭐','Favori şarkını çal: '+t.fav,()=>{playGenre(t.like[0],pa);mood=clamp(mood+6,0,100);memAdd('🎵','"'+t.fav+'" çalınca içim açıldı')}]]))}
+/* ---------- nadir evlilik teklifleri ---------- */
+let PROP=null;function proposalCheck(){if(PROP||mode!=='world'||!activeD||activeD.bounds||GT<11*60||GT>22*60)return;if(HOME.day-(STATS.propDay||-99)<7||rnd()>.06)return;STATS.propDay=HOME.day;
+  const G=activeD.G;let x=0,z=0,ok=false;for(const [ox,oz] of [[6,-3],[-6,-3],[5,4],[-5,4],[8,0]]){x=pl.x+ox;z=pl.z+oz;if([[0,0],[0,-1.3],[3.4,-.6],[-3.4,-.6],[0,2.4],[0,-3.6]].every(q=>!blockedW(x+q[0],z+q[1],.8))&&!(activeD.boxes||[]).some(b=>Math.abs(b.x-x)<b.hx+5&&Math.abs(b.z-z)<b.hz+5)){ok=true;break}}if(!ok){STATS.propDay=HOME.day-5;return}const a=personOld({shirt:0x1d2a4a,pants:0x23252b,hair:0x2a2018}),b=personOld({shirt:0xd8322c,pants:0x2a2a38,hair:0x6b3b1e});a.position.set(x,0,z);b.position.set(x,0,z-1.3);a.rotation.y=Math.PI;G.add(a);G.add(b);
+  const ring=new T.Group();hBox(.16,.12,.16,0xc8322a,0,0,0,ring);sph(.04,0xffffff,0,.1,0,ring);ring.position.set(x,.9,z-.45);G.add(ring);const cr=[];for(let i=0;i<5;i++){const p=personOld({shirt:[0x3a6a9a,0xe8d8b8,0x4a8a5a,0x6a2a8a,0xf4c542][i],pants:0x2a2a30,hair:0x3b2416});const ang=i/5*Math.PI*2;p.position.set(x+Math.cos(ang)*3.4,0,z-.6+Math.sin(ang)*3);p.rotation.y=Math.atan2(x-p.position.x,z-.6-p.position.z);G.add(p);cr.push(p)}
+  PROP={a:a,b:b,ring:ring,cr:cr,t:0,x:x,z:z,G:G,d:activeD};activeD.spots.push(PROP.spot={x:x-1.5,z:z+1,r:4,t:'E: 👏 Alkışla',fn:()=>{playerAnim('wave',1.4);mood=clamp(mood+10,0,100);emitSafe('proposal');toast('👏 Mutluluklar dilediniz! 💍')}});toast('💍 Yakınlarda bir şey oluyor…')}
+function proposalTick(dt,t){if(!PROP)return;const P=PROP;if(activeD!==P.d||mode!=='world'){propEnd();return}P.t+=dt;const a=P.a,b=P.b;
+  if(P.t<6){a.position.y=-.45;a.userData.legs[0].rotation.x=-1.4;a.userData.arms[1].rotation.x=-1.4;if(!P.s1){P.s1=1;say(a,'Benimle evlenir misin? 💍',4)}b.userData.arms.forEach(q=>q.rotation.x=-2.6)}
+  else if(P.t<14){a.position.y=0;a.userData.legs[0].rotation.x=0;if(!P.s2){P.s2=1;say(b,'EVEEET! 😭💍',3.5);fxPop(b,'💍',4);for(let i=0;i<4;i++)setTimeout(()=>{try{noiseHit(.15,2600,.25)}catch(e){}},i*120);memAdd('💍','Bir çiftin evlilik teklifine denk geldim, herkes alkışladı')}
+    a.userData.arms.forEach(q=>q.rotation.x=-1.3);b.userData.arms.forEach(q=>q.rotation.x=-1.3);P.cr.forEach((p,i)=>{p.userData.arms.forEach((q,k)=>q.rotation.x=-1.4+Math.abs(Math.sin(t*14+i+k))*.4)})}
+  else if(P.t>40)propEnd()}
+function propEnd(){const P=PROP;if(!P)return;[P.a,P.b,P.ring].concat(P.cr).forEach(o=>o.parent&&o.parent.remove(o));if(P.d&&P.spot)P.d.spots=P.d.spots.filter(s=>s!==P.spot);PROP=null}
+/* ---------- zamanla gelişen şehir ---------- */
+let GROW={};const BIZ=[['☕','Kahve Durağı','#6a4428',[{n:'Latte',p:25,h:2,m:12},{n:'Kurabiye',p:15,h:8,m:5}]],['🍕','Pizza Evi','#c8322a',[{n:'Pizza dilim',p:35,h:30,m:8}]],['🍦','Dondurmacı','#e87aa8',[{n:'Dondurma',p:25,h:6,m:12}]],['📚','Kitap Kafe','#3a6a9a',[{n:'Çay & kitap',p:20,h:2,m:10}]],['🌯','Dürümcü','#8a5a30',[{n:'Adana dürüm',p:60,h:45,m:10}]],['🧁','Pastane','#f4a3c4',[{n:'Pasta dilimi',p:40,h:18,m:14}]]];
+function growPlots(){if(!['karsiyaka','karabaglar','cigli','kocaeli','bostanli'].includes(C.name))return;C.plots=[];for(let i=0;i<2;i++){const p=reserveSpotF(5.5,[i?52:10,i?-6:30]);if(!p)continue;const id=C.name+i;if(!GROW[id])GROW[id]={st:0,next:HOME.day+4+((rnd()*6)|0),biz:-1};
+  const g={id:id,x:p[0],z:p[1],empty:new T.Group(),build:new T.Group(),done:new T.Group()};[g.empty,g.build,g.done].forEach(q=>{q.userData.noMerge=true;q.userData.noCull=true;W.add(q)});
+  const ex=p[0],ez=p[1];ground(ex,ez,11,10,new T.MeshStandardMaterial({color:0x9a8a6a,roughness:1}),.046);const fm=std(0xd8d8de);[[0,-4.8,10.6,.1],[0,4.8,10.6,.1],[-5.3,0,.1,9.6],[5.3,0,.1,9.6]].forEach(q=>box(q[2],.9,q[3],fm,ex+q[0],.45,ez+q[1],g.empty));
+  const ks=new T.Mesh(new T.PlaneGeometry(2.4,.6),new T.MeshBasicMaterial({map:textSign('SATILIK ARSA',2.4,.6,'#c8322a','#ffffff')}));ks.position.set(ex,1.6,ez+4.9);g.empty.add(ks);
+  [[0,-4.8,10.6,.1],[0,4.8,10.6,.1],[-5.3,0,.1,9.6],[5.3,0,.1,9.6]].forEach(q=>box(q[2],2,q[3],std(0x2a6ab0),ex+q[0],1,ez+q[1],g.build));box(7,3.4,6,std(0xb8b0a2),ex,1.7,ez,g.build);for(let k=0;k<4;k++)box(7.4,.08,.08,std(0xf4c542),ex,.8+k*.8,ez+3.1,g.build);
+  box(.4,12,.4,std(0xf4c542),ex+4,6,ez-3,g.build);box(8,.4,.4,std(0xf4c542),ex+1,12,ez-3,g.build);const bs=new T.Mesh(new T.PlaneGeometry(2.8,.6),new T.MeshBasicMaterial({map:textSign('🚧 İNŞAAT',2.8,.6,'#f4c542','#1b1b1f')}));bs.position.set(ex,2.2,ez+4.92);g.build.add(bs);
+  for(let k=0;k<2;k++){const w=personOld({shirt:0xf08a24,pants:0x2a3a5a,hair:0x2a1a12});box(.5,.12,.5,std(0xffffff),0,2.55,0,w);w.position.set(ex-2+k*4,0,ez+4);g.build.add(w)}
+  g.dbox={x:ex,z:ez,hx:3.6,hz:3.2};C.boxes.push(g.dbox);C.plots.push(g);C.spots.push({x:ex,z:ez+4.6,r:2.2,cond:()=>GROW[id].st===2,get t(){const b=BIZ[GROW[id].biz]||BIZ[0];return 'E: '+b[0]+' '+b[1]+' (yeni!)'},fn:()=>{const b=BIZ[GROW[id].biz]||BIZ[0];openMenu(b[1],b[3]);if(!STATS['biz'+id]){STATS['biz'+id]=1;memAdd(b[0],'Yeni açılan '+b[1]+'\'na gittim');emitSafe('newbiz')}}})}}
+function growApply(d){(d.plots||[]).forEach(g=>{const s=GROW[g.id];if(!s)return;g.empty.visible=s.st===0||s.st===3;g.build.visible=s.st===1;
+  if(s.st===2&&!g.built){g.built=1;while(g.done.children.length)g.done.remove(g.done.children[0]);const b=BIZ[s.biz]||BIZ[0],W0=W;W=g.done;shop(g.x,g.z,7,b[1],b[2],'#ffffff','#f6efe4',900+s.biz);W=W0}if(s.st!==2)g.built=0;g.done.visible=s.st===2;g.dbox.hx=s.st===0||s.st===3?0:3.6;g.dbox.hz=s.st===0||s.st===3?0:3.2})}
+function growDaily(){Object.keys(GROW).forEach(id=>{const s=GROW[id],nm={karsiyaka:'Karşıyaka',karabaglar:'Karabağlar',cigli:'Çiğli',kocaeli:'Kocaeli',bostanli:'Bostanlı'}[id.slice(0,-1)]||'';if(HOME.day<s.next)return;
+  if(s.st===0||s.st===3){s.st=1;s.biz=(rnd()*BIZ.length)|0;s.next=HOME.day+6+((rnd()*5)|0);gosAdd('gr'+id+HOME.day,nm+'\'da bir arsada inşaat başlamış, '+BIZ[s.biz][1].toLowerCase()+' olacakmış diyorlar 🚧','rumor')}
+  else if(s.st===1){s.st=2;s.next=HOME.day+15+((rnd()*15)|0);gosAdd('go'+id+HOME.day,nm+'\'da yeni '+BIZ[s.biz][1]+' açıldı! '+BIZ[s.biz][0],'fact');if(!SET.mute)notify('🏙️ Şehirde yeni','Yeni '+BIZ[s.biz][1]+' açıldı · '+nm+' '+BIZ[s.biz][0],[{t:'Tamam',fn:()=>{}}])}
+  else if(s.st===2&&rnd()<.3){s.st=3;s.next=HOME.day+6+((rnd()*8)|0);gosAdd('gc'+id+HOME.day,nm+'\'daki '+BIZ[s.biz][1]+' kapanmış, dükkân kiralıkmış 😔','fact')}else if(s.st===2)s.next=HOME.day+10});if(activeD)growApply(activeD)}
+/* ---------- kancalar ---------- */
+function life35(dt,t,inI){gossipTick(dt);proposalTick(dt,t)}
+function onEnter35(I){if(!I)return;if(I.name==='of2')onEnterOffice(I);if(I.family)onEnterFamily(I)}
+function day35(){staffDaily();secDaily();growDaily()}
+function clock35(h){proposalCheck()}
+ACH.push(['detective','🕵️','Dedektif','Gizli bir olayın doğrusunu bul','secret_found',1,true],['proposal','💍','Romantik an','Bir evlilik teklifine tanık ol ve alkışla','proposal',1,true],['gossip5','💬','Kulak misafiri','5 dedikodu duy','gossip',5],['newbiz','🏙️','Yeni mekân','Şehirde yeni açılan bir yere git','newbiz',1]);
 
 /* ---------- döngü ---------- */
 const clock=new T.Clock();let hudT=0;
