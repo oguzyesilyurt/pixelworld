@@ -6148,7 +6148,7 @@ function buildAksaz(){newD('aksaz',3640,0);C.noEdge=true;C.air=true;C.aks=true;C
     {ctrl:[[260,0],[150,0],[90,0],[40,0],[25.5,0]],width:7,center:true,to:0},
     {ctrl:[[-8,-260],[-8,-120],[-8,-60],[-8,0],[-8,60],[-8,120],[-8,260]],width:6,center:true},
     {ctrl:[[66,-260],[66,-110],[66,-48],[66,-20],[66,0]],width:5,to:1},{ctrl:[[66,260],[66,110],[66,48],[66,20],[66,0]],width:5,to:1},
-    ...[46,76,108].map(zz=>({ctrl:[[-8,zz],[20,zz],[45,zz],[66,zz]],width:4,from:2,to:4})),{ctrl:[[16,46],[17,62],[16,76],[15,92],[16,108]],width:4,from:5,to:7},{ctrl:[[39,46],[40,62],[39,76],[38,92],[39,108]],width:4,from:5,to:7},{ctrl:[[-8,-46],[30,-44],[64,-46],[66,-78],[64,-110],[30,-112],[-6,-110],[-8,-78]],width:4,closed:true},{ctrl:[[16,-45],[16,-62],[16,-78],[16,-94],[16,-111]],width:4,from:10,to:10},{ctrl:[[39,-45],[39,-62],[39,-78],[39,-94],[39,-111]],width:4,from:10,to:10}]);
+    ...[46,80,114].map(zz=>({ctrl:[[-8,zz],[20,zz],[45,zz],[66,zz]],width:4,from:2,to:4})),{ctrl:[[15.5,46],[15.5,62],[15.5,80],[15.5,97],[15.5,114]],width:4,from:5,to:7},{ctrl:[[38,46],[38,62],[38,80],[38,97],[38,114]],width:4,from:5,to:7},{ctrl:[[-8,-44],[30,-42.5],[64,-44],[66,-80],[64,-114],[30,-116],[-6,-114],[-8,-80]],width:4,closed:true},{ctrl:[[15.5,-45],[15.5,-62],[15.5,-80],[15.5,-98],[15.5,-115]],width:4,from:10,to:10},{ctrl:[[38,-45],[38,-62],[38,-80],[38,-98],[38,-115]],width:4,from:10,to:10}]);
   ground(-27,0,6,170,repeatMat(paverTex,1.2,34,.9),.05);
   /* lojmanlar: astsubay (doğu, +z) A1..F5 · subay (batı, -z) G..V, Y1..Y8, Z1..Z7 */
   const SUB=['G','H','I','J','K','L','M','N','O','P','R','S','T','U','V','Y1','Y2','Y3','Y4','Y5','Y6','Y7','Y8','Z1','Z2','Z3','Z4','Z5','Z6','Z7'];const SUBY=[];for(let q=0;q<30;q++)SUBY.push('ABCDEF'[Math.floor(q/5)]+(q%5+1));aksLayout(SUB,SUBY);
@@ -6254,12 +6254,12 @@ function aksTrees(){const r=mulberry(4848);let n=0;for(let t=0;t<2600&&n<260;t++
 /* --- D3-2: ziyaret · ev sahibesiyle sohbet ve kahve --- */
 function visitInt(I){I.G=W;I.title='Aksaz · Lojman D3-2 · misafirlik';room(I,16,12,{wall:'#f2e6dc',winShift:-1});exitDoor(I,-5);I.spawn=[-5,-3.6];
   [['sofa',-1,1.4,2],['arm',2.2,-.8,3],['tv',-1,-5.6,0],['rug',-1,-2,0],['coffee',-1,-2,0],['dining',4.6,-3.4,0],['shelf',6.8,1,3],['p1',-6.6,4.6,0],['p2',6.6,4.6,0]].forEach(f=>{if(FURN[f[0]])try{HF(I,f[0],f[1],f[2],f[3])}catch(e){}});
-  const host=mkAgent('d3host','Fatma Hanım',{shirt:0x8a4a6a,pants:0x3a3a48,hair:0x5a3a2a,long:true,hs:'topuz',fem:true,skin:0xf1c9a0});host.ic='☕';host.brain=()=>{};agentPlace(host,I,2.2,-.8);host.face=-Math.PI/2;I.host=host;(I.agents||(I.agents=[])).push(host);
+  const host=mkAgent('d3host','Fatma Hanım',{shirt:0x8a4a6a,pants:0x3a3a48,hair:0x5a3a2a,long:true,hs:'topuz',fem:true,skin:0xf1c9a0});host.ic='☕';agentPlace(host,I,3,1.4);host.t=3;host.pois=()=>{const L=[{x:5.4,z:-4.6,face:Math.PI,pose:'cook',w:2},{x:6.2,z:1.4,face:Math.PI/2,w:1},{x:-4,z:3.2,face:0,pose:'phone',w:1},{x:1,z:-3,face:Math.PI,w:1}];furnIn(I,['sofa','arm']).forEach(f=>seatsOf(f).forEach(s=>L.push({s:s,pose:'phone',w:1.2})));return L};I.host=host;(I.agents||(I.agents=[])).push(host);
   const TALK2=[['Hoş geldiniz! Yolculuk nasıldı? 😊','Çok güzeldi, Aksaz yine harika 🌊'],['Denel, saçların ne güzel olmuş','Teşekkürler Fatma abla 🥰'],['Akşam sahile inecek misiniz?','Rola Bar\'da oturacağız, siz de gelin 🍹'],['Gökay nasıl, büyüdü mü?','Kocaman oldu, okulda çok başarılı 😊'],['Bu sene incirler erken olgunlaştı 🍈','Bahçeden toplasak mı? 😄']];
   host.menu=a=>actionMenu('☕ Fatma Hanım',[['💬','Sohbet et',()=>{const L=pick(TALK2);faceEach(a);say(a.p,L[0],3);setTimeout(()=>say(player,L[1],3),1600);NEED.soc=clamp(NEED.soc+14,0,100);mood=clamp(mood+5,0,100)}],
-    ['☕','Kahve içelim',()=>{const f=nearestF(I,['dining'],4.6,-3.4);const ss=f?seatsOf(f):[];const s1=ss[0],s2=ss[1]||ss[0];if(s2)agentGo(a,s2.x,s2.z,()=>agentSit(a,s2,'sit'));
+    ['☕','Kahve içelim',()=>{const f=nearestF(I,['dining'],4.6,-3.4);const ss=f?seatsOf(f):[];const s1=ss[0],s2=ss[1]||ss[0];a.lock=18;standUp(a);if(s2)agentGo(a,s2.x,s2.z,()=>agentSit(a,s2,'sit'));
       startAct({name:'Fatma Hanım\'la Türk kahvesi içiyorsunuz ☕',ic:'☕',dur:14,tm:3,seat:s1,per:{soc:1.6,mood:1,en:.6},tick:dt=>{if(rnd()<dt*.15)say(a.p,pick(['Kahvenin köpüğü tam olmuş 😊','Fincanı kapat, falına bakayım 🧿','Bir lokum alsana 🍬','Aksaz\'ın havası başka, değil mi?']),2.6)},
-        end:()=>{memAdd('☕','D3-2\'de Fatma Hanım\'la kahve içtik');emitSafe('visit');toast('☕ Keyifli bir sohbetti · "Yine bekleriz" dedi 💛')},stop:()=>{standUp(a);agentGo(a,2.2,-.8,()=>{a.face=-Math.PI/2})}})}]]);
+        end:()=>{memAdd('☕','D3-2\'de Fatma Hanım\'la kahve içtik');emitSafe('visit');toast('☕ Keyifli bir sohbetti · "Yine bekleriz" dedi 💛')},stop:()=>{a.lock=0;standUp(a);a.t=2}})}]]);
   if(!DISC['loj_D3-2']){discAdd('loj_D3-2','☕ D3-2 · Fatma Hanım\'a ziyaret')}}
 const _lojmanInt48=lojmanInt;lojmanInt=function(I,adr){if(adr==='D3-2')return visitInt(I);_lojmanInt48(I,adr);if(adr==='G-2'){I.title='Aksaz · G-2 · Denel & Oğuz\'un odası 💙';const ph=new T.Mesh(new T.PlaneGeometry(1.2,.9),new T.MeshStandardMaterial({map:canvasTex(120,90,(g,w,h)=>{g.fillStyle='#ffe8f0';g.fillRect(0,0,w,h);g.font='54px serif';g.textAlign='center';g.fillText('💙',w/2,h*.62);g.fillStyle='#8a3a5a';g.font='bold 12px sans-serif';g.fillText('Denel & Oğuz',w/2,h-8)}),roughness:.8}));ph.position.set(4.8,2.4,-5.82);W.add(ph)}};
 function life48(dt,t,inI){try{boatAnim(dt,t)}catch(e){showErrOnce(e)}}
@@ -6268,16 +6268,16 @@ function life48(dt,t,inI){try{boatAnim(dt,t)}catch(e){showErrOnce(e)}}
 function aksYard(x,z){const c=0xe8e2d4,p=0x8a6a4a,y0=.35;const x0=x-2.9,x1=x-6.2;[[x1,z-2.4,x1,z-.7],[x1,z+.7,x1,z+2.4]].forEach(s=>{detBox(s[0],y0,(s[1]+s[3])/2,.12,.7,s[3]-s[1],c);C.boxes.push({x:s[0],z:(s[1]+s[3])/2,hx:.12,hz:(s[3]-s[1])/2})});
   [z-2.4,z+2.4].forEach(zz=>{detBox((x0+x1)/2,y0,zz,x0-x1,.7,.12,c);C.boxes.push({x:(x0+x1)/2,z:zz,hx:(x0-x1)/2,hz:.12})});for(const zz of [z-2.4,z-.7,z+.7,z+2.4])detBox(x1,.45,zz,.18,.9,.18,p);
   detBox(x1-.02,.06,z,.1,.12,1.3,0x7a6a5a);detBox((x0+x1)/2+.3,.03,z,x0-x1-.6,.06,1.1,0xcfc8bc);detBox(x1+.6,.25,z-1.6,.6,.5,.6,0x3d7a3a);detBox(x1+.6,.25,z+1.6,.6,.5,.6,0x4a8a3a)}
-function aksCluster(x0,z0,s,names,kind,label){names.forEach((nm,i)=>{const x=x0+i*2.4,z=z0+s*i*5;lojman(x,z,nm,i+(kind==='sub'?11:3)+Math.abs(z0|0),kind,-Math.PI/2);aksYard(x,z)});
-  const sx=x0-8.2,sz=z0-s*3.2,col=kind==='sub'?'#1d3f6a':'#2a5a3a';const sg=new T.Mesh(new T.PlaneGeometry(3.4,.75),new T.MeshBasicMaterial({map:textSign(label,3.4,.75,col,'#ffffff'),side:T.DoubleSide}));signMats.push(sg.material);sg.position.set(sx,1.9,sz);sg.rotation.y=-Math.PI/2;W.add(sg);
-  [-1.5,1.5].forEach(d=>cyl(.06,.06,2.2,6,std(0x5a5a62),sx,1.1,sz+d));C.boxes.push({x:sx,z:sz,hx:.2,hz:1.7})}
-function aksLayout(AST,SUBN){const cols=[0,24,48];
+function aksCluster(x0,z0,s,names,kind,label){names.forEach((nm,i)=>{const x=x0+i*1.2,z=z0+s*i*4.8;lojman(x,z,nm,i+(kind==='sub'?11:3)+Math.abs(z0|0),kind,-Math.PI/2);aksYard(x,z)});
+  const sx=x0+2,sz=s>0?z0+4*4.8+3.4:z0+3.4,col=kind==='sub'?'#1d3f6a':'#2a5a3a';const sg=new T.Mesh(new T.PlaneGeometry(3.4,.75),new T.MeshBasicMaterial({map:textSign(label,3.4,.75,col,'#ffffff'),side:T.DoubleSide}));signMats.push(sg.material);sg.position.set(sx,1.9,sz);W.add(sg);
+  [-1.5,1.5].forEach(d=>cyl(.06,.06,2.2,6,std(0x5a5a62),sx+d,1.1,sz));C.boxes.push({x:sx,z:sz,hx:1.7,hz:.2})}
+function aksLayout(AST,SUBN){const cols=[3,25.5,48];
   const astG=[];for(let i=0;i<6;i++)astG.push(AST.slice(i*5,i*5+5));const astL=g=>g[0]+' – '+g[g.length-1]+' BLOKLARI';
-  [[0,50],[1,50],[2,50],[0,82],[1,82],[2,82]].forEach((q,i)=>aksCluster(cols[q[0]],q[1],1,astG[i],'ast',astL(astG[i])));
-  'ABCDEF'.split('').forEach((L,i)=>{const q=[[0,-52],[1,-52],[2,-52],[0,-84],[1,-84],[2,-84]][i];aksCluster(cols[q[0]],q[1],-1,SUBN.slice(i*5,i*5+5),'sub',L+' BLOK · '+L+'1–'+L+'5')});
+  [[0,52.5],[1,52.5],[2,52.5],[0,86.3],[1,86.3],[2,86.3]].forEach((q,i)=>aksCluster(cols[q[0]],q[1],1,astG[i],'ast',astL(astG[i])));
+  'ABCDEF'.split('').forEach((L,i)=>{const q=[[0,-53],[1,-53],[2,-53],[0,-85],[1,-85],[2,-85]][i];aksCluster(cols[q[0]],q[1],-1,SUBN.slice(i*5,i*5+5),'sub',L+' BLOK · '+L+'1–'+L+'5')});
   /* subay tarafı: kümelerin arasından geçen dere + köprüler, kuzeyde göletli park */
   const wm=new T.MeshPhongMaterial({color:0x2a5a6a,shininess:80});const st=new T.Mesh(new T.PlaneGeometry(64,3.2),wm);st.rotation.x=-Math.PI/2;st.position.set(29,.04,-78);W.add(st);detBox(29,.12,-79.75,64,.25,.3,0x9a948a);detBox(29,.12,-76.25,64,.25,.3,0x9a948a);
-  C.boxes.push({x:4,z:-78,hx:9,hz:1.8},{x:27.5,z:-78,hx:9.5,hz:1.8},{x:52,z:-78,hx:10,hz:1.8});[16,39].forEach(x=>{detBox(x,.2,-78,4.4,.3,4,0xb8b4ac);[-1,1].forEach(s=>detBox(x+s*2.1,.6,-78,.15,.6,4,0x8a8a92))});
+  C.boxes.push({x:4.15,z:-78,hx:9.15,hz:1.8},{x:26.75,z:-78,hx:9.05,hz:1.8},{x:51.1,z:-78,hx:10.9,hz:1.8});[15.5,38].forEach(x=>{detBox(x,.2,-78,4.4,.3,4,0xb8b4ac);[-1,1].forEach(s=>detBox(x+s*2.1,.6,-78,.15,.6,4,0x8a8a92))});
   ground(78,-80,18,30,repeatMat(grassTex,2,4,1),.04);const pd=new T.Mesh(new T.CircleGeometry(4,24),new T.MeshPhongMaterial({color:0x4ab0d0,shininess:90}));pd.rotation.x=-Math.PI/2;pd.position.set(80,.06,-82);W.add(pd);C.circles.push({x:80,z:-82,r:4.2});
   [[73,-72],[73,-90]].forEach(p=>bench(p[0],p[1]));C.spots.push({x:74,z:-82,r:2.2,t:'E: 🦆 Gölet kenarında dinlen',fn:()=>startAct({name:'Gölet kenarında dinleniyorsun',ic:'🦆',dur:14,tm:2,per:{mood:1.2,en:.8},end:()=>toast('🦆 Ördekler yanına kadar geldi 😊')})})}
 /* lojman: dönmüş binada çarpışma kutusu ve büyük blok tabelası */
@@ -6303,8 +6303,8 @@ function marmarisB(){newD('marmaris',4160,0);C.marm=true;terrain();
   [-50,-32].forEach(z=>{box(10,.3,1.6,std(0xb8844a),shore(z)-5,.15,z);C.boxes.push({x:shore(z)-5,z:z,hx:5,hz:.8})});
   const sm=new T.MeshBasicMaterial({map:textSign('MARMARİS MARİNA',7,1,'#1f4a8a','#ffffff')});signMats.push(sm);const sg=new T.Mesh(new T.PlaneGeometry(7,1),sm);sg.position.set(shore(-41)+3,3.4,-41);sg.rotation.y=-Math.PI/2;W.add(sg);[-3.2,3.2].forEach(d=>cyl(.08,.08,3.6,6,std(0x8a8a92),shore(-41)+3,1.8,-41+d));
   C.spots.push({x:shore(-41)+4,z:-41,r:2.8,t:'E: ⛵ Marmaris tekne turu (220🪙) · Cennet Adası, koylar, şnorkel',fn:()=>{if(!payOk(220))return;pay(220);enter('tekne_marmaris')}});
-  const tabs1=[],tabs2=[];for(let i=0;i<4;i++){tabs1.push([shore(-18+i*3)+5.2,-18+i*3]);tabs2.push([shore(26+i*3)+5.2,26+i*3])}outRest('marinaBalik',tabs1,[shore(-12)+9,-12],[shore(-12)+8.4,-10.5],0x1f4a8a);outRest('marinaKafe',tabs2,[shore(32)+9,32],[shore(32)+8.4,33.5],0x2a8ac8);
-  [[-14,'Marina Balık','#1f4a8a'],[30,'Marina Kafe','#2a8ac8']].forEach(q=>{const x=shore(q[0])+10.5;building({x:x+2,z:q[0],w:4,d:6,floors:1,fh:3.6,wall:'#f4efe6',roof:0xc4532c,seed:61,lit:.9});pyrRoof(x+2,3.6,q[0],4,6,1.6);const m=new T.Mesh(new T.PlaneGeometry(3.6,.7),new T.MeshBasicMaterial({map:textSign(q[1],3.6,.7,q[2],'#ffffff')}));signMats.push(m.material);m.position.set(x-.05,2.9,q[0]);m.rotation.y=-Math.PI/2;W.add(m)});
+  [[-14,'marinaBalik',0x1f4a8a],[30,'marinaKafe',0x2a8ac8]].forEach(q=>{terrace(-16.4,-10.2,q[0]-6.6,q[0]+6.6,2.4);outRest(q[1],[-4.5,-1.5,1.5,4.5].map(d=>[-13.4,q[0]+d]),[-10.6,q[0]],[-11,q[0]+2.4],q[2])});
+  [[-14,'Marina Balık','#1f4a8a'],[30,'Marina Kafe','#2a8ac8']].forEach(q=>{const x=-10;building({x:x+2,z:q[0],w:4,d:6,floors:1,fh:3.6,wall:'#f4efe6',roof:0xc4532c,seed:61,lit:.9});pyrRoof(x+2,3.6,q[0],4,6,1.6);const m=new T.Mesh(new T.PlaneGeometry(3.6,.7),new T.MeshBasicMaterial({map:textSign(q[1],3.6,.7,q[2],'#ffffff')}));signMats.push(m.material);m.position.set(x-.05,2.9,q[0]);m.rotation.y=-Math.PI/2;W.add(m)});
   /* otel */
   const hx=40,hz=-46;building({x:hx,z:hz,w:16,d:10,floors:5,fh:3.2,wall:'#f6f2ea',roof:0xc4532c,seed:71,lit:.9});box(16.6,.5,10.6,std(0xc4532c),hx,16.25,hz);const om=new T.MeshBasicMaterial({map:textSign('MARMARİS RESORT OTEL ★★★★★',9,1.1,'#1f4a8a','#ffd27a')});signMats.push(om);const os=new T.Mesh(new T.PlaneGeometry(9,1.1),om);os.position.set(hx,4.6,hz+5.06);W.add(os);
   ground(hx,hz+9,18,8,repeatMat(paverTex,3.6,1.6,.9),.05);const pool=new T.Mesh(new T.PlaneGeometry(9,4),new T.MeshPhongMaterial({color:0x4ab8e0,shininess:100}));pool.rotation.x=-Math.PI/2;pool.position.set(hx+1,.07,hz+10);W.add(pool);C.boxes.push({x:hx+1,z:hz+10,hx:4.5,hz:2});
@@ -6336,6 +6336,19 @@ function buildMtn(){if(MTN)return;MTN=new T.Group();DR.G.add(MTN);const pw=W;W=M
     if(s<0)dPool(16,25,i=>{const g=new T.Group();const r=new T.Mesh(new T.DodecahedronGeometry(3+(i%3),0),std([0x8a8278,0x9a9288,0x7a7268][i%3],{flatShading:true}));r.scale.set(1,1.6+(i%2)*.6,1.4);r.position.set(-13.5,2.4,0);g.add(r);return g},MTN)});
   W=pw;MTN.visible=false}
 const _driveReset49=driveReset;driveReset=function(to){_driveReset49(to);try{const m=!!(DR.rc&&DR.rc.mountain);if(m)buildMtn();if(MTN)MTN.visible=m;if(m)[-1,1].forEach(s=>{DR.city[s].visible=false;DR.sea[s].visible=false})}catch(e){showErrOnce(e)}};
+/* ================= v50: Marmaris sokak hayatı — motorlar, scooterlar, araçlar, turistler ================= */
+function scooterMesh(col,i){const g=new T.Group(),Wh=[];vkMesh(vkRBox(1.5,.45,.5,.18),vkMat(col,{roughness:.3}),0,.35,0,g);box(.4,.6,.1,vkMat(col),.55,.75,0,g);box(.1,.08,.7,vkMat(0x2a2a30),.62,1.08,0,g);box(.6,.12,.42,vkMat(0x1a1a1e),-.25,.85,0,g);
+  [.6,-.6].forEach(x=>{const w=vkWheel(g,x,.26,0,.26,.12,1);Wh.push(w)});const r=personOld(Object.assign({},LOOK38[(i*3)%8]));r.position.set(-.1,.18,0);r.rotation.y=Math.PI/2;r.scale.multiplyScalar(.95);g.add(r);r.userData.legs.forEach(l=>l.rotation.x=-1.2);r.userData.arms.forEach(a=>a.rotation.x=-1.3);
+  if(i%2===0){const h=new T.Mesh(new T.SphereGeometry(.24,10,8,0,6.28,0,Math.PI/2),vkMat([0xd8322c,0xffffff,0x1a1a1e][i%3]));h.position.set(0,2.3,0);r.add(h)}
+  g.userData.face=(fx,fz)=>{g.rotation.y=Math.atan2(-fz,fx)};g.userData.spin=d=>Wh.forEach(w=>w.rotation.z-=d/.26);return g}
+function tourist(path,sp,t0,i){const L=Object.assign({},LOOK38[(i*5+1)%8],{shirt:[0xf4c542,0xffffff,0x4ab8e0,0xff8a8a,0x8ad84a,0xf4a060][i%6],pants:[0xe8d8b0,0x3a5a8a,0x2a2a30][i%3]});const w=addNpc(L,path,sp,t0);const p=w.p;
+  const hat=new T.Group();hat.position.set(0,2.42,0);p.add(hat);cyl(.42,.42,.03,14,std(0xe8d090),0,0,0,hat);cyl(.25,.27,.18,12,std(0xe8d090),0,.1,0,hat);
+  if(i%2)box(.36,.46,.2,std([0x2a4a7a,0xd8322c,0x3a8a3a][i%3]),0,1.45,-.3,p);else box(.12,.09,.07,std(0x1a1a1a),0,-.82,.14,p.userData.arms[1]);w.role=i%3===0?'phone':(i%2?'bag':'walk');return w}
+const _endD50=endD;endD=function(){if(C&&C.marm&&!C.life50){C.life50=1;try{const L=C.roadList||[],cols=[0xd8322c,0x2a6ab0,0xf4c542,0xffffff,0x3a8a3a,0xff8a3d,0x8a4ad6];let k=0;
+  [[0,1.6],[0,-1.6],[1,1.2],[1,-1.2],[2,1.2],[2,-1.2]].forEach((q,i)=>{const r=L[q[0]];if(!r)return;for(let j=0;j<2;j++){const c=scooterMesh(cols[k%cols.length],k);W.add(c);C.drivers.push({c:c,path:r.curve,L:r.len,u:(i*.17+j*.5)%1,s:5.5+(k%3)*1.2,dir:1,lo:q[1],len:2});k++}});
+  const keys=Object.keys(CARS3D.tex);[[1,1.2],[2,-1.2],[0,-1.6]].forEach((q,i)=>{const r=L[q[0]];if(!r)return;const c=carSprite(keys[(i*3+2)%keys.length],undefined,nextPlate());C.drivers.push({c:c,path:r.curve,L:r.len,u:.3+i*.21,s:5+i,dir:1,lo:q[1],len:4.4})});
+  const pathsT=[prom(-50,50),prom(-50,50).slice().reverse(),[[-14,-50],[-14,0],[-14,50]],[[-15,50],[-15,-50]],[[-8,15],[30,15],[60,12]],[[60,21],[20,21],[-6,21]],[[-8,-27],[40,-27]],[[40,-33],[-6,-33]],[[-12,40],[-12,-40]],[[-30,-44],[-30,44]]];
+  pathsT.forEach((P,i)=>{tourist(P,1.1+(i%3)*.2,(i*.13)%1,i);if(i<6)tourist(P,1+(i%2)*.3,(i*.13+.5)%1,i+7)})}catch(e){showErrOnce(e)}}return _endD50()};
 
 /* ---------- döngü ---------- */
 const clock=new T.Clock();let hudT=0;
