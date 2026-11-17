@@ -3191,7 +3191,7 @@ function openSettings(){openModal('⚙️ Ayarlar',b=>{
   const bt=el('div');bt.style.cssText='display:flex;gap:8px;flex-wrap:wrap;margin-top:6px';const add=(t,fn,c)=>{const x=el('button','btn'+(c?' '+c:''),t);x.onclick=fn;bt.appendChild(x)};
   {const r=el('div','sr');r.appendChild(el('span','','💙 Sevgilinin adı'));const i=document.createElement('input');i.value=SET.gfName||'';i.placeholder='Denel';i.maxLength=16;i.style.cssText='width:130px;font:inherit;padding:6px 9px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.08);color:var(--ink)';i.addEventListener('keydown',e=>e.stopPropagation());i.oninput=()=>{SET.gfName=i.value.trim();saveSet()};r.appendChild(i);g3.appendChild(r)}
   if(mode!=='pick'){add('👥 Birlikte oyna',()=>{closeModal();phoneApp('mp')},'pri');add('💾 Kaydet',()=>{saveGame();toast('💾 Kaydedildi · Gün '+HOME.day+' · '+hhmm(GT))},'pri');add('❓ Kontroller',()=>{closeModal();showCtrl()});add('🏠 Ana menü',()=>{saveGame();location.reload()})}
-  if(mode!=='pick')add('📤 Kaydı dışa aktar',()=>exportSave());add('📥 Kayıt yükle',()=>importSave());add('📲 Cihazlar arası eşitle',()=>{closeModal();setTimeout(syncOpen,60)});add('🗑️ Kaydı sil',()=>{if(!confirm('Bu karakterin tüm ilerlemesi silinsin mi?'))return;try{localStorage.removeItem(saveKey(me?me.key:PKC))}catch(e){}SAVE=null;window.removeEventListener('beforeunload',saveGame);me=null;location.reload()});b.appendChild(bt)})}
+  if(mode!=='pick')add('📤 Kaydı dışa aktar',()=>exportSave());add('📥 Kayıt yükle',()=>importSave());add('📲 Cihazlar arası eşitle',()=>{closeModal();setTimeout(syncOpen,60)});add('☁️ Bulut kaydı',()=>{closeModal();setTimeout(cloudOpen,60)},'pri');add('🗑️ Kaydı sil',()=>{if(!confirm('Bu karakterin tüm ilerlemesi silinsin mi?'))return;try{localStorage.removeItem(saveKey(me?me.key:PKC))}catch(e){}SAVE=null;window.removeEventListener('beforeunload',saveGame);me=null;location.reload()});b.appendChild(bt)})}
 function openHelp(){openModal('❓ Nasıl oynanır?',b=>{const h=el('div','help');b.appendChild(h);[
   '🎮 <b>Hareket:</b> Telefonda ekranı sürükle, bilgisayarda WASD / ok tuşları. Etkileşim için 🖐️ butonu ya da F/E.',
   '❤️ <b>İhtiyaçlar:</b> Açlık, enerji, hijyen, eğlence ve sosyallik zamanla düşer. Hepsi iyi olursa ruh halin yükselir.',
@@ -5494,6 +5494,52 @@ function syncOpen(){openModal('📲 Telefon ⇄ Bilgisayar',b=>{const st=el('div
   const r=el('div');r.style.cssText='display:flex;gap:8px;margin-top:10px';const i=document.createElement('input');i.placeholder='Kodu gir';i.maxLength=8;i.style.cssText='flex:1;min-width:0;font:inherit;padding:9px 11px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.08);color:var(--ink);text-transform:uppercase';i.addEventListener('keydown',e=>e.stopPropagation());
   const j=el('button','btn pri','📥 Bağlan');j.onclick=()=>{const code=(i.value||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');if(!code){set('Kodu yaz');return}syncClose();SYNC40.sent=0;set('Bağlanıyor…');mpLoad(()=>{const p=new Peer();SYNC40.p=p;p.on('open',()=>{const c=p.connect('pwsync-'+code,{serialization:'json'});syncChan(c,set)});p.on('error',e=>set('Bağlanamadı: '+(e&&e.type||e)))})};
   r.appendChild(i);r.appendChild(j);b.appendChild(r);b.appendChild(el('div','sub','İpucu: Uygulamayı silip yeniden ekleme! Güncellemeler artık kendiliğinden gelir. Ekstra güvence için ara sıra "📤 Kaydı dışa aktar" ile dosya yedeği al.'))})}
+
+/* ================= v41: Supabase bulut kaydı — cihazlar kapalıyken bile en yeni kayıt bulutta ================= */
+/* Proje adresi ve anon key buraya gömülebilir (anon key herkese açık olacak şekilde tasarlanmıştır; güvenliği RLS sağlar).
+   Boş bırakılırsa oyun içinde Ayarlar → ☁️ Bulut kaydı ekranından bir kez girilir. */
+const CLOUD_CFG={url:'',key:''};
+const CLOUD=(()=>{let o={};try{o=JSON.parse(localStorage.getItem('pw_cloud')||'{}')}catch(e){}return Object.assign({url:CLOUD_CFG.url,key:CLOUD_CFG.key,sess:null,last:0,rt:{}},o)})();
+function cloudSave(){try{localStorage.setItem('pw_cloud',JSON.stringify({url:CLOUD.url,key:CLOUD.key,sess:CLOUD.sess,last:CLOUD.last,rt:CLOUD.rt}))}catch(e){}}
+const cloudOn=()=>!!(CLOUD.url&&CLOUD.key&&CLOUD.sess);
+async function cAuth(path,body){const r=await fetch(CLOUD.url.replace(/\/$/,'')+'/auth/v1/'+path,{method:'POST',headers:{apikey:CLOUD.key,'Content-Type':'application/json'},body:JSON.stringify(body)});let j={};try{j=await r.json()}catch(e){}
+  if(!r.ok)throw new Error(j.error_description||j.msg||j.message||j.error||('HTTP '+r.status));return j}
+function setSess(j){if(!j||!j.access_token)return;CLOUD.sess={at:j.access_token,rt:j.refresh_token,exp:Date.now()+(j.expires_in||3600)*1000-60000,uid:j.user&&j.user.id||CLOUD.sess&&CLOUD.sess.uid,email:j.user&&j.user.email||CLOUD.sess&&CLOUD.sess.email};cloudSave()}
+async function cToken(){if(!CLOUD.sess)return null;if(Date.now()>CLOUD.sess.exp){try{setSess(await cAuth('token?grant_type=refresh_token',{refresh_token:CLOUD.sess.rt}))}catch(e){if(/invalid|expired|not found/i.test(e.message)){CLOUD.sess=null;cloudSave()}throw e}}return CLOUD.sess.at}
+async function cRest(method,path,body,hdr,ka){const t=await cToken();if(!t)throw new Error('Giriş yapılmadı');const r=await fetch(CLOUD.url.replace(/\/$/,'')+'/rest/v1/'+path,{method:method,keepalive:!!ka,headers:Object.assign({apikey:CLOUD.key,Authorization:'Bearer '+t,'Content-Type':'application/json'},hdr||{}),body:body?JSON.stringify(body):undefined});
+  if(!r.ok){let m='HTTP '+r.status;try{const j=await r.json();m=j.message||j.hint||m}catch(e){}throw new Error(m)}if(r.status===204)return null;try{return await r.json()}catch(e){return null}}
+const charOfKey=k=>k==='pw_save'?'kiz':k.slice(8);
+/* buluta gönder (yalnızca yereldeki kayıt buluttakinden yeniyse) */
+let CDIRTY=false,CPUSHING=false;
+async function cloudPush(ch,ka){if(!cloudOn()||CPUSHING)return;const raw=PWStore.get(saveKey(ch)),o=openSave(raw);if(!o||!o.v)return;const t=o.t||0;if(CLOUD.rt[ch]&&CLOUD.rt[ch]>t+1000)return;
+  CPUSHING=true;try{await cRest('POST','saves?on_conflict=user_id,char',[{user_id:CLOUD.sess.uid,char:ch,data:raw,t:t,day:(o.home&&o.home.day)||1,coins:o.coins|0,device:isTouch?'telefon':'bilgisayar',updated_at:new Date().toISOString()}],{Prefer:'resolution=merge-duplicates,return=minimal'},ka&&raw.length<60000);
+    CLOUD.rt[ch]=t;CLOUD.last=Date.now();cloudSave();CDIRTY=false;cloudDot('ok')}catch(e){cloudDot('err',e.message)}finally{CPUSHING=false}}
+/* buluttan çek: her karakter için daha yeni olanı yerele yaz */
+async function cloudPull(silent){if(!cloudOn())return;let rows;try{rows=await cRest('GET','saves?select=char,t,day,data')}catch(e){cloudDot('err',e.message);if(!silent)toast('☁️ Bulut: '+e.message);return}const got=[];let mine=null;
+  (rows||[]).forEach(r=>{CLOUD.rt[r.char]=Math.max(CLOUD.rt[r.char]||0,r.t||0);const k=saveKey(r.char),loc=saveT(PWStore.get(k));if((r.t||0)>loc+1000){if(me&&me.key===r.char){mine=r;return}const cur=PWStore.get(k);if(cur)PWStore.set(k+'_b1',cur);PWStore.set(k,r.data);idbPut(k,r.data);got.push((CH[r.char]?CH[r.char].n:r.char)+' · Gün '+r.day)}});
+  CLOUD.last=Date.now();cloudSave();cloudDot('ok');if(got.length&&!me&&mode==='pick'){try{initMenu()}catch(e){}toast('☁️ Buluttan güncellendi: '+got.join(', '))}
+  if(mine&&!CLOUD.asked){CLOUD.asked=1;notify('☁️ Diğer cihazda daha ileridesin','Bulutta '+(CH[mine.char]?CH[mine.char].n:'')+' · Gün '+mine.day+' kaydı var (bu cihazdakinden yeni). Yüklensin mi?',[{t:'Buluttakini yükle',fn:()=>{SYNCLOCK=true;window.removeEventListener('beforeunload',saveGame);const k=saveKey(mine.char);const cur=PWStore.get(k);if(cur)PWStore.set(k+'_b1',cur);PWStore.set(k,mine.data);idbPut(k,mine.data);setTimeout(()=>location.reload(),300)}},{t:'Bu cihazdakiyle devam',fn:()=>{CLOUD.rt[mine.char]=0;CDIRTY=true}}])}}
+const _writeSave41=writeSave;writeSave=function(k,obj){const ok=_writeSave41(k,obj);if(ok)CDIRTY=true;return ok};
+setInterval(()=>{if(cloudOn()&&CDIRTY&&me&&!SYNCLOCK&&!LOADFAIL)cloudPush(me.key)},40000);
+document.addEventListener('visibilitychange',()=>{if(!cloudOn())return;if(document.hidden){if(me&&!SYNCLOCK&&!LOADFAIL){try{saveGame()}catch(e){}cloudPush(me.key,true)}}else cloudPull(true)});
+addEventListener('pagehide',()=>{if(cloudOn()&&me&&!SYNCLOCK&&!LOADFAIL)cloudPush(me.key,true)});
+setTimeout(()=>{if(cloudOn())cloudPull(true)},900);
+/* durum noktası (sağ üstte küçük bulut) */
+function cloudDot(st,msg){let d=document.getElementById('clouddot');if(!d){d=document.createElement('div');d.id='clouddot';d.style.cssText='position:fixed;left:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 4px);z-index:61;font:11px Trebuchet MS,sans-serif;color:#fff;opacity:.75;pointer-events:none;text-shadow:0 1px 2px #000';document.body.appendChild(d)}
+  d.textContent=st==='ok'?'☁️ eşitlendi '+hhmm(new Date().getHours()*60+new Date().getMinutes()):'☁️⚠️ '+(msg||'').slice(0,40);d.style.display=cloudOn()?'block':'none'}
+/* ayarlar ekranı */
+function cloudOpen(){openModal('☁️ Bulut kaydı (Supabase)',b=>{const st=el('div','sub','');b.appendChild(st);const set=t=>{st.textContent=t};
+  const inp=(ph,v,type)=>{const i=document.createElement('input');i.placeholder=ph;i.value=v||'';if(type)i.type=type;i.autocomplete='off';i.spellcheck=false;i.style.cssText='width:100%;box-sizing:border-box;font:inherit;padding:9px 11px;margin:4px 0;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.08);color:var(--ink)';i.addEventListener('keydown',e=>e.stopPropagation());b.appendChild(i);return i};
+  const btn=(t,fn,pri)=>{const x=el('button','btn'+(pri?' pri':''),t);x.style.cssText='width:100%;margin-top:6px';x.onclick=fn;b.appendChild(x);return x};
+  if(cloudOn()){set('Bağlı: '+CLOUD.sess.email+' · son eşitleme '+(CLOUD.last?new Date(CLOUD.last).toLocaleString('tr-TR'):'—')+'. Kayıt her 40 sn\'de ve uygulamayı kapattığında buluta gider; açınca en yenisi gelir.');
+    btn('🔄 Şimdi eşitle',async()=>{set('Eşitleniyor…');await cloudPull(false);if(me){try{saveGame()}catch(e){}await cloudPush(me.key)}else for(const k of Object.keys(localStorage).filter(k=>/^pw_save(_[a-z]+)?$/.test(k)))await cloudPush(charOfKey(k));set('✅ Eşitlendi · '+new Date().toLocaleTimeString('tr-TR'))},true);
+    btn('⬆️ Bu cihazdaki tüm karakterleri buluta yükle',async()=>{set('Yükleniyor…');let n=0;for(const k of Object.keys(localStorage).filter(k=>/^pw_save(_[a-z]+)?$/.test(k))){const ch=charOfKey(k);CLOUD.rt[ch]=0;await cloudPush(ch);n++}set('✅ '+n+' karakter buluta yüklendi')});
+    btn('🚪 Çıkış yap',()=>{CLOUD.sess=null;cloudSave();cloudDot();closeModal();toast('☁️ Buluttan çıkış yapıldı (kayıtların bu cihazda duruyor)')});return}
+  let U=null,K=null;if(!CLOUD_CFG.url){b.appendChild(el('div','nm','1) Supabase proje bilgileri (Settings → API)'));U=inp('Project URL · https://xxxx.supabase.co',CLOUD.url);K=inp('anon public key',CLOUD.key)}
+  b.appendChild(el('div','nm',(CLOUD_CFG.url?'':'2) ')+'Aile hesabı (tüm cihazlarda aynı e-posta)'));const E=inp('E-posta',CLOUD.sess&&CLOUD.sess.email||''),P=inp('Şifre (en az 6 karakter)','','password');
+  const pre=()=>{if(U){CLOUD.url=U.value.trim();CLOUD.key=K.value.trim()}if(!CLOUD.url||!CLOUD.key){set('Proje URL ve anon key gerekli');return false}cloudSave();return true};
+  btn('🔑 Giriş yap',async()=>{if(!pre())return;set('Giriş yapılıyor…');try{setSess(await cAuth('token?grant_type=password',{email:E.value.trim(),password:P.value}));set('✅ Giriş tamam, eşitleniyor…');await cloudPull(false);if(me){try{saveGame()}catch(e){}await cloudPush(me.key)}setTimeout(()=>{closeModal();cloudOpen()},600)}catch(e){set('❌ '+e.message)}},true);
+  btn('✨ Hesap oluştur',async()=>{if(!pre())return;set('Hesap oluşturuluyor…');try{const j=await cAuth('signup',{email:E.value.trim(),password:P.value});if(j.access_token){setSess(j);set('✅ Hesap hazır');setTimeout(()=>{closeModal();cloudOpen()},600)}else set('📧 E-postana gelen onay bağlantısına tıkla, sonra "Giriş yap"')}catch(e){set('❌ '+e.message)}})})}
 
 /* ---------- döngü ---------- */
 const clock=new T.Clock();let hudT=0;
