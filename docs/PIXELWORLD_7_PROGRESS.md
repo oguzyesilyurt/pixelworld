@@ -80,3 +80,10 @@ Durum anahtarı: ✅ tamam · 🟡 kısmi · ⏳ yapılmadı
 - Kışlık giyim: mont/kaban (yüksek sıcaklık), kazak, polar, yağmurluk, kar botu, bere, atkı, eldiven, termal içlik, şemsiye, ısıtıcı. Aksesuarlar saat paneli > Kışlıklar'dan takılıp çıkarılır. (Bere/atkı/eldiven için karakter üstünde görsel yok — sadece sıcaklık etkisi.)
 - Pazarcık: yeni kategoriler (❄️ Kışlık, Elektronik, Ev & Mutfak, Spor & Outdoor, Kitap & Hobi, Makyaj & Bakım…), çalışan arama kutusu, ~50 yeni ürün. Bilgisayar/TV/konsol artık Mobilya'da değil Elektronik'te.
 - Eski hata düzeltildi: renk seçmeli ürünler kargo açılınca kayboluyordu (sipariş defteri eklendi, kayda yazılır).
+
+## v64 — iç mekânlar
+- Havalimanı yeniden: 66×46 terminal. Akış ve ayrı alanlar: giriş güvenliği (X-ray, kapı detektörü, polis) → check-in holü (8 kontuar, bekleme şeritleri, bagaj bandı) → valiz teslimi (self bag-drop + dönen bant) → pasaport & polis kontrolü (kabinler; %35 rastgele soruşturma soruları, yanlış cevapta ek kontrol) → bekleme alanı: duty free, yemek alanı (3 tezgâh + masalar), uzun banklar (uzanıp kestirilebilir, uyuyan yolcular), şarj istasyonu, 3 kapı, apronda 3 uçak + körük. 46 yürüyen yolcu (instanced) + personel/oturan figürler.
+- Performans: iç mekânlar için derin statik birleştirme (mergeDeep64) ve hafif figürler; havalimanı 959 → ~146 çizim çağrısı.
+- Mağazalar (AVM dükkanları): temaya göre duvar üniteleri — giyim askıları + katlı ürün, makyaj raf + ışık, ayakkabı duvarı, elektronik ekran duvarı, kitaplık, mücevher vitrini, hediyelik raflar; boş ahşap dolaplar tema rafına çevrildi; ek kasa/POS/poşet, tablo, sarkıt lambalar, paspas.
+- Restoranlar (RESTS — Aspava ayrı sistem, dokunulmadı): arka duvarda şişe & kadeh rafları, şarap rafı, tablolar, aplikler, masalarda tabak/kadeh/peçete/vazo, her masaya sarkıt lamba.
+- Süpermarket yeniden: 30×20; reyonlar ve kasalar ayrı bölgede (iç içe sorun çözüldü). Arka duvar buzdolapları (süt ürünleri/içecek), şarküteri-kasap tezgâhı, fırın rafları, manav sandıkları, 6 orta reyon (asma tabelalı), 4 kasa (ekran, poşet direği), sepet parkı, alışveriş yapan kalabalık.

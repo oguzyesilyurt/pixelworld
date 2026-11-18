@@ -7736,6 +7736,218 @@ function warmMenu64(){const ks=Object.keys(WEAR61.own);const N={bere:'🧢 Bere'
 /* saate dokununca: hava durumu + üşüme + kışlıklar */
 function wxPanel64(){const t=tempNow64(),w=warmth64(),nd=needW64(t);actionMenu(WXN[WXS.k][0]+' '+WXN[WXS.k][1]+' · '+t+'°C'+(WXS.cover>.05?' · yerde kar':''),[['🌡️','Giyim sıcaklığı '+Math.round(w*100)+' / gereken '+Math.round(nd*100)+(w>=nd?' · rahatsın ✅':' · üşüyebilirsin 🥶'),()=>{}],['❄️','Kışlıklarını tak / çıkar',()=>setTimeout(warmMenu64,60)],['🧡','Pazarcık · Kışlık',()=>{mktCat='❄️ Kışlık';try{phoneApp('market')}catch(e){}}]])}
 setTimeout(()=>{try{const e=$('pclock');if(e){e.style.cursor='pointer';e.addEventListener('click',ev=>{ev.stopPropagation();wxPanel64()})}}catch(e){}},500);
+/* ================= v64: iç mekân performansı — hafif figürler + derin statik birleştirme ================= */
+const FIGM64={};const figM=c=>FIGM64[c]||(FIGM64[c]=std(c,{roughness:.8}));
+const SKIN64=[0xf0c8a8,0xe0b090,0xc89070,0x9a6a4a],HAIR64=[0x2b1d17,0x6b3b1e,0x1f1f1f,0xd8b070,0x8a4a2a];
+/* durağan insan figürü (personel, oturan, yatan): birkaç basit parça, birleştirilince neredeyse bedava */
+function fig64(I,lk,x,z,face,pose){lk=lk||{};const g=new T.Group();g.position.set(x,0,z);g.rotation.y=face||0;W.add(g);const sh=figM(typeof lk.shirt==='number'?lk.shirt:0x6a7a8a),pa=figM(typeof lk.pants==='number'?lk.pants:0x2a2a38),k=Math.abs(Math.round(x*7+z*3)),sk=figM(SKIN64[k%4]),hr=figM(typeof lk.hair==='number'?lk.hair:HAIR64[k%5]);
+  const cy=(r1,r2,h,m,px,py,pz,rx,rz)=>{const o=new T.Mesh(new T.CylinderGeometry(r1,r2,h,8),m);o.position.set(px,py,pz);o.rotation.set(rx||0,0,rz||0);o.castShadow=true;g.add(o);return o},sp=(r,m,px,py,pz,sy)=>{const o=new T.Mesh(new T.SphereGeometry(r,10,8),m);o.position.set(px,py,pz);if(sy)o.scale.y=sy;o.castShadow=true;g.add(o);return o};
+  if(pose==='sit'){cy(.07,.065,.44,pa,-.1,.36,.18);cy(.07,.065,.44,pa,.1,.36,.18);cy(.075,.07,.5,pa,-.1,.53,0,Math.PI/2);cy(.075,.07,.5,pa,.1,.53,0,Math.PI/2);cy(.2,.22,.62,sh,0,.88,-.18);cy(.06,.05,.5,sh,-.27,.85,-.08,-.5);cy(.06,.05,.5,sh,.27,.85,-.08,-.5);sp(.17,sk,0,1.33,-.16);sp(.175,hr,0,1.38,-.19,.75)}
+  else{cy(.075,.06,.8,pa,-.1,.4,0);cy(.075,.06,.8,pa,.1,.4,0);cy(.2,.22,.66,sh,0,1.12,0);cy(.06,.05,.58,sh,-.27,1.06,0,0,.12);cy(.06,.05,.58,sh,.27,1.06,0,0,-.12);sp(.17,sk,0,1.57,0);sp(.175,hr,0,1.62,-.03,.75)}
+  if(pose==='lie'){g.rotation.set(0,face||0,Math.PI/2);g.position.y=.62}return g}
+const seat64=(x,z,face,lk)=>fig64(null,lk,x,z,face,'sit');
+/* derin statik birleştirme: gruplar içindeki tüm durağan parçaları malzemeye göre tek mesh'e indirir */
+function mergeDeep64(root){root.updateMatrixWorld(true);const inv=new T.Matrix4().copy(root.matrixWorld).invert(),anim=new Set();facades.forEach(m=>anim.add(m));signMats.forEach(m=>anim.add(m));spriteMats.forEach(m=>anim.add(m));const groups=new Map(),dead=[];
+  const walk=o=>{if(o.userData&&(o.userData.dyn64||o.userData.legs||o.userData.v3||o.userData.wheels||o.userData.face))return;if(o.isSkinnedMesh||o.isInstancedMesh||o.isSprite||o.isLight)return;
+    if(o.isMesh&&o!==root){const g=o.geometry,m=o.material;if(g&&g.attributes&&g.attributes.position&&g.attributes.normal&&!Array.isArray(m)&&!Object.keys(g.attributes).some(a=>!['position','normal','uv','color'].includes(a))&&!o.userData.noMerge&&o.visible){
+      const key=(anim.has(m)?'id:'+m.uuid:matKey(m))+'|'+(o.castShadow?1:0)+(o.receiveShadow?1:0)+'|'+(g.attributes.uv?1:0)+(g.attributes.color?1:0);let gr=groups.get(key);if(!gr){gr={m:m,list:[],cs:o.castShadow,rs:o.receiveShadow,uv:!!g.attributes.uv,col:!!g.attributes.color};groups.set(key,gr)}gr.list.push(o)}}
+    o.children.forEach(walk)};root.children.forEach(walk);let saved=0;
+  groups.forEach(gr=>{if(gr.list.length<2)return;let n=0;const mt=new T.Matrix4();const geos=gr.list.map(o=>{mt.multiplyMatrices(inv,o.matrixWorld);const q=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();q.applyMatrix4(mt);n+=q.attributes.position.count;return q});
+    const P=new Float32Array(n*3),N=new Float32Array(n*3),U=gr.uv?new Float32Array(n*2):null,Cc=gr.col?new Float32Array(n*3):null;let off=0;
+    geos.forEach(q=>{P.set(q.attributes.position.array,off*3);N.set(q.attributes.normal.array,off*3);if(U&&q.attributes.uv)U.set(q.attributes.uv.array,off*2);if(Cc&&q.attributes.color)Cc.set(q.attributes.color.array,off*3);off+=q.attributes.position.count;q.dispose()});
+    const bg=new T.BufferGeometry();bg.setAttribute('position',new T.BufferAttribute(P,3));bg.setAttribute('normal',new T.BufferAttribute(N,3));if(U)bg.setAttribute('uv',new T.BufferAttribute(U,2));if(Cc)bg.setAttribute('color',new T.BufferAttribute(Cc,3));bg.computeBoundingSphere();
+    const mm=new T.Mesh(bg,gr.m);mm.castShadow=gr.cs;mm.receiveShadow=gr.rs;mm.userData.noMerge=true;root.add(mm);gr.list.forEach(o=>{if(o.parent)o.parent.remove(o)});saved+=gr.list.length-1});return saved}
+/* ================= v64: büyük havalimanı terminali — giriş güvenliği → check-in → valiz teslimi → pasaport/polis → kapılar; yemek alanı, duty free, uzun banklar, kalabalık ================= */
+/* ucuz kalabalık: anlık (instanced) yürüyen yolcular — 3 çizim çağrısı */
+function crowd64(I,rects,n,seed){const r=mulberry(seed||641),P=[],c=new T.Color();
+  const legs=[[new T.CylinderGeometry(.075,.06,.78,6),M4().makeTranslation(-.1,.39,0),[.16,.17,.22]],[new T.CylinderGeometry(.075,.06,.78,6),M4().makeTranslation(.1,.39,0),[.16,.17,.22]],[new T.SphereGeometry(.17,10,8),M4().makeTranslation(0,1.5,0),[.93,.76,.62]],[new T.SphereGeometry(.175,10,6,0,6.283,0,1.4),M4().makeTranslation(0,1.53,-.01),[.22,.15,.1]]];
+  const hl=new T.InstancedMesh(mergeC61(legs),new T.MeshStandardMaterial({vertexColors:true,roughness:.8}),n);
+  const tg=new T.CylinderGeometry(.19,.22,.66,10);tg.translate(0,1.06,0);const to=new T.InstancedMesh(tg,new T.MeshStandardMaterial({roughness:.75}),n);
+  const sg=new T.BoxGeometry(.36,.48,.2);sg.translate(.42,.28,-.1);const su=new T.InstancedMesh(sg,new T.MeshStandardMaterial({roughness:.5}),n);
+  const TC=[0xd8322c,0x2a6ab0,0xf4c21a,0x2f8a3a,0xffffff,0x1f1f24,0xb784e8,0xff8a3d,0x6a7a8a,0xe87aa8],SC=[0x1f1f24,0x2a6ab0,0xd8322c,0x7a7a82,0xc8955a,0xb784e8];
+  const A=[];for(let i=0;i<n;i++){const R=rects[i%rects.length];const a={R:R,x:R[0]+r()*(R[2]-R[0]),z:R[1]+r()*(R[3]-R[1]),tx:0,tz:0,w:0,sp:.8+r()*.6,bag:r()<.6,ph:r()*6};a.tx=a.x;a.tz=a.z;A.push(a);c.setHex(TC[(r()*TC.length)|0]);to.setColorAt(i,c);c.setHex(SC[(r()*SC.length)|0]);su.setColorAt(i,c)}
+  to.instanceColor.needsUpdate=true;su.instanceColor.needsUpdate=true;[hl,to,su].forEach(m=>{m.frustumCulled=false;W.add(m)});const d=new T.Object3D(),z0=new T.Object3D();z0.scale.set(0,0,0);z0.updateMatrix();
+  return (t,dt)=>{A.forEach((a,i)=>{if(a.w>0){a.w-=dt}else{const dx=a.tx-a.x,dz=a.tz-a.z,l=Math.hypot(dx,dz);if(l<.2){a.w=Math.random()<.4?2+Math.random()*5:0;a.tx=a.R[0]+Math.random()*(a.R[2]-a.R[0]);a.tz=a.R[1]+Math.random()*(a.R[3]-a.R[1])}else{a.x+=dx/l*a.sp*dt;a.z+=dz/l*a.sp*dt;a.h=Math.atan2(dx,dz)}}
+    const mv=a.w<=0;d.position.set(a.x,mv?Math.abs(Math.sin(t*7+a.ph))*.04:0,a.z);d.rotation.set(0,a.h||0,0);d.scale.set(1,1,1);d.updateMatrix();hl.setMatrixAt(i,d.matrix);to.setMatrixAt(i,d.matrix);su.setMatrixAt(i,a.bag?d.matrix:z0.matrix)});
+    hl.instanceMatrix.needsUpdate=true;to.instanceMatrix.needsUpdate=true;su.instanceMatrix.needsUpdate=true}}
+/* bavul */
+function suitcase64(x,y,z,col,par,ry){const g=new T.Group();g.position.set(x,y,z);g.rotation.y=ry||0;box(.5,.65,.26,std(col,{roughness:.45}),0,.33,0,g);box(.06,.25,.06,std(0x2a2a30),0,.78,0,g);box(.22,.04,.06,std(0x2a2a30),0,.9,0,g);(par||W).add(g);return g}
+function poster64(t,sub,w,h,c1,c2,x,y,z,ry){const tx=canvasTex(256,Math.round(256*h/w),(g,W2,H2)=>{const gr=g.createLinearGradient(0,0,0,H2);gr.addColorStop(0,c1);gr.addColorStop(1,c2);g.fillStyle=gr;g.fillRect(0,0,W2,H2);g.fillStyle='rgba(255,255,255,.18)';g.beginPath();g.arc(W2*.75,H2*.3,H2*.22,0,7);g.fill();g.fillStyle='#fff';g.font='bold '+Math.round(W2/9)+'px Trebuchet MS';g.fillText(t,14,H2-40);g.font=Math.round(W2/16)+'px Trebuchet MS';g.fillText(sub,14,H2-14)});
+  const m=new T.Mesh(new T.PlaneGeometry(w,h),new T.MeshBasicMaterial({map:tx}));m.position.set(x,y,z);m.rotation.y=ry||0;W.add(m);box(w+.12,h+.12,.04,std(0x2a2a30),x-Math.sin(ry||0)*.03,y,z-Math.cos(ry||0)*.03);return m}
+function airportInt(I){I.G=W;I.title='İzmir Adnan Menderes Havalimanı';I.zoom=isTouch?9:11.5;room(I,66,46,{wall:'#dfe6ee',trim:0xb8c4d0,tile:['#d6dbe1','#c6ccd4'],winW:5});const A=[];
+  const glass=new T.MeshStandardMaterial({color:0xaad4f0,transparent:true,opacity:.25,roughness:.05,metalness:.2});const steel=std(0xb8c0ca,{metalness:.5,roughness:.35}),dark=std(0x2a2d34);
+  /* apron (arka): pist, uçaklar, körükler */
+  const tar=new T.Mesh(new T.PlaneGeometry(66,9),new T.MeshStandardMaterial({color:0x5a5e66,roughness:.95}));tar.rotation.x=-Math.PI/2;tar.position.set(0,.012,-18.5);W.add(tar);for(let i=0;i<10;i++)box(2,.01,.16,std(0xf4c542),-30+i*6.6,.022,-18.5);
+  box(66,3.4,.12,glass,0,1.7,-14);for(let x=-32;x<=32;x+=4)box(.14,3.4,.14,steel,x,1.7,-14);box(66,.25,.3,steel,0,3.45,-14);I.boxes.push({x:0,z:-18.5,hx:33,hz:4.6});
+  [[-14,-19],[8,-19.4],[26,-19]].forEach((q,i)=>{const p=planeModel(.9);p.position.set(q[0],0,q[1]);p.rotation.y=i%2?.08:-.06;W.add(p);box(1.6,1.4,3.6,std(0xd8dde4),q[0]+5.5,2.2,-15.8);box(.3,2.2,.3,steel,q[0]+5.5,1.1,-17.4)});
+  /* --- 1) giriş holü (sol) --- */
+  signAt('GİRİŞ · ENTRANCE',3.6,.6,'#2a6ac8','#ffffff',-28,3.2,21.6);box(5,.04,2.4,std(0x2a3a4a),-28,.03,21);
+  I.spots.push({x:-29,z:21,r:2.6,t:'E: Terminalden çık 🚕',fn:()=>leave()});I.spawn=[-27,19];
+  F(I,-29,8,1,1.4,.6,fCounter(2.6));signAt('ℹ️ DANIŞMA',2.4,.5,'#2a6ac8','#ffffff',-29,2.6,8,Math.PI/2);fig64(I,{shirt:0x2a4a8a,pants:0x2a2a38,hair:0x3b2416},-30.2,8,Math.PI/2);
+  I.spots.push({x:-27.4,z:8,r:2,t:'E: ℹ️ Danışma',fn:()=>toast(TRIP?'ℹ️ Önce giriş güvenliği, sonra check-in, valiz teslimi ve pasaport kontrolü · Kapı 3':'ℹ️ Bilet yoksa telefondan ✈️ Uçuş uygulamasından alabilirsin')});
+  F(I,-31.5,14,1,.4,.6,g=>{box(.7,1.9,.6,std(0xd8322c),0,.95,0,g);box(.5,.3,.05,std(0x9ad8ff),0,1.4,.31,g)});I.spots.push({x:-30.6,z:14,r:1.4,t:'E: 🏧 ATM · bakiye',fn:()=>toast('🏧 Bakiye: '+coins+' 🪙')});
+  for(let k=0;k<3;k++)F(I,-24.5,13+k*2.6,0,1.3,.35,g=>{box(2.4,.08,.6,steel,0,.45,0,g);box(2.4,.5,.08,steel,0,.72,-.28,g);[-1,1].forEach(s=>box(.06,.45,.5,dark,s*1.1,.22,0,g))});
+  [[-30.5,0,'İZMİR','Körfezin incisi · Kordon','#2a8ad8','#0d3a6a'],[-30.5,-8,'EFES','Antik kente 45 dk','#e8a050','#8a4a1a']].forEach(q=>{poster64(q[2],q[3],2.4,1.6,q[4],q[5],q[0],2.2,q[1],-Math.PI/4);box(.12,1.4,.12,dark,q[0]+.05,.7,q[1]-.05);I.boxes.push({x:q[0],z:q[1],hx:.6,hz:.6})});
+  /* --- 2) giriş güvenliği (x≈-20) --- */
+  const lane=(z)=>{F(I,-20,z,0,1.6,.45,g=>{box(3,.85,.8,std(0x9aa4b0),0,.42,0,g);box(1.4,1.1,.9,std(0xd8dce2),0,1.3,0,g);box(1.3,.5,.05,dark,0,1.2,.46,g);box(3.2,.04,.6,dark,0,.86,0,g)});const ar=new T.Group();ar.position.set(-18.4,0,z+1.4);W.add(ar);[-.55,.55].forEach(s=>box(.14,2.2,.4,std(0xd8dce2),s,1.1,0,ar));box(1.24,.22,.4,std(0xd8dce2),0,2.2,0,ar)};
+  [3,8,13,18].forEach(z=>lane(z));for(let z=-13.6;z<=1;z+=1.2)box(.08,1.1,1.2,glass,-19,.55,z);I.boxes.push({x:-19,z:-6.3,hx:.2,hz:7.4});
+  [[-17.6,4.6],[-17.6,14.6],[-21.6,9.4]].forEach((q,i)=>fig64(I,{shirt:0x1d2a4a,pants:0x1d2a4a,hair:0x1f1f1f},q[0],q[1],i<2?-Math.PI/2:Math.PI/2));
+  signAt('🛂 GÜVENLİK KONTROLÜ',4.2,.6,'#1b1b1f','#f4c542',-19,3.4,10.6,Math.PI/2);I.spots.push({x:-22,z:10.4,r:2.6,t:'E: 🛂 Giriş güvenliği (X-ray)',fn:()=>apSecurity()});
+  /* --- 3) check-in holü --- */
+  const AL=[['EGE AIR','#2a6ac8'],['KÖRFEZ JET','#d8322c'],['İZMİR HAVA','#2f8a3a'],['ANADOLU WINGS','#8a4ad6']];
+  for(let i=0;i<8;i++){const x=-16+i*2.1;F(I,x,-6,0,.95,.5,g=>{box(1.8,1,.8,std(0xe8ecf0),0,.5,0,g);box(1.9,.06,.9,dark,0,1.03,0,g);box(.5,.35,.04,dark,.3,1.25,-.2,g)});
+    signAt(AL[i>>1][0]+' '+(i+1),1.9,.38,AL[i>>1][1],'#ffffff',x,2.7,-6.4);fig64(I,{shirt:new T.Color(AL[i>>1][1]).getHex(),pants:0x2a2a38,hair:[0x2b1d17,0x6b3b1e,0x1f1f1f,0xd8b070][i%4]},x,-7,0)}
+  const belt=new T.Mesh(new T.BoxGeometry(17.4,.35,.6),dark);belt.position.set(-8.6,.4,-8.1);W.add(belt);I.boxes.push({x:-8.6,z:-8.1,hx:8.8,hz:.4});const cases=[];for(let k=0;k<7;k++){const c=suitcase64(-16+k*2.5,.58,-8.1,[0xd8322c,0x2a6ab0,0x1f1f24,0xf4c21a,0x2f8a3a][k%5],W,Math.PI/2);c.userData.dyn64=1;cases.push(c)}
+  A.push((t,dt)=>cases.forEach(c=>{c.position.x+=dt*.8;if(c.position.x>-.4)c.position.x=-17}));
+  for(let i=0;i<5;i++){const z=-3.4+i*1.1;for(let x=-16.5;x<=-1;x+=1.5)cyl(.04,.04,.95,6,steel,x,.48,z);box(15.5,.05,.03,std(0x2a6ac8),-8.75,.9,z)}
+  [[-14,-3.9],[-11,-2.8],[-8,-1.7],[-5,-3.9],[-12.5,-.6]].forEach((q,i)=>{fig64(I,LOOK38[(i*3+1)%8],q[0],q[1],Math.PI,(p,t)=>{p.rotation.y=Math.PI+Math.sin(t*.4+i)*.3});suitcase64(q[0]+.5,0,q[1]+.2,[0x2a6ab0,0xd8322c,0x1f1f24][i%3])});
+  signAt('CHECK-IN · BİNİŞ KARTI',5,.7,'#2a6ac8','#ffffff',-8.6,3.6,-6.6);I.spots.push({x:-8.6,z:-1.6,r:3,t:'E: 🎫 Check-in · biniş kartı',fn:()=>apCheckin()});
+  const bt=canvasTex(512,256,(g,w,h)=>{g.fillStyle='#10141c';g.fillRect(0,0,w,h);g.font='bold 26px monospace';g.fillStyle='#f4c542';g.fillText('KALKIŞ · DEPARTURES',18,36);g.font='21px monospace';[['BODRUM','10:40','K1','ZAMANINDA'],['ANTALYA','12:15','K2','BİNİŞ'],['KAŞ','14:05','K3','ZAMANINDA'],['İSTANBUL','15:30','K1','RÖTARLI'],['TRABZON','17:10','K2','ZAMANINDA'],['ERZURUM','19:45','K3','ZAMANINDA']].forEach((r,i)=>{g.fillStyle=r[3]==='RÖTARLI'?'#ff6a5a':r[3]==='BİNİŞ'?'#6aff8a':'#e8f0ff';g.fillText(r[0].padEnd(10)+r[1]+'  '+r[2]+'  '+r[3],18,78+i*30)})});
+  [[-8.6,-13.8],[22,-13.8]].forEach(q=>{const m=new T.Mesh(new T.PlaneGeometry(5,2.5),new T.MeshBasicMaterial({map:bt}));m.position.set(q[0],2.4,q[1]+.1);W.add(m)});
+  /* --- 4) valiz teslimi (ayrı alan) --- */
+  for(let i=0;i<4;i++){const x=2+i*2.2;F(I,x,-6,0,.6,.5,g=>{box(.9,1.2,.7,std(0xf2f4f6),0,.6,0,g);box(.6,.4,.04,std(0x3a8ad8,{emissive:0x1a4a8a}),0,1.05,.36,g);box(1.1,.25,1.1,dark,0,.12,.9,g)})}
+  const ov=new T.Mesh(new T.TorusGeometry(2.4,.35,6,32),dark);ov.rotation.x=Math.PI/2;ov.scale.set(1.8,1,1);ov.position.set(5.3,.45,-10.4);W.add(ov);I.boxes.push({x:5.3,z:-10.4,hx:5,hz:2.9});
+  const oc=[];for(let k=0;k<9;k++){const c=suitcase64(0,.6,0,[0xd8322c,0x2a6ab0,0x1f1f24,0xf4c21a,0x2f8a3a,0xb784e8][k%6]);c.userData.dyn64=1;oc.push(c)}A.push(t=>oc.forEach((c,k)=>{const a=t*.25+k/9*6.283;c.position.set(5.3+Math.cos(a)*2.4*1.8,.6,-10.4+Math.sin(a)*2.4);c.rotation.y=-a}));
+  signAt('🧳 VALİZ TESLİMİ · BAG DROP',5,.65,'#f4c21a','#1b1b1f',5.3,3.4,-6.5);I.spots.push({x:5.3,z:-3.6,r:2.8,t:'E: 🧳 Valizini teslim et',fn:()=>apBag64()});
+  /* --- 5) pasaport & polis kontrolü (x≈12) --- */
+  for(let z=-13.6;z<=-1;z+=1.2)box(.08,1.1,1.2,glass,12.6,.55,z);for(let z=19;z<=22.4;z+=1.2)box(.08,1.1,1.2,glass,12.6,.55,z);I.boxes.push({x:12.6,z:-7.3,hx:.2,hz:6.6},{x:12.6,z:20.7,hx:.2,hz:2});
+  [1.6,6.2,10.8,15.4].forEach((z,i)=>{const g=new T.Group();g.position.set(12.6,0,z);W.add(g);box(1.8,1.1,1.8,std(0xd8dce2),0,.55,0,g);box(1.8,1.3,.06,glass,0,1.75,.9,g);box(.06,1.3,1.8,glass,-.9,1.75,0,g);box(2,.1,2,steel,0,2.45,0,g);I.boxes.push({x:12.6,z:z,hx:1,hz:1});
+    fig64(I,{shirt:0x1d2a4a,pants:0x1d2a4a,hair:[0x1f1f1f,0x3b2416][i%2]},12.6,z,-Math.PI/2,(p,t)=>{p.rotation.y=-Math.PI/2+Math.sin(t*.5+i)*.25});if(i<2)signAt(i?'🛃 POLİS':'🛂 PASAPORT',1.8,.4,'#1d2a4a','#ffffff',12.6,2.75,z,Math.PI/2)});
+  I.spots.push({x:10.4,z:8.4,r:2.6,t:'E: 🛂 Pasaport & polis kontrolü',fn:()=>apPolice64()});
+  /* --- 6) dış hatlar/iç hatlar bekleme: duty free, yemek alanı, uzun banklar, kapılar --- */
+  /* duty free */const df=[0xe87aa8,0xf4c21a,0x2a6ab0,0xd8322c,0xffffff,0x8a4ad6];for(let i=0;i<3;i++){F(I,16+i*3,21.4,2,1.25,.35,g=>{box(2.4,2.4,.6,std(0xf2f2f4),0,1.2,0,g);for(let r=0;r<4;r++)for(let k=0;k<9;k++){const b=new T.Mesh(new T.CylinderGeometry(.06,.08,.26+((k+r)%3)*.06,8),new T.MeshStandardMaterial({color:df[(k+r+i)%6],roughness:.15,metalness:.2,transparent:true,opacity:.85}));b.position.set(-1+k*.25,.62+r*.55,.12);g.add(b)}})}
+  F(I,24,19.5,0,1,.4,fCounter(2));fig64(I,{shirt:0x1b1b1f,pants:0x1b1b1f,hair:0x6b3b1e},24,18.6,0);signAt('DUTY FREE · GÜMRÜKSÜZ',5,.6,'#1b1b1f','#f4c542',19,3.4,22.4);
+  I.spots.push({x:20,z:18.4,r:2.6,t:'E: 🛍️ Duty free',fn:()=>openMenu('Duty Free',[{n:'Parfüm',p:420,h:0,m:14},{n:'Lokum kutusu',p:90,h:6,m:8},{n:'Çikolata seti',p:120,h:8,m:8},{n:'Güneş gözlüğü',p:350,h:0,m:10},{n:'Peluş uçak',p:70,h:0,m:6}])});
+  /* yemek alanı: sağ duvar boyunca 3 tezgâh + masalar */
+  [['🥙 EGE DÖNER','#d8322c',[{n:'Döner dürüm',p:120,h:55,m:8},{n:'İskender',p:180,h:70,m:12},{n:'Ayran',p:25,h:4,m:3}]],['☕ KAHVE DURAĞI','#6a4428',[{n:'Latte',p:75,h:3,m:8},{n:'Türk kahvesi',p:60,h:2,m:7},{n:'Kruvasan',p:65,h:20,m:5}]],['🍕 PİZZA & MAKARNA','#2f8a3a',[{n:'Pizza dilimi',p:95,h:35,m:7},{n:'Penne arrabiata',p:140,h:50,m:8},{n:'Limonata',p:45,h:4,m:5}]]].forEach((q,i)=>{const z=0+i*5.6;
+    F(I,31.6,z,3,1.8,.5,g=>{box(3.6,1,.9,std(new T.Color(q[1]).getHex()),0,.5,0,g);box(3.7,.06,1,std(0xf2efe8),0,1.03,0,g);box(3.6,.6,.12,std(0x1b1b1f),0,2.4,.45,g);for(let k=0;k<5;k++)box(.4,.08,.3,std([0xf4c21a,0xd8322c,0x8a5a2a,0xffffff,0x2f8a3a][k]),-1.4+k*.7,1.1,0,g)});
+    signAt(q[0],3.4,.55,q[1],'#ffffff',32.7,2.9,z,-Math.PI/2);fig64(I,{shirt:0xffffff,pants:0x2a2a30,hair:0x2b1d17},32.6,z+.6,-Math.PI/2,(p,t)=>{p.userData.arms[1].rotation.x=-.8+Math.sin(t*3+i)*.3});
+    I.spots.push({x:29.6,z:z,r:2,t:'E: '+q[0]+' sipariş',fn:()=>openMenu(q[0].replace(/^\S+ /,''),q[2])})});
+  const tm=std(0xf2f2f2);for(let i=0;i<8;i++){const x=19+(i%4)*2.6,z=1+Math.floor(i/4)*4.6;cyl(.55,.55,.05,14,tm,x,.75,z);cyl(.05,.05,.75,6,dark,x,.37,z);I.boxes.push({x:x,z:z,hx:.55,hz:.55});
+    [-1,1].forEach((s,k)=>{F(I,x+s*.95,z,s>0?3:1,0,0,fChair(0x2a6ac8));if((i+k)%3!==2)seat64(x+s*.95,z,s>0?-Math.PI/2:Math.PI/2,Object.assign({},LOOK38[(i*2+k)%8]),0)})}
+  signAt('🍽️ YEMEK ALANI · FOOD COURT',5,.6,'#ff8a3d','#ffffff',24,3.6,-1.6);
+  /* bekleme: uzun banklar (uzanıp uyunabilir) */
+  const bench=(x,z,n)=>{F(I,x,z,0,n*.3,.35,g=>{box(n*.6,.08,.6,steel,0,.45,0,g);box(n*.6,.5,.08,steel,0,.72,-.28,g);for(let k=0;k<n;k++)box(.5,.06,.5,std(0x2a6ac8),-n*.3+.3+k*.6,.5,0,g);[-1,1].forEach(s=>box(.06,.45,.5,dark,s*(n*.3-.05),.22,0,g))})};
+  const BZ=[-11.6,-9.2,-6.8,-4.4];BZ.forEach((z,r)=>{bench(19,z,8);bench(27,z,8)});
+  const sleepers=[[16.6,-9.2],[25.4,-6.8],[28.6,-11.6]];sleepers.forEach((q,i)=>{fig64(I,LOOK38[(i*3+2)%8],q[0]+.9,q[1],0,'lie');suitcase64(q[0]-.6,0,q[1]+.7,0x1f1f24)});
+  [[18,-11.6,0],[21,-11.6,1],[24.6,-9.2,0],[29.4,-9.2,1],[17.4,-6.8,1],[22.2,-4.4,0],[28.2,-4.4,1],[30,-6.8,0]].forEach((q,i)=>seat64(q[0],q[1],0,Object.assign({},LOOK38[(i*5+1)%8]),q[2]));
+  I.spots.push({x:22.6,z:-8,r:2.2,t:'E: 😴 Uzun banka uzan · kestir',fn:()=>startAct({name:'Bankta kestiriyorsun 😴',ic:'😴',dur:24,tm:6,seat:{x:22.6,z:-9.2,face:0,h:.5},per:{en:2.4,mood:.2},end:()=>toast('😴 Biraz kestirdin · uçuşu kaçırmadın neyse ki')})},
+    {x:17,z:-2.6,r:1.6,t:'E: 🔌 Şarj istasyonu',fn:()=>toast('🔋 Telefonun %100 · ücretsiz şarj')});F(I,16.4,-2.6,0,.3,.3,g=>{box(.5,1.4,.5,std(0x2a6ac8),0,.7,0,g);box(.3,.2,.04,std(0xffffff),0,1.1,.26,g)});
+  /* kapılar */[['KAPI 1',16],['KAPI 2',22],['KAPI 3',28]].forEach((q,i)=>{F(I,q[1],-13.1,0,.9,.4,fCounter(1.6));signAt(q[0]+' · '+['BODRUM','ANTALYA','UÇUŞUN'][i],3,.55,'#1b1b1f','#f4c542',q[1],2.8,-13.6);fig64(I,{shirt:0x2a6ac8,pants:0x1d2a4a,hair:0x6b3b1e},q[1]+.4,-13.6,0)});
+  I.gateSign=signAt('KAPI 3 · BİNİŞ',3.4,.6,'#1b1b1f','#f4c542',28,3.5,-13.6);I.spots.push({x:28,z:-12,r:2.4,t:'E: Kapı 3 · uçağa bin ✈️',fn:()=>apBoard()});
+  /* bitkiler, saat, ekranlar */for(const q of [[-31,-12],[-31,19],[-1,13],[13.8,-2],[13.8,22],[31.8,-12]]){cyl(.35,.28,.6,10,std(0xe8e2d6),q[0],.3,q[1]);const l=new T.Mesh(new T.IcosahedronGeometry(.55,1),std(0x3d8a3a));l.position.set(q[0],1.05,q[1]);l.scale.y=1.3;W.add(l);I.boxes.push({x:q[0],z:q[1],hx:.4,hz:.4})}
+  poster64('BODRUM','Mavi tur · 1 saat',3,1.9,'#4ab8e0','#1a5a8a',32.9,2.4,-7,-Math.PI/2);poster64('KAPADOKYA','Balonlar seni bekliyor',3,1.9,'#e87a4a','#7a2a1a',32.9,2.4,13.6,-Math.PI/2);
+  /* kalabalık */A.push(crowd64(I,[[-31,2,-23,21],[-17,6,-2,12],[1,-3,10,12],[14.5,-3.4,31,-2.4],[14.5,11.5,30,13.5],[-17,13,-1,21]],46,640));
+  try{mergeDeep64(W)}catch(e){showErrOnce(e)}tick57(I);const t1=I.tick;I.tick=(dt,t)=>{A.forEach(f=>f(t,dt));t1(dt,t)};
+  if(!I.firstV){I.firstV=1;discAdd('havalimani','✈️ İzmir Havalimanı')}}
+/* akış: güvenlik → check-in → valiz → polis → kapı */
+function apSecurity(){if(!TRIP){toast('🛂 Güvenlikten geçtin · bilet için telefondan ✈️ Uçuş uygulaması');return}if(TRIP.sec64){toast('✅ Giriş güvenliğinden zaten geçtin · şimdi check-in');return}
+  startAct({name:'X-ray ve kapı detektörü',ic:'🛂',dur:4,start:()=>tone(880,.15,'square',.05),end:()=>{tone(1320,.12,'sine',.06);TRIP.sec64=1;toast('🛂 Temiz! Şimdi check-in holüne geç 🎫')}})}
+function apCheckin(){if(!TRIP){toast('🎫 Önce telefondaki ✈️ Uçuş uygulamasından bilet al');return}if(!TRIP.sec64){toast('🛂 Check-in\'den önce giriş güvenliğinden geçmelisin');return}if(TRIP.stage!=='ticket'){toast('✅ Check-in zaten yapıldı');return}
+  startAct({name:'Check-in yapıyorsun',ic:'🎫',dur:4,end:()=>{TRIP.stage='checkin';toast('🎫 Biniş kartın: '+DEST[TRIP.dest].n+' · Kapı 3 · Koltuk 12C · Şimdi valiz teslimi 🧳')}})}
+function apBag64(){if(!TRIP||TRIP.stage==='ticket'){toast(TRIP?'🎫 Önce check-in yap':'🎫 Biletin yok');return}if(TRIP.bag64){toast('✅ Valizin teslim edildi · pasaport kontrolüne geç');return}
+  startAct({name:'Valizini bantta tartıyorsun',ic:'🧳',dur:4,end:()=>{TRIP.bag64=1;toast('🧳 Valiz 18,4 kg · etiketlendi · şimdi pasaport & polis kontrolü 🛂')}})}
+function apPolice64(){if(!TRIP||!TRIP.bag64){toast(TRIP?'🧳 Önce valizini teslim et':'🎫 Biletin yok');return}if(TRIP.stage==='security'){toast('✅ Kontrolden geçtin · Kapı 3');return}
+  const pass=()=>{TRIP.stage='security';toast('🛂 Pasaport damgalandı · iyi yolculuklar! Kapı 3\'e geç');memAdd('🛂','Havalimanında pasaport kontrolünden geçtim')};
+  if(Math.random()<.35){const Q=[['👮 Polis: Seyahatin amacı nedir?',[['🏖️','Tatil',1],['💼','İş',1],['🤐','Söylemem',0]]],['👮 Polis: Valizinizde sıvı var mı?',[['🧴','100 ml altı, şeffaf poşette',1],['🍯','2 kavanoz bal',0],['❌','Yok',1]]],['👮 Polis: Kaç gün kalacaksınız?',[['📅','3-4 gün',1],['🤷','Bilmiyorum, belki hiç dönmem',0],['🗓️','Bir hafta',1]]]];let ok=0,i=0;
+    const ask=()=>{if(i>=Q.length){if(ok>=2)pass();else{toast('👮 Polis: Biraz bekleyin… (kısa bir kontrol)');startAct({name:'Ek kontrol · bekleme',ic:'👮',dur:8,end:()=>{toast('👮 Her şey yolunda, buyurun');pass()}})}return}const q=Q[i++];actionMenu(q[0],q[1].map(a=>[a[0],a[1],()=>{ok+=a[2];setTimeout(ask,120)}]))};
+    toast('👮 Polis seni rastgele soruşturmaya aldı');setTimeout(ask,400)}
+  else startAct({name:'Pasaport kontrolü',ic:'🛂',dur:3,end:pass})}
+/* ================= v64: dolu iç mekânlar — dükkan duvar rafları/reyonlar/kasalar, restoran raf-şişe-kadeh-tablo, yeni süpermarket yerleşimi ================= */
+const DM66={};const dm=(c,o)=>{const k=c+'|'+JSON.stringify(o||{});return DM66[k]||(DM66[k]=std(c,o))};
+function bx66(par,w,h,d,c,x,y,z,o){const m=new T.Mesh(new T.BoxGeometry(w,h,d),typeof c==='number'?dm(c,o):c);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;par.add(m);return m}
+function cy66(par,r1,r2,h,c,x,y,z,seg,o){const m=new T.Mesh(new T.CylinderGeometry(r1,r2,h,seg||8),typeof c==='number'?dm(c,o):c);m.position.set(x,y,z);m.castShadow=true;par.add(m);return m}
+/* duvar boyunca boş yer bul (kutulara ve kapıya çarpmadan) */
+function wallSlots66(I,side,w,dep,gap){const out=[],hw=I.w/2,hd=I.d/2,L=side==='back'?I.w:I.d,doorX=(I.spots.find(s=>/Dışarı|koridor/.test(s.t))||{x:-999}).x;
+  const free=(x,z,hx,hz)=>!I.boxes.some(b=>Math.abs(b.x-x)<b.hx+hx+.15&&Math.abs(b.z-z)<b.hz+hz+.15);
+  for(let u=-L/2+w/2+.4;u<=L/2-w/2-.4;u+=.2){let x,z,hx,hz;if(side==='back'){x=u;z=-hd+dep/2+.02;hx=w/2;hz=dep/2;if(Math.abs(x-doorX)<w/2+1.3)continue}else{x=hw-dep/2-.02;z=u;hx=dep/2;hz=w/2}
+    if(free(x,z,hx,hz)&&!out.some(o=>Math.abs((side==='back'?o.x:o.z)-u)<w+(gap||.1))){out.push({x:x,z:z});I.boxes.push({x:x,z:z,hx:hx,hz:hz})}}return out}
+/* tablolar */
+const ART66=[];function artTex66(i){if(ART66[i])return ART66[i];const r=mulberry(660+i);return ART66[i]=canvasTex(96,72,(g,w,h)=>{const P=[['#f4d8a0','#e8702a','#2a6ab0'],['#cfe8f4','#2a8ac8','#f4c21a'],['#f4e0e8','#c43f7a','#3a8a3a'],['#e8f0d8','#4a8a3a','#8a5a2a'],['#20283a','#f4c21a','#e8e8f0']][i%5];g.fillStyle=P[0];g.fillRect(0,0,w,h);
+  if(i%3===0){g.fillStyle=P[1];g.beginPath();g.arc(w*.7,h*.35,h*.22,0,7);g.fill();g.fillStyle=P[2];g.fillRect(0,h*.62,w,h*.38);g.fillStyle='rgba(255,255,255,.5)';for(let k=0;k<5;k++)g.fillRect(r()*w,h*.66+r()*h*.3,10,2)}
+  else if(i%3===1){for(let k=0;k<7;k++){g.fillStyle=[P[1],P[2],'#ffffff'][k%3];g.globalAlpha=.75;g.fillRect(r()*w*.8,r()*h*.8,14+r()*30,10+r()*26)}g.globalAlpha=1}
+  else{g.strokeStyle=P[2];g.lineWidth=3;for(let k=0;k<6;k++){g.beginPath();g.moveTo(0,h*(.2+k*.13));g.bezierCurveTo(w*.3,h*(.1+k*.13),w*.6,h*(.3+k*.13),w,h*(.2+k*.13));g.stroke()}g.fillStyle=P[1];g.beginPath();g.arc(w*.3,h*.3,8,0,7);g.fill()}})}
+function painting66(par,x,y,z,ry,w,h,i){const g=new T.Group();g.position.set(x,y,z);g.rotation.y=ry;par.add(g);bx66(g,w+.12,h+.12,.05,0x3a2a1e,0,0,0);const m=new T.Mesh(new T.PlaneGeometry(w,h),new T.MeshStandardMaterial({map:artTex66(i),roughness:.7}));m.position.z=.03;g.add(m);return g}
+/* sarkıt lamba */
+function pendant66(par,x,z,y,col){cy66(par,.01,.01,3.8-y,0x2a2a2e,x,y+(3.8-y)/2,z,4);const sh=new T.Mesh(new T.CylinderGeometry(.12,.3,.26,12,1,true),dm(col||0x2a2a2e,{side:T.DoubleSide}));sh.position.set(x,y,z);par.add(sh);const b=new T.Mesh(new T.SphereGeometry(.08,8,6),new T.MeshStandardMaterial({color:0xfff0c0,emissive:0xffd890,emissiveIntensity:.8}));b.position.set(x,y-.08,z);par.add(b)}
+/* tema rafları (duvar ünitesi, yerel: arka yüz -z, ürün yüzü +z) */
+function unit66(par,x,z,ry,w,th,cols,seed){const g=new T.Group();g.position.set(x,0,z);g.rotation.y=ry;par.add(g);const r=mulberry(seed||7),C=i=>cols[(i)%cols.length];const W2=w;
+  if(th==='cloth'){bx66(g,W2,2.5,.08,0xf2efe8,0,1.25,-.2);bx66(g,W2-.1,.04,.04,0xb8bcc4,0,1.95,.05,{metalness:.6});for(let i=0;i<Math.floor(W2/.16);i++){const c=C(i>>2);bx66(g,.05,.62,.42,c,-W2/2+.12+i*.16,1.58,.05)}
+    for(let k=0;k<3;k++)for(let j=0;j<2;j++)bx66(g,W2/3-.08,.12+j*.11,.3,C(k+j+1),-W2/3+k*W2/3,.48+j*.13,.02);bx66(g,W2,.06,.36,0xd8d2c6,0,.4,.02)}
+  else if(th==='makeup'){const MC=[...cols,0xe87aa8,0xd8a040,0xc0202a,0x8a4ad6,0x1b1b1f];bx66(g,W2,2.4,.35,0xf2e6e0,0,1.2,0);for(let s=0;s<4;s++){bx66(g,W2-.08,.03,.3,0xe8e8ee,0,.6+s*.45,.04);for(let i=0;i<Math.floor(W2/.13);i++){const h=.12+r()*.12;cy66(g,.035,.04,h,MC[(i*3+s)%MC.length],-W2/2+.1+i*.13,.62+s*.45+h/2,.08,8,{roughness:.2,metalness:.1})}}bx66(g,W2,.06,.06,0xfff4d8,0,2.42,.16,{emissive:0xffe8b0,emissiveIntensity:.9})}
+  else if(th==='shoe'){bx66(g,W2,2.5,.32,0xe8dcc8,0,1.25,0);for(let s=0;s<5;s++){bx66(g,W2-.06,.03,.28,0xb8a888,0,.4+s*.42,.04);for(let i=0;i<Math.floor(W2/.36);i++){const sx=-W2/2+.22+i*.36,c=C(i+s);bx66(g,.24,.1,.12,c,sx,.47+s*.42,.08);bx66(g,.1,.12,.12,c,sx-.07,.52+s*.42,.08)}}}
+  else if(th==='tech'){bx66(g,W2,2.5,.3,0x2a2d34,0,1.25,0);const sc=new T.MeshStandardMaterial({color:0x2a6ad8,emissive:0x1a4aa8,emissiveIntensity:.7,roughness:.2});const tv=new T.Mesh(new T.BoxGeometry(W2*.8,.7,.04),sc);tv.position.set(0,1.9,.17);g.add(tv);
+    for(let s=0;s<2;s++){bx66(g,W2-.06,.03,.26,0x8a8e98,0,.55+s*.5,.04);for(let i=0;i<Math.floor(W2/.3);i++){const p=new T.Mesh(new T.BoxGeometry(.14,.26,.02),i%2?sc:dm(0x1a1a1e));p.position.set(-W2/2+.2+i*.3,.72+s*.5,.1);p.rotation.x=-.25;g.add(p)}}}
+  else if(th==='book'){bx66(g,W2,2.6,.34,0x8a5a38,0,1.3,0);for(let s=0;s<6;s++){bx66(g,W2-.06,.03,.3,0x6a4428,0,.25+s*.42,.03);let u=-W2/2+.08;while(u<W2/2-.12){const bw=.04+r()*.05,bh=.24+r()*.12;bx66(g,bw,bh,.24,C((r()*9)|0),u+bw/2,.27+s*.42+bh/2,.04);u+=bw+.005}}}
+  else if(th==='jewel'){bx66(g,W2,1,.5,0x1b1b1f,0,.5,0);const gl=new T.MeshStandardMaterial({color:0xcfe8f8,transparent:true,opacity:.3,roughness:.05});const gb=new T.Mesh(new T.BoxGeometry(W2-.1,.4,.44),gl);gb.position.set(0,1.2,0);g.add(gb);
+    for(let i=0;i<Math.floor(W2/.24);i++){const t=new T.Mesh(new T.TorusGeometry(.06,.015,6,14),dm(i%2?0xe8c860:0xd8dce4,{metalness:.9,roughness:.2}));t.position.set(-W2/2+.16+i*.24,1.06,0);t.rotation.x=-1.2;g.add(t)}bx66(g,W2,.04,.5,0xfff4d8,0,1.42,0,{emissive:0xffe8b0,emissiveIntensity:.6});bx66(g,W2,1.4,.06,0x2a2a30,0,2.2,-.2);for(let i=0;i<4;i++)cy66(g,.12,.12,.03,0xe8c860,-W2/2+.4+i*(W2-.8)/3,2.2,-.15,16,{metalness:.9,roughness:.2}).rotation.x=Math.PI/2}
+  else{/* hediyelik/genel */bx66(g,W2,2.4,.34,0xf4efe6,0,1.2,0);for(let s=0;s<4;s++){bx66(g,W2-.06,.03,.3,0xd8cbb4,0,.5+s*.48,.04);for(let i=0;i<Math.floor(W2/.26);i++){const k=(r()*3)|0,c=C(i+s),px=-W2/2+.16+i*.26,py=.52+s*.48;if(k===0)bx66(g,.18,.18,.16,c,px,py+.09,.08);else if(k===1)cy66(g,.06,.07,.2,c,px,py+.1,.08,10);else{const sp=new T.Mesh(new T.SphereGeometry(.08,10,8),dm(c));sp.position.set(px,py+.08,.08);g.add(sp)}}}}
+  return g}
+function shopTheme66(s){const n=s.n+' '+s.t;if(s.th==='cloth')return 'cloth';if(s.th==='makeup')return 'makeup';if(/Ayakkab|Sole/i.test(n))return 'shoe';if(/Elektronik|Tekno/i.test(n))return 'tech';if(/Kitap/i.test(n))return 'book';if(/Mücevher|Saat/i.test(n))return 'jewel';return 'gift'}
+{const _si=shopInterior;shopInterior=function(I,s){_si.apply(this,arguments);try{const th=shopTheme66(s),cols=s.cols||[0xd8322c,0x2a6ab0,0xf4c21a],D=new T.Group();W.add(D);let k=0;
+  wallSlots66(I,'back',1.3,.45).forEach(p=>unit66(D,p.x,p.z,0,1.3,th,cols,++k*13));wallSlots66(I,'right',1.3,.45).forEach(p=>unit66(D,p.x,p.z,-Math.PI/2,1.3,th,cols,++k*17));
+  /* ek kasa: POS, poşetler, vitrin */const cx=3.2+1.75,cz=-4.3;if(!I.boxes.some(b=>Math.abs(b.x-cx)<b.hx+.5&&Math.abs(b.z-cz)<b.hz+.4)){bx66(D,.8,.95,.8,0xe4d5b8,cx,.48,cz);bx66(D,.85,.08,.85,0x6a4a30,cx,1,cz);I.boxes.push({x:cx,z:cz,hx:.45,hz:.45})}
+  bx66(D,.28,.22,.04,0x1a1a1e,2.6,1.18,-4.1);bx66(D,.2,.03,.14,0x2a2a2e,2.6,1.05,-4);for(let i=0;i<3;i++)bx66(D,.3,.36,.12,[0xffffff,new T.Color(s.c).getHex(),0xf2e6d0][i],3.9+i*.15,1.22,-4.4);
+  /* tablolar/afişler sağ duvarda üstte */painting66(D,I.w/2-.06,2.5,0,-Math.PI/2,1.3,.9,k%5);(I.furn||[]).slice().forEach(q=>{const c0=q.g.children[0];const pr=c0&&c0.geometry&&c0.geometry.parameters;if(th!=='gift'&&pr&&pr.width===2.4&&pr.height===2.8&&Math.abs(pr.depth-.6)<.01){q.g.parent&&q.g.parent.remove(q.g);unit66(D,q.g.position.x,q.g.position.z,q.g.rotation.y,2.4,th,cols,77+k++)}});
+  /* tavan spotları */for(let i=-1;i<=1;i++)pendant66(D,i*4,0,2.9,new T.Color(s.c).getHex());
+  /* giriş paspası */bx66(D,1.8,.02,1.1,new T.Color(s.c).getHex(),-6.3,.011,-4.1);
+  /* orta reyon (yer varsa) */const gx=-4.6,gz=-.6;if(!I.boxes.some(b=>Math.abs(b.x-gx)<b.hx+1.6&&Math.abs(b.z-gz)<b.hz+.9)&&th!=='cloth'){const u=unit66(D,gx,gz-.2,0,1.6,th,cols,99);const u2=unit66(D,gx,gz+.2,Math.PI,1.6,th,cols,98);I.boxes.push({x:gx,z:gz,hx:.85,hz:.45})}
+  mergeDeep64(D)}catch(e){showErrOnce(e)}}}
+/* restoranlar (Aspava hariç — RESTS ayrı sistem): şişe/kadeh rafları, tablolar, sarkıt lambalar, masa takımları */
+{const _ri=restInt;restInt=function(I,key){const r=_ri.apply(this,arguments);try{if(RESTS[key]&&curDecor66(I)){}}catch(e){showErrOnce(e)}return r}}
+function curDecor66(I){const R=RESTS[I.name&&I.name.slice(5)];if(!R)return false;const D=new T.Group();W.add(D);const col=new T.Color(R.col).getHex();
+  /* arka duvar: içki/şişe/kadeh rafı (kapıdan sonra, tabelanın altında) */
+  const shelf=(x,w)=>{bx66(D,w,.06,.32,0x6a4428,x,1.25,-6.82);bx66(D,w,.06,.32,0x6a4428,x,1.75,-6.82);bx66(D,w,.06,.32,0x6a4428,x,2.25,-6.82);bx66(D,w,2.3,.04,0x3a2a1e,x,1.6,-6.98);
+    for(let s=0;s<3;s++)for(let i=0;i<Math.floor(w/.16);i++){const px=x-w/2+.1+i*.16,py=1.28+s*.5;if((i+s)%3===2){const gl=new T.Mesh(new T.CylinderGeometry(.045,.025,.13,10,1,true),dm(0xe8f4ff,{transparent:true,opacity:.45,roughness:.05,side:T.DoubleSide}));gl.position.set(px,py+.16,-6.8);D.add(gl);cy66(D,.006,.006,.07,0xe8f4ff,px,py+.04,-6.8,4,{transparent:true,opacity:.5})}
+      else{const c=[0x2a5a2a,0x6a1a2a,0xd8a040,0x2a3a6a,0xc8d8e0][(i*3+s)%5];cy66(D,.045,.045,.22,c,px,py+.14,-6.8,10,{roughness:.15,metalness:.1});cy66(D,.015,.02,.08,c,px,py+.29,-6.8,6,{roughness:.15})}}};
+  shelf(-4.2,2.4);shelf(7.6,2.6);I.boxes.push({x:-4.2,z:-6.75,hx:1.25,hz:.25},{x:7.6,z:-6.75,hx:1.35,hz:.25});
+  /* sağ duvar: tablolar (deniz manzarası varsa onu kapatmadan) + şarap rafı */
+  const zs=R.sea?[-5.9]:[-5.9,0,5.9];zs.forEach((z,i)=>painting66(D,9.94,2.2,z,-Math.PI/2,1.5,1,(i+key66(R))%5));
+  if(!R.sea){const g=new T.Group();g.position.set(9.6,0,1.5);g.rotation.y=-Math.PI/2;D.add(g);bx66(g,1.4,2,.4,0x5a3a24,0,1,0);for(let a=0;a<5;a++)for(let b=0;b<6;b++){const c=new T.Mesh(new T.CylinderGeometry(.04,.04,.3,8),dm([0x2a5a2a,0x6a1a2a,0x3a1a14][(a+b)%3],{roughness:.2}));c.rotation.x=Math.PI/2;c.position.set(-.55+b*.22,.3+a*.36,.06);g.add(c)}I.boxes.push({x:9.6,z:1.5,hx:.25,hz:.75})}
+  /* sol arka köşeye üstte tablo */painting66(D,-1.8,2.9,-6.95,0,1.2,.8,(key66(R)+3)%5);
+  /* masalar: tabak, kadeh, peçete, vazo; üstlerinde sarkıt lamba */
+  [[-4,-1],[0,-1],[4,-1],[-4,3.4],[0,3.4],[4,3.4]].forEach((t,i)=>{[-1,1].forEach(s=>{cy66(D,.15,.15,.015,0xffffff,t[0]+s*.3,.82,t[1],14);const gl=new T.Mesh(new T.CylinderGeometry(.04,.03,.12,10,1,true),dm(0xe8f4ff,{transparent:true,opacity:.45,roughness:.05,side:T.DoubleSide}));gl.position.set(t[0]+s*.32,.88,t[1]-.24);D.add(gl);bx66(D,.12,.01,.18,col,t[0]+s*.32,.815,t[1]+.24)});
+    cy66(D,.04,.05,.14,0xf2f2f2,t[0],.88,t[1],8);const fl=new T.Mesh(new T.SphereGeometry(.06,8,6),dm([0xff6a8a,0xffd04a,0xffffff][i%3]));fl.position.set(t[0],.98,t[1]);D.add(fl);pendant66(D,t[0],t[1],2.6,col)});
+  /* duvar aplikleri */[-8,-1,6].forEach(x=>{bx66(D,.16,.3,.12,0xe8c860,x,2.5,-6.9,{metalness:.6,roughness:.3});const b=new T.Mesh(new T.SphereGeometry(.07,8,6),new T.MeshStandardMaterial({color:0xfff0c0,emissive:0xffd890,emissiveIntensity:.8}));b.position.set(x,2.68,-6.84);D.add(b)});
+  mergeDeep64(D);return true}
+function key66(R){return (R.n.length*7)%5}
+
+/* ================= süpermarket: reyonlar ve kasalar ayrı bölgelerde, duvar dolapları, şarküteri, fırın, manav ================= */
+function marketInt59(I){I.G=W;I.title='GünGün Süpermarket';I.zoom=isTouch?8:10;room(I,30,20,{wall:'#f2f6f2',trim:0x2f8a3a,tile:['#eef0ee','#dfe3df'],winW:3});exitDoor(I,-12);I.spawn=[-12,-7.6];const D=new T.Group();W.add(D);const A=[];
+  const P=[0xd8322c,0xf4c542,0x2f8a3a,0x2a6ab0,0xff8a3d,0xffffff,0x8a4ad6,0xc8955a];const im=new T.InstancedMesh(new T.BoxGeometry(.2,.26,.16),new T.MeshStandardMaterial({roughness:.6}),2600),d=new T.Object3D(),c=new T.Color();let k=0;
+  const prod=(x,y,z,col,sx,sy,sz)=>{if(k>=2600)return;d.position.set(x,y,z);d.scale.set(sx||1,sy||1,sz||1);d.rotation.set(0,0,0);d.updateMatrix();im.setMatrixAt(k,d.matrix);c.setHex(col);im.setColorAt(k,c);k++};
+  const aisleMenu=a=>()=>actionMenu(a[0]+' '+a[1]+' · sepet: '+CART59.length+' ürün',a[2].map(p=>[p[0],p[1]+' · '+p[2]+'🪙',()=>{CART59.push(p);cartMesh59();toast('🛒 '+p[1]+' sepete eklendi · toplam '+CART59.reduce((s,q)=>s+q[2],0)+'🪙')}]));
+  const hang=(t,x,z,bg)=>{const s=signAt(t,2.6,.5,bg||'#2f8a3a','#ffffff',x,3.1,z);cy66(D,.01,.01,.7,0x2a2a2e,x-1,3.55,z,4);cy66(D,.01,.01,.7,0x2a2a2e,x+1,3.55,z,4);return s};
+  /* 1) arka duvar: buzdolapları (süt ürünleri + içecek) */
+  const fridge=(x,col,ai)=>{bx66(D,2.6,2.3,.8,0xe8ecf0,x,1.15,-9.55);const gl=new T.Mesh(new T.BoxGeometry(2.5,2,.04),new T.MeshStandardMaterial({color:0xcfeaff,transparent:true,opacity:.28,roughness:.05,emissive:0x9ad8ff,emissiveIntensity:.25}));gl.position.set(x,1.2,-9.13);D.add(gl);bx66(D,2.6,.18,.82,col,x,2.4,-9.55);
+    for(let s=0;s<4;s++)for(let i=0;i<10;i++)prod(x-1.12+i*.25,.42+s*.48,-9.45,P[(i+s*3+ai)%P.length],.9,1,1);I.boxes.push({x:x,z:-9.55,hx:1.35,hz:.45})};
+  [-7.6,-4.8,-2,.8,3.6,6.4,9.2,12].forEach((x,i)=>fridge(x,i<4?0x2a6ab0:0xd8322c,i));hang('🧀 SÜT ÜRÜNLERİ',-3.4,-8.2,'#2a6ab0');hang('🥤 İÇECEKLER',7.8,-8.2,'#d8322c');
+  I.spots.push({x:-3.4,z:-7.8,r:2.6,t:'E: '+AISLE59[1][0]+' '+AISLE59[1][1]+' dolabı',fn:aisleMenu(AISLE59[1])},{x:7.8,z:-7.8,r:2.6,t:'E: '+AISLE59[4][0]+' '+AISLE59[4][1]+' dolabı',fn:aisleMenu(AISLE59[4])});
+  /* 2) sağ duvar: şarküteri/kasap tezgâhı + fırın rafları */
+  const deli=new T.Group();deli.position.set(13.9,0,-4);D.add(deli);bx66(deli,1,1,4.4,0xf2f2f2,0,.5,0);const dg=new T.Mesh(new T.BoxGeometry(.7,.5,4.3),dm(0xcfeaff,{transparent:true,opacity:.3,roughness:.05}));dg.position.set(-.1,1.25,0);deli.add(dg);for(let i=0;i<12;i++)bx66(deli,.3,.12,.28,[0xc8503a,0xe8a0a0,0xf4e0c0,0xb84030][i%4],-.1,1.06,-1.9+i*.35);
+  I.boxes.push({x:13.9,z:-4,hx:.6,hz:2.3});fig64(I,{shirt:0xffffff,pants:0x2a2a30,hair:0x2b1d17},14.6,-4.2,-Math.PI/2);signAt('🍗 ŞARKÜTERİ & KASAP',3.2,.5,'#a8201a','#ffffff',14.9,2.9,-4,-Math.PI/2);I.spots.push({x:12.6,z:-4,r:2.4,t:'E: '+AISLE59[3][0]+' '+AISLE59[3][1]+' tezgâhı',fn:aisleMenu(AISLE59[3])});
+  const bak=new T.Group();bak.position.set(14.5,0,3.4);bak.rotation.y=-Math.PI/2;D.add(bak);bx66(bak,4.4,2.2,.6,0xc8955a,0,1.1,0);for(let s=0;s<3;s++){bx66(bak,4.3,.04,.5,0x8a5a38,0,.6+s*.55,.08);for(let i=0;i<10;i++){const b=new T.Mesh(new T.SphereGeometry(.14,8,6),dm([0xd8a050,0xb87a3a,0xe8c080][(i+s)%3]));b.scale.set(1.6,.7,1);b.position.set(-1.9+i*.42,.72+s*.55,.12);bak.add(b)}}
+  I.boxes.push({x:14.5,z:3.4,hx:.35,hz:2.3});signAt('🥖 FIRIN',2,.5,'#c8955a','#ffffff',14.9,2.9,3.4,-Math.PI/2);I.spots.push({x:12.8,z:3.4,r:2.4,t:'E: '+AISLE59[2][0]+' '+AISLE59[2][1]+' rafı',fn:aisleMenu(AISLE59[2])});
+  /* 3) manav: sol ön, sandıklar */
+  for(let r=0;r<2;r++)for(let i=0;i<4;i++){const x=-12.6+i*1.6,z=2.4+r*2.4,g=new T.Group();g.position.set(x,0,z);g.rotation.x=0;D.add(g);bx66(g,1.3,.6,.9,0x8a5a38,0,.3,0);const cc=[0xd8322c,0xf4c542,0x3a9a3a,0xff8a3d,0x8a2a6a,0xb8d050][(i+r*4)%6];for(let a=0;a<4;a++)for(let b=0;b<3;b++){const f=new T.Mesh(new T.SphereGeometry(.12,8,6),dm(cc));f.position.set(-.45+a*.3,.68,-.28+b*.28);g.add(f)}I.boxes.push({x:x,z:z,hx:.7,hz:.5})}
+  hang('🥦 MEYVE & SEBZE',-10.2,3.6,'#3a8a3a');I.spots.push({x:-10.2,z:7,r:2.6,t:'E: '+AISLE59[0][0]+' '+AISLE59[0][1]+' tezgâhı',fn:aisleMenu(AISLE59[0])});
+  /* 4) orta reyonlar (ürün ızgaraları) — kasalardan ayrı, x -6..8, z -5.5..1 */
+  const gond=(x,z,ai,lbl)=>{bx66(D,3.6,1.7,.9,0xe8e8ee,x,.85,z);bx66(D,3.6,.06,.95,0x2f8a3a,x,1.72,z);for(const s of [-1,1])for(let r=0;r<3;r++)for(let i=0;i<13;i++)prod(x-1.62+i*.27,.42+r*.48,z+s*.48,P[(i+r+ai*3)%P.length],1,1,1);I.boxes.push({x:x,z:z,hx:1.9,hz:.55});if(lbl)hang(lbl,x,z)};
+  gond(-4,-4.6,5,'🍫 ATIŞTIRMALIK');gond(1,-4.6,6,'🧴 TEMİZLİK');gond(6,-4.6,2);gond(-4,-1.4,3,'🍝 MAKARNA & BAKLİYAT');gond(1,-1.4,4,'🥫 KONSERVE');gond(6,-1.4,1,'🧻 KİŞİSEL BAKIM');
+  I.spots.push({x:-4,z:-3,r:1.8,t:'E: '+AISLE59[5][0]+' '+AISLE59[5][1]+' reyonu',fn:aisleMenu(AISLE59[5])},{x:1,z:-3,r:1.8,t:'E: '+AISLE59[6][0]+' '+AISLE59[6][1]+' reyonu',fn:aisleMenu(AISLE59[6])});
+  /* 5) kasalar: ön sağ, reyonlardan ayrı (z 5.6..8.6) */
+  [0,3.4,6.8,10.2].forEach((x,i)=>{bx66(D,2.4,.9,.8,0x3a3a42,x,.45,6.4);bx66(D,1.8,.04,.6,0x1a1a1e,x-.2,.92,6.4);bx66(D,.45,.32,.35,0x1a1a1e,x+.85,1.08,6.4);bx66(D,.3,.25,.04,0x5ad0ff,x+.85,1.3,6.25,{emissive:0x2a8ac8,emissiveIntensity:.6});cy66(D,.04,.04,1.4,0xd8d8de,x+1.3,.7,6.4,6);
+    const lb=signAt(String(i+1),.5,.5,'#2f8a3a','#ffffff',x+1.3,1.55,6.4);fig64(I,{shirt:0x2f8a3a,pants:0x23252b,hair:HAIR64[i]},x+.4,7.3,Math.PI);I.boxes.push({x:x,z:6.4,hx:1.25,hz:.45});
+    I.spots.push({x:x-.6,z:5.2,r:1.5,t:'E: 💳 Kasa '+(i+1)+' · ödeme yap',fn:()=>checkout59()})});
+  hang('💳 KASALAR',5.1,4.6,'#1b1b1f');
+  /* sepet/araba parkı, promosyon standı, afişler */for(let i=0;i<4;i++){const g=new T.Group();g.position.set(-9.6+i*.25,0,-8.4);D.add(g);bx66(g,.7,.45,.5,0xb8bcc4,0,.65,0,{metalness:.6});bx66(g,.05,.4,.5,0x2f8a3a,-.38,.95,0)}I.boxes.push({x:-9.2,z:-8.4,hx:.7,hz:.4});
+  painting66(D,14.94,3,9,-Math.PI/2,1.6,.9,1);poster64('İNDİRİM','Her gün taze · %20',2.6,1.5,'#d8322c','#8a1a1a',14.92,1.9,7.6,-Math.PI/2);
+  for(let i=0;i<6;i++)pendant66(D,-8+i*4.4,0,3.2,0xf2f2f2);
+  im.count=k;im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;W.add(im);
+  const cart=new T.Group();box(.7,.45,.5,std(0xb8bcc4,{metalness:.6}),0,.65,0,cart);box(.05,.4,.5,std(0x2a2a30),-.38,.95,0,cart);[[-.3,-.2],[.3,-.2],[-.3,.2],[.3,.2]].forEach(w=>{const wh=new T.Mesh(new T.CylinderGeometry(.06,.06,.04,8),std(0x1a1a1e));wh.rotation.x=Math.PI/2;wh.position.set(w[0],.08,w[1]);cart.add(wh)});
+  const cg=new T.Group();cart.add(cg);W.add(cart);I.cart59={g:cart,items:cg};
+  A.push(crowd64(I,[[-10,-7.6,10,-6.6],[-6,-3.1,8,-2.9],[-6,.1,8,.9],[-12,.4,-5,1],[0,4.4,12,4.8],[8.6,-6,11.6,4]],18,661));
+  mergeDeep64(D);tick57(I);const t0=I.tick;I.tick=(dt,t)=>{t0(dt,t);A.forEach(f=>f(t,dt));const ang=player.rotation.y;cart.position.set(pl.x+Math.sin(ang)*.8,0,pl.z+Math.cos(ang)*.8);cart.rotation.y=ang+Math.PI/2};CART59.length=0;cartMesh59()}
 
 /* ---------- döngü ---------- */
 const clock=new T.Clock();let hudT=0;
