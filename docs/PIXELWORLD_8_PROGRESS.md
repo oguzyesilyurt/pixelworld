@@ -48,3 +48,31 @@ Durum işaretleri: ✅ tamam · 🟡 kısmi · ⏳ yapılmadı
 - ✅ **Apartman toplantıları**: ara sıra duyurulur (aidat artışı, ortak alan temizliği, bina bakımı, asansör arızası); evet/hayır oyunun sonuçları var (aidat değişir, merdiven nöbeti, komşu itibarı, asansör arızalanma olasılığı).
 - ✅ **Komşuluk**: asansörde komşuyla sohbet, sabah evden çıkınca işe giden komşuyla karşılaşma (günaydın / yardım / çaya davet), rastgele komşu yardım isteği ve misafirlik daveti (bağ etkisi).
 - 🟡 Kat koridoru ayrı bir sahne değil (geçiş anında anlatılıyor). Komşular lobide 3D figür olarak beklemiyor; karşılaşmalar menü/konuşma ile.
+
+## Özet durum (v70)
+| # | Bölüm | Durum |
+|---|---|---|
+| 1 | Apartman & komşuluk | ✅ (koridor ayrı sahne değil 🟡) |
+| 2 | Banka & kredi | ✅ |
+| 3 | Taşınma günü | ✅ |
+| 4 | Tekne & marina | ✅ (basit fizik 🟡) |
+| 5 | Sağlık | ✅ |
+| 6 | Yemek becerisi | ✅ |
+| 7 | Tamir becerisi | ✅ |
+| 8 | Kitapçı & kütüphane | ✅ |
+| 9 | Doğal hayvan yaşamı | ✅ |
+| 10 | Navigasyon & toplu taşıma | ✅ (sefer saati tablosu yok 🟡) |
+| 11 | Yaşam istatistikleri | ✅ (sayım v65'ten itibaren) |
+| 12 | Bağımsız gelişen dünya | ✅ (yeni işletmeler haritada bina değil 🟡) |
+| 13 | Entegrasyon | ✅ banka↔galeri/Sarı Site/marina/aidat/ulaşım, istatistik↔tüm olaylar |
+| 15 | Kayıt | ✅ x67–x74, geri uyumlu |
+| 16 | Optimizasyon | 🟡 masaüstü/mobil emülasyon testleri; gerçek iPhone'da denenmedi |
+
+## Değiştirilen dosyalar
+`index.html` (build), `sw.js`, `package.json`, `docs/PIXELWORLD_8_*.md`. Kaynak modüller (scratchpad, build74.sh ile birleştirilir): life67 (banka), life68 (istatistik/dünya), life69 (hayvanlar), life70 (yemek/tamir/kitap), life71 (sağlık), life72 (ulaşım), life73 (tekne), life74 (taşınma/apartman); life60 (dış halka 2. sıra).
+
+## Bilinen hatalar / eksikler
+- El nesneleri (kitap, bıçak, koli) karakterin önüne konumlanıyor, kol kemiğine bağlı değil.
+- Test ortamında oyun zamanı yavaş aktığı için otobüs bekleme süresi test çarpanıyla (BUSK72) kısaltılarak doğrulandı.
+- Lobideki posta kutuları/merdiven basit kutu geometrisi.
+- Gerçek iPhone donanımında test yapılmadı (emülasyon: tmob ~275 çizim çağrısı).
