@@ -62,3 +62,12 @@ Durum anahtarı: ✅ tamam · 🟡 kısmi · ⏳ yapılmadı
 - Bina kaldırma sonrası konan alçak park (lowPark38) yola taşıyorsa artık konmuyor (Karşıyaka sahil yolundaki çit+bank).
 - `terrain()` içindeki 60 rastgele yarı saydam yeşil zemin lekesi kaldırıldı; lowFill55 çimi normal çim rengine çekildi.
 - Yeni mekân yerleşimi (spor salonu, süpermarket, oto yıkama, bowling, üniversite) `rsv60`: kapı önü 7 m boş + tabela görünürlüğü; olmazsa girişsiz sıradan binaları kaldırıp yer açar; en son dış halka (x=94) — bu durumda kamera sınırı o mahallede genişler, mekânlar birbirinin önünü kapatmaz.
+
+## v62 — manzara, ulaşım, deniz canlıları, go-kart
+- Sürüş manzarası: koni (piramit) dağlar ve sisle beyaza dönen yarım küre tepeler kaldırıldı; 3 katmanlı yumuşak dağ sırası (uzakta karlı zirve), bulutlar dağların üstüne taşındı. Marmaris dağ yolu da aynı. Sürüş kodu (driveUpdate/DR mantığı) değişmedi.
+- Ulaşım durak paneli yeniden yazıldı (ızgara, metin taşmıyor, mobil uyumlu). ESHOT artık 10 durak: Kordon, Halkapınar, Karşıyaka, Bostanlı, Çiğli, Karabağlar, Havalimanı, 3 AVM.
+- Tekne: burun tarafından da atlama + burun merdiveniyle çıkış.
+- Balıklar: torna gövde, çatal kuyruk, yüzgeç, göz; kuyruk çırpma (shader). Köpek balığı yeni model. Mercan resifleri (dallı, beyin, yelpaze, masa, anemon, sünger, deniz çayırı) dalışta ve akvaryumda.
+- Dalış: alan genişledi, kayalar takılmıyor, bırakınca süzülme, daha çok balık sürüsü, bazen köpek balığı.
+- Safari parkı: zürafa, zebra, fil, aslan, geyik, flamingo pürüzsüz (SDF) modeller + desen (benek/çizgi).
+- Go-kart: pist boş alana (Karabağlar dış halka) taşındı; gerçek parkur (asfalt, kerb, kum, lastik bariyer, start köprüsü ışıkları, tribün, pit, bayraklar, dönen kartlar). Yeni yarış oyunu: takip kamerası, gerçek parkur, 4 rakip, minimap, start ışıkları, fren.
