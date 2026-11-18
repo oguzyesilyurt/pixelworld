@@ -8479,6 +8479,28 @@ let LOBBYSKIP74=false;
 {const _nd=newDay;newDay=function(){const r=_nd.apply(this,arguments);try{if(Math.random()<.2){const k=pick(Object.keys(NB)),n=NB[k];setTimeout(()=>notify('🏠 '+n.n,pick(['Kızım bir tüp gaz taşımama yardım eder misin? 🙏','Akşam misafirliğe gelsene, kek yaptım 🍰','Çiçeklerimi sulayabilir misin, iki gün yokum 🌷']),[{t:'Tabii 💛',fn:()=>{n.v=clamp(n.v+10,0,100);mood=clamp(mood+4,0,100);emitSafe('nb_help');toast('💛 '+n.n+' çok sevindi')}},{t:'Kusura bakma',fn:()=>{n.v=clamp(n.v-3,0,100)}}]),5000)}}catch(e){}return r}}
 {const _sv=save25;save25=function(){const o=_sv.apply(this,arguments);try{o.x74={mv:MOVE74,apt:APT74}}catch(e){}return o}}
 {const _ld=load25;load25=function(x){const r=_ld.apply(this,arguments);try{if(x&&x.x74){Object.assign(MOVE74,x.x74.mv||{});Object.assign(APT74,x.x74.apt||{})}}catch(e){}return r}}
+/* ================= v71: telefon uygulamaları — okunabilir düğmeler, yatay kaymayı engelle ================= */
+{const st=document.createElement('style');st.textContent=`
+#phbody{overflow-x:hidden!important;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y}
+#phbody *{max-width:100%;box-sizing:border-box}
+#phone .bk67{color:#1d2a26;width:100%;overflow-x:hidden}
+#phone .bk67 .tabs{display:flex;flex-wrap:wrap;overflow:visible;gap:6px}
+#phone .bk67 .tabs button{color:#1d6a4a!important;background:#e3efe9!important;border:1px solid #c4dccf!important;flex:0 1 auto;white-space:normal}
+#phone .bk67 .tabs button.on{color:#fff!important;background:#1d6a4a!important;border-color:#1d6a4a!important}
+#phone .bk67 .btn{color:#fff!important;background:#1d6a4a!important;white-space:normal;max-width:100%}
+#phone .bk67 .btn.g{color:#1d6a4a!important;background:#e3efe9!important;border:1px solid #c4dccf!important}
+#phone .bk67 .hero,#phone .bk67 .hero *{color:#fff}
+#phone .bk67 .card{color:#1d2a26;overflow-wrap:anywhere}
+#phone .bk67 .row{flex-wrap:wrap}#phone .bk67 .row span{min-width:0;flex:1 1 55%}#phone .bk67 .row b{text-align:right;flex:0 1 auto;min-width:0}
+#phone .bk67 .row>div{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end}
+#phone .bk67 table{table-layout:fixed;width:100%}
+#phone .bk67 .sub{color:#4a5a54;opacity:1}
+#phone .bk67 b,#phone .bk67 h3{color:inherit}
+.bk67 input[type=range]{touch-action:pan-x}
+.bk67{overflow-x:hidden}
+#mkt .cats{touch-action:pan-x;overscroll-behavior-x:contain}
+#trv61 .trv61c{overflow-x:hidden;touch-action:pan-y}
+`;document.head.appendChild(st)}
 
 /* ---------- döngü ---------- */
 const clock=new T.Clock();let hudT=0;

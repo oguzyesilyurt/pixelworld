@@ -76,3 +76,8 @@ Durum işaretleri: ✅ tamam · 🟡 kısmi · ⏳ yapılmadı
 - Test ortamında oyun zamanı yavaş aktığı için otobüs bekleme süresi test çarpanıyla (BUSK72) kısaltılarak doğrulandı.
 - Lobideki posta kutuları/merdiven basit kutu geometrisi.
 - Gerçek iPhone donanımında test yapılmadı (emülasyon: tmob ~275 çizim çağrısı).
+
+## v71 — telefon uygulamaları düzeltmesi
+- 🐛 Sarı Site, Banka, Yaşam, Sağlığım, Navigasyon filtrelerinde/düğmelerinde yazı ile zemin aynı (beyaz) renkteydi: telefonun genel `#phone button` beyaz yazı stili uygulama stilini eziyordu. Düğmeler artık yeşil zemin/beyaz yazı veya açık zemin/yeşil yazı.
+- 🐛 Telefon ekranı aşağı kaydırılırken sağa sola da kayıyordu: telefon gövdesi yatay kaydırmaya kapatıldı, yalnızca dikey kaydırma; sekme satırları alt satıra sarılıyor; uzun satırlar kırılıyor. Pazarcık kategori şeridi kendi içinde yana kayan şerit olarak kaldı.
+- Test (t76, iPhone yatay emülasyon): 23 telefon uygulamasının hepsi açıldı; yatay taşma 0, okunmayan düğme 0.
