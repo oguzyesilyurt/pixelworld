@@ -31,3 +31,9 @@ Durum işaretleri: ✅ tamam · 🟡 kısmi · ⏳ yapılmadı
 - ✅ **Navigasyon** (🧭): şehir içi yakındaki mekânlar → zeminde mavi rota + hedef iğnesi (engellerden kaçan A* yol bulma), mesafe ve yürüme süresi, alternatif güzergâh; hedefe varınca "Vardın". Şehirler arası: her hedef için 🚗 (süre) / 🚌 (süre + ücret) / 🚕 (süre + ücret) seçenekleri.
 - ✅ Aksaz Askerî Lojmanı gibi kısıtlı alanlar navigasyon/taksi listelerinde yok; erişim kuralları değişmedi. Marmaris/Aksaz/Kocaeli bağlantıları (mevcut yollar) korunuyor.
 - 🟡 Otobüsler belirli sefer saatine göre değil, durağa gelişte rastgele 6–10 dk bekleme ile geliyor.
+
+## v69 — tekne sahipliği & marina
+- ✅ **Sarı Site** (`life73.js`, telefonda 🟨): 8 tekne ilanı (şişme bot, sürat, yelkenli, mini gulet), türe göre filtre, fiyat/yıl sıralama, ortalamaya göre fiyat karşılaştırması. Nakit veya 🏦 tekne kredisiyle satın alma (kredi bankada, tekne hemen senin).
+- ✅ **Marmaris Marina**: marina ofisi (bağlama yeri kirala → haftalık 350🪙 otomatik ödeme; temizlik; periyodik bakım; tekneyi sat), yakıt istasyonu, özel iskele + kendi teknen iskelede durur. Mevcut tekne turu korunuyor.
+- ✅ **Kendi tekneni kullan**: arkadaş davet (en çok 3, teknede oturur, konuşur) → açık deniz: motoru çalıştır, yön tuşlarıyla tekneyi sür (yakıt tükenir, tükenince römorkör), 4 koy (Cennet Adası, Kumlubük, Turunç, Gizli Mağara) yakınında demir at → denize atla/yüz → tekneye çık; fotoğraf (anı + arkadaşlarla bağ), marinaya dönüş (bağ +8, istatistik). Bakım çok gecikirse motor çalışmaz.
+- 🟡 Tekne modelleri basit (gövde + kabin/yelken); dalga fiziği yok, yalnızca sallanma.
