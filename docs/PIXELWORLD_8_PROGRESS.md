@@ -37,3 +37,14 @@ Durum işaretleri: ✅ tamam · 🟡 kısmi · ⏳ yapılmadı
 - ✅ **Marmaris Marina**: marina ofisi (bağlama yeri kirala → haftalık 350🪙 otomatik ödeme; temizlik; periyodik bakım; tekneyi sat), yakıt istasyonu, özel iskele + kendi teknen iskelede durur. Mevcut tekne turu korunuyor.
 - ✅ **Kendi tekneni kullan**: arkadaş davet (en çok 3, teknede oturur, konuşur) → açık deniz: motoru çalıştır, yön tuşlarıyla tekneyi sür (yakıt tükenir, tükenince römorkör), 4 koy (Cennet Adası, Kumlubük, Turunç, Gizli Mağara) yakınında demir at → denize atla/yüz → tekneye çık; fotoğraf (anı + arkadaşlarla bağ), marinaya dönüş (bağ +8, istatistik). Bakım çok gecikirse motor çalışmaz.
 - 🟡 Tekne modelleri basit (gövde + kabin/yelken); dalga fiziği yok, yalnızca sallanma.
+
+## v70 — taşınma günü & apartman yaşamı
+- ✅ **Taşınma planı** (`life74.js`): ev kiralayınca/alınca → taşınma günü (bugün / +1 / +2) + nakliye firması (Ege Nakliyat 120, Körfez Taşımacılık 260, Lüks Evden Eve 480). Plan günü bildirim gelir ("Başlayalım" / "Bir gün ertele").
+- ✅ **Kolileme**: evde "📦 Koli hazırla" — karakter eşyanın yanına yürür, elinde koli ile sarıp kapatır; koliler kapı yanında üst üste dizilir (eşya sayısına göre gereken koli).
+- ✅ **Nakliye**: mevcut kamyon + taşıyıcı sekansı korunarak kamyonun arkasında koli yığını, taşıyıcıların elinde koli.
+- ✅ **Yeni evde koli açma**: koliler girişte durur, "📦 Koli aç" (kapak açılır, eşyalar çıkar), son koliden sonra dekorasyon modu (📦 Depo) açılır. Mobilyalar depoya aktarılır (eski mekanizma) — eşya kaybı yok. Sahiplik/kira doğrulaması korunuyor (kira/sahiplik yoksa eski eve dönülür).
+- ✅ **Apartman girişi (lobi)**: apartman evlerine girerken önce bina girişi — posta kutuları (posta: aidat bildirimi, faturalar, broşür, kartpostal), duyuru panosu, yönetici Nihat Bey (aidat öde, toplantıya katıl, arıza bildir), asansör (kapılar açılır; arızalıysa merdiven) ve merdiven → kat koridoru → daire.
+- ✅ **Aidat**: 10 günde bir aidat bildirimi postaya düşer, 7 gün içinde yöneticiye ödenir; gecikince uyarı.
+- ✅ **Apartman toplantıları**: ara sıra duyurulur (aidat artışı, ortak alan temizliği, bina bakımı, asansör arızası); evet/hayır oyunun sonuçları var (aidat değişir, merdiven nöbeti, komşu itibarı, asansör arızalanma olasılığı).
+- ✅ **Komşuluk**: asansörde komşuyla sohbet, sabah evden çıkınca işe giden komşuyla karşılaşma (günaydın / yardım / çaya davet), rastgele komşu yardım isteği ve misafirlik daveti (bağ etkisi).
+- 🟡 Kat koridoru ayrı bir sahne değil (geçiş anında anlatılıyor). Komşular lobide 3D figür olarak beklemiyor; karşılaşmalar menü/konuşma ile.

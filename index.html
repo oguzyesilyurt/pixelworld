@@ -8404,6 +8404,81 @@ function ownBoatInt73(I){const B=BOAT73.own;I.G=W;I.title='⛵ '+B.n+' · Marmar
   if(!I.firstV){I.firstV=1;discAdd('kendi_teknem','⛵ Kendi teknemle denizde')}}
 {const _sv=save25;save25=function(){const o=_sv.apply(this,arguments);try{o.x73={b:BOAT73,auto:AUTO67}}catch(e){}return o}}
 {const _ld=load25;load25=function(x){const r=_ld.apply(this,arguments);try{if(x&&x.x73){Object.assign(BOAT73,x.x73.b||{});AUTO67.length=0;(x.x73.auto||[]).forEach(a=>AUTO67.push(a))}}catch(e){}return r}}
+/* ================= v70: gerçek taşınma günü (tarih + nakliyeci seçimi, kolileme, kamyon, yeni evde koli açma) + apartman yaşamı (giriş, posta kutuları, asansör, koridor, yönetici, aidat, duyurular, toplantılar, komşular) ================= */
+const MOVE74={plan:null,boxes:0,packed:0,unpack:0,last:null};
+const MOVERS74=[['🚚 Ege Nakliyat','Ekonomik · 2 kişilik ekip',120,1],['🚛 Körfez Taşımacılık','Sigortalı · 3 kişi · hızlı',260,1.6],['✨ Lüks Evden Eve','Paketleme dahil · 4 kişi',480,2.4]];
+/* taşınma teklifi → plan: tarih + firma */
+moveOffer=function(L){if(HOME.cur==='ev_p_'+L.id){toast('Zaten bu evde oturuyorsun 🏠');return}setTimeout(()=>actionMenu('🚚 Taşınma planı · '+L.n,[
+  ...[0,1,2].map(d=>['📅',(d?'Gün '+(HOME.day+d):'Bugün')+' taşın',()=>setTimeout(()=>actionMenu('🚚 Nakliye firması seç',MOVERS74.map(m=>[m[0].split(' ')[0],m[0].slice(2)+' · '+m[1]+' · '+m[2]+'🪙',()=>{if(!payOk(m[2]))return;pay(m[2]);txNote67('🚚 '+m[0].slice(2),'taşınma');MOVE74.plan={L:L.id,day:HOME.day+d,firm:m,boxes:0};
+    toast('📅 Taşınma: Gün '+(HOME.day+d)+' · '+m[0].slice(2)+' · Evde eşyaları kolile: "📦 Koli hazırla"');memAdd('📦',L.n+'\'e taşınma planı yaptım');try{AUTO67}catch(e){}}])),60)]),
+  ['⏳','Sonra planlarım',()=>toast('İstediğin zaman 📱 Emlak > "🚚 Buraya taşın" diyebilirsin')]]),300)};
+function packFurnList74(){const I=interior(HOME.cur);return homeFurn(I).filter(f=>f.key&&!FIXK.has(f.key))}
+/* evde: kolileme */
+function packAct74(){const P=MOVE74.plan;if(!P)return;const L=packFurnList74(),need=Math.max(3,Math.ceil(L.length/2));if(P.boxes>=need)return toast('📦 Bütün eşyalar kolilendi ('+P.boxes+' koli) · taşınma günü: Gün '+P.day);
+  const box=new T.Group();box.add(new T.Mesh(new T.BoxGeometry(.55,.4,.45),std(0xc8955a)));const tp=new T.Mesh(new T.BoxGeometry(.56,.02,.08),std(0xd8c8a0));tp.position.y=.21;box.add(tp);
+  const near=L[P.boxes%Math.max(1,L.length)];const go=()=>{hold70(box,[0,.85,.42]);startAct({name:'📦 Koli açıyorsun, eşyaları sarıp yerleştiriyorsun ('+(P.boxes+1)+'/'+need+')',ic:'📦',dur:5,tm:3,pose:'cook',faceTo:near?near.g.position:null,stop:unhold70,
+    end:()=>{unhold70();const I=curI,v=new T.Vector3();player.getWorldPosition(v);const b2=box.clone();b2.position.set(pl.x+(P.boxes%4)*.6-.9,.2+Math.floor(P.boxes/8)*.4,pl.z+1.1+Math.floor(P.boxes/4)%2*.5);(I.G||W).add(b2);(I.box74||(I.box74=[])).push(b2);
+      P.boxes++;sfx('blip');toast(P.boxes>=need?'✅ Kolileme bitti ('+need+' koli) · Gün '+P.day+' nakliye gelecek':'📦 Koli kapatıldı · '+P.boxes+'/'+need)}})};
+  if(near){const p=standOf(near,1);walkTo(p.x,p.z,go)}else go()}
+{const _int=interior;interior=function(kind){const I=_int.apply(this,arguments);try{if(I&&kind===HOME.cur&&!I.pk74){I.pk74=1;I.spots.push({x:I.spawn[0],z:I.spawn[1],r:2.4,cond:()=>!!MOVE74.plan,get t(){return 'E: 📦 Koli hazırla · taşınma Gün '+(MOVE74.plan&&MOVE74.plan.day)},fn:packAct74})}
+  if(I&&MOVE74.unpack>0&&kind===HOME.cur&&!I.up74&&I.G){I.up74=1;unpackSetup74(I)}}catch(e){showErrOnce(e)}return I}}
+/* taşınma günü: plan günü gelince bildirim, oyuncu onaylayınca mevcut nakliye sekansı */
+{const _nd=newDay;newDay=function(){const r=_nd.apply(this,arguments);try{const P=MOVE74.plan;if(P&&HOME.day>=P.day)setTimeout(()=>notify('🚚 Taşınma günü!',P.firm[0].slice(2)+' kapıda. '+(P.boxes?P.boxes+' koli hazır.':'Hiç koli hazırlamadın — ekip toplayacak ama yavaş olacak.'),[{t:'Başlayalım',fn:()=>startMove74()},{t:'Bir gün ertele',fn:()=>{P.day=HOME.day+1}}]),3000)}catch(e){}return r}}
+function startMove74(){const P=MOVE74.plan;if(!P)return;const L=lById(P.L);if(!L){MOVE74.plan=null;return}const n=P.boxes;MOVE74.last={from:HOME.cur,to:'ev_p_'+L.id,day:HOME.day,firm:P.firm[0],boxes:n};MOVE74.unpack=Math.max(3,n);MOVE74.plan=null;
+  coins+=120;/* moveSeq kendi 120🪙 ücretini alır; firma ücreti planlamada ödendi */moveSeq(L);ST67.moves=(ST67.moves||0)+1}
+/* emlaktaki "Buraya taşın" ve doğrudan çağrılar da plana yönlendirilir */
+{const _ms=moveSeq;moveSeq=function(L){try{if(!MOVE74.unpack){MOVE74.unpack=4;MOVE74.last={from:HOME.cur,to:'ev_p_'+L.id,day:HOME.day,firm:'🚚 Ege Nakliyat',boxes:0};ST67.moves=(ST67.moves||0)+1}}catch(e){}return _ms.apply(this,arguments)}}
+/* nakliye sekansında taşıyıcıların elinde koli, kamyon arkasında koli yığını */
+{const _cs=cutStage;cutStage=function(P0,load){const r=_cs.apply(this,arguments);try{if(CUT&&CUT.truck){const tr=CUT.truck,n=Math.min(12,(MOVE74.last&&MOVE74.last.boxes)||6);for(let i=0;i<n;i++){const b=new T.Mesh(new T.BoxGeometry(.55,.4,.45),std(0xc8955a));b.position.set(-3.3+(i%3)*.6,1+Math.floor(i/6)*.42,-.6+Math.floor(i/3)%2*.6);tr.add(b)}
+  CUT.movers.forEach(m=>{const b=m.bx;if(b&&b.material)b.material=std(0xc8955a)})}}catch(e){}return r}}
+/* yeni evde koli aç */
+function unpackSetup74(I){const n=MOVE74.unpack;const bx=[];for(let i=0;i<n;i++){const b=new T.Group();b.add(new T.Mesh(new T.BoxGeometry(.55,.4,.45),std(0xc8955a)));const tp=new T.Mesh(new T.BoxGeometry(.56,.02,.08),std(0xd8c8a0));tp.position.y=.21;b.add(tp);b.position.set(I.spawn[0]+1+(i%3)*.65,.2+Math.floor(i/6)*.4,I.spawn[1]+1.2+Math.floor(i/3)%2*.55);I.G.add(b);bx.push(b)}I.ubx74=bx;
+  I.spots.push({x:I.spawn[0]+1.6,z:I.spawn[1]+1.6,r:2.2,cond:()=>MOVE74.unpack>0,get t(){return 'E: 📦 Koli aç ('+MOVE74.unpack+' kaldı)'},fn:()=>{const b=I.ubx74[I.ubx74.length-1];startAct({name:'📦 Koli açıyorsun, eşyaları yerleştiriyorsun',ic:'📦',dur:4,tm:3,pose:'cook',faceTo:b?b.position:null,tick:(dt,t)=>{if(b)b.children[1].rotation.x=Math.min(1.4,(b.children[1].rotation.x||0)+dt)},
+    end:()=>{if(b&&b.parent)b.parent.remove(b);I.ubx74.pop();MOVE74.unpack--;mood=clamp(mood+3,0,100);if(!MOVE74.unpack){toast('🏠 Bütün koliler açıldı! Mobilyaları "🛋️ Evi düzenle → 📦 Depo"dan yerleştir');memAdd('🏠','Yeni evimdeki son koliyi açtım');setTimeout(()=>{try{buildOpen();BUILD.tab='depo';buildRender()}catch(e){}},1200)}else toast('📦 '+pick(['Mutfak eşyaları çıktı 🍽️','Kitaplar yerine kondu 📚','Kıyafetler dolaba 👕','Fotoğraf çerçeveleri 🖼️','Çerçeveli anılar… 💛']))}})}})}
+/* ================= apartman yaşamı ================= */
+const APT74={mgr:'Nihat Bey',aidat:600,due:0,paid:0,ann:[],meet:null,mail:[],decisions:{},elev:1,last:0};
+function isApt74(k){return k==='ev_cigli'||k==='ev_koc_ust'||k==='ev_koc_alt'||/^ev_p_/.test(k||'')}
+function aptNewDay74(){const d=HOME.day;if(!isApt74(HOME.cur))return;if(d%10===1){APT74.due=d+7;APT74.mail.unshift({d:d,t:'🧾 Aidat bildirimi: '+APT74.aidat+'🪙 · son ödeme Gün '+APT74.due,k:'aidat'})}
+  if(APT74.due&&d>APT74.due&&APT74.paid<APT74.due-7){APT74.mail.unshift({d:d,t:'⚠️ Aidat gecikti · '+APT74.mgr+' kapıya not bıraktı',k:'uyari'});APT74.due=0}
+  if(Math.random()<.25){const a=pick(['💧 Yarın 10:00–12:00 su kesintisi','🧹 Merdiven temizliği Cuma','🌳 Bahçe ilaçlaması Pazartesi','📦 Kargolar yönetici dairesine bırakılabilir','🔇 23:00 sonrası gürültüye dikkat','🛗 Asansör periyodik bakımı yapıldı']);APT74.ann.unshift({d:d,t:a});if(APT74.ann.length>10)APT74.ann.length=10}
+  if(Math.random()<.18)APT74.mail.unshift({d:d,t:pick(['💌 Kartpostal: Ege\'den selamlar','📰 Mahalle bülteni','🏦 Banka hesap özeti','🍕 Pizzacı broşürü','💡 Elektrik faturası (bankadan otomatik ödendi)'])});if(APT74.mail.length>12)APT74.mail.length=12;
+  if(!APT74.meet&&d-APT74.last>=12&&Math.random()<.3){const T0=pick([['Aidat artışı','Yönetici aidatın 600→750🪙 olmasını öneriyor (çatı tamiri).'],['Ortak alan temizliği','Merdiven temizliği için temizlik firması mı tutulsun, nöbetle mi yapılsın?'],['Bina bakımı','Dış cephe boyası için ek ödeme (1.500🪙) toplansın mı?'],['Asansör arızası','Asansör sık arızalanıyor; motor değişimi için 900🪙 ek ödeme önerisi.']]);APT74.meet={d:d+1,t:T0[0],q:T0[1]};APT74.last=d;APT74.ann.unshift({d:d,t:'📢 Apartman toplantısı Gün '+(d+1)+' 20:00 · konu: '+T0[0]})}
+  if(APT74.decisions.elev===0&&Math.random()<.25){APT74.elev=0;APT74.ann.unshift({d:d,t:'🛗 Asansör arızalı! Merdiven kullanılıyor'})}else if(APT74.elev===0&&Math.random()<.4)APT74.elev=1}
+{const _nd=newDay;newDay=function(){const r=_nd.apply(this,arguments);try{aptNewDay74()}catch(e){}return r}}
+function meeting74(){const M=APT74.meet;if(!M)return toast('📢 Planlanmış toplantı yok');if(HOME.day<M.d)return toast('📢 Toplantı Gün '+M.d+' 20:00');
+  const vote=(yes)=>{const k=M.t;APT74.meet=null;memAdd('📢','Apartman toplantısına katıldım: '+k);
+    if(k==='Aidat artışı'){if(yes){APT74.aidat=750;toast('🗳️ Kabul edildi · aidat 750🪙 · çatı tamir edilecek');APT74.ann.unshift({d:HOME.day,t:'🏠 Çatı tamiri başladı'})}else toast('🗳️ Reddedildi · aidat aynı, ama yönetici çatı sızıntısı için uyardı ☔')}
+    else if(k==='Ortak alan temizliği'){APT74.decisions.clean=yes;if(yes){APT74.aidat+=50;toast('🗳️ Temizlik firması tutuldu · aidata +50🪙')}else{toast('🗳️ Nöbet usulü · sıran gelince merdiveni sen sileceksin 🧹');APT74.mail.unshift({d:HOME.day,t:'🧹 Merdiven nöbeti bu hafta sende',k:'nobet'})}}
+    else if(k==='Bina bakımı'){if(yes){if(payOk(1500)){pay(1500);txNote67('🏢 Cephe boyası katkısı','aidat')}toast('🗳️ Kabul · bina boyanacak · komşuların gözünde itibarın arttı');Object.values(NB).forEach(n=>n.v=clamp(n.v+5,0,100))}else toast('🗳️ Reddedildi · bina eski kalacak')}
+    else{APT74.decisions.elev=yes?1:0;if(yes){if(payOk(900)){pay(900);txNote67('🛗 Asansör motoru katkısı','aidat')}APT74.elev=1;toast('🗳️ Asansör motoru yenilenecek ✅')}else toast('🗳️ Reddedildi · asansör ara ara bozulabilir 🛗')}};
+  startAct({name:'📢 Apartman toplantısındasın',ic:'📢',dur:6,tm:3,per:{soc:1},end:()=>{actionMenu('📢 '+M.t+' · '+M.q,[['👍','Evet oy ver',()=>vote(true)],['👎','Hayır oy ver',()=>vote(false)]])}})}
+/* bina girişi: posta kutuları, yönetici, asansör/merdiven, kat koridoru → daireye */
+{const _ri=restInt;restInt=function(I,key){if(key==='x74lobby')return lobby74(I);return _ri.apply(this,arguments)}}
+function lobby74(I){I.G=W;I.title='Apartman girişi · '+(activeD&&activeD.label||'');I.zoom=isTouch?6:7.5;room(I,14,10,{wall:'#ece4d6',trim:0x8a6a4a,tile:['#d8d0c0','#c8c0b0']});exitDoor(I,-4.5);I.spawn=[-4.5,-2.8];const D=new T.Group();W.add(D);
+  /* posta kutuları */for(let r=0;r<3;r++)for(let c=0;c<6;c++){bx66(D,.4,.3,.25,0xb8a070,-6.6+.03,1+r*.32,-2.5+c*.42,{metalness:.4,roughness:.4});bx66(D,.02,.06,.12,0x2a2a2e,-6.45,1.05+r*.32,-2.5+c*.42)}I.boxes.push({x:-6.6,z:-1.45,hx:.25,hz:1.3});
+  I.spots.push({x:-5.6,z:-1.4,r:1.6,t:'E: 📬 Posta kutunu kontrol et',fn:()=>{startAct({name:'Posta kutusunu açıyorsun',ic:'📬',dur:2.5,pose:'phone',end:()=>{const m=APT74.mail.splice(0,4);if(!m.length)return toast('📭 Posta kutun boş');notify('📬 Postan ('+m.length+')',m.map(x=>'Gün '+x.d+' · '+x.t).join('\n'),[{t:'Tamam',fn:()=>{}}])}})}});
+  /* duyuru panosu */bx66(D,1.6,1.1,.05,0x8a5a2a,-1,1.7,-4.9);for(let i=0;i<4;i++)bx66(D,.35,.45,.01,[0xffffff,0xfff4a0,0xa0d8ff,0xffc0c0][i],-1.5+i*.35,1.7+(i%2)*.12,-4.86);
+  I.spots.push({x:-1,z:-3.6,r:1.6,t:'E: 📌 Apartman duyuruları',fn:()=>notify('📌 Duyurular',(APT74.ann.length?APT74.ann.slice(0,6).map(a=>'Gün '+a.d+' · '+a.t).join('\n'):'Şu an duyuru yok')+'\n\n🧾 Aidat: '+APT74.aidat+'🪙/10 gün'+(APT74.meet?'\n📢 Toplantı Gün '+APT74.meet.d+': '+APT74.meet.t:''),[{t:'Tamam',fn:()=>{}}])});
+  /* yönetici */F(I,3.2,-4,0,1,.4,fCounter(1.8));fig64(I,{shirt:0x5a6a7a,pants:0x2a2a30,hair:0x9a9a9a},3.2,-4.7,0);signAt('🏢 YÖNETİM',1.6,.4,'#5a6a7a','#ffffff',3.2,2.6,-4.95);
+  I.spots.push({x:3.2,z:-2.9,r:1.8,t:'E: 🏢 Yönetici '+APT74.mgr+' · aidat & toplantı',fn:()=>actionMenu('🏢 '+APT74.mgr,[['🧾','Aidat öde · '+APT74.aidat+'🪙'+(APT74.due?' (son Gün '+APT74.due+')':''),()=>{if(APT74.paid>=HOME.day-9)return toast('✅ Bu dönemin aidatı ödendi');if(!payOk(APT74.aidat))return;pay(APT74.aidat);txNote67('🏢 Apartman aidatı','aidat');APT74.paid=HOME.day;APT74.due=0;say(player,'Aidatı ödedim ✅',1.6)}],
+    ['📢',APT74.meet?'Toplantıya katıl: '+APT74.meet.t:'Toplantı yok',()=>meeting74()],['🔧','Arıza bildir',()=>toast('🔧 '+APT74.mgr+': "Hemen ustaya haber veriyorum"')]])});
+  /* asansör + merdiven */bx66(D,1.6,2.6,.15,0xb8bcc4,5.2,1.3,4.9,{metalness:.6,roughness:.3});const dl=bx66(D,.72,2.2,.05,0xd8dce4,4.85,1.1,4.82,{metalness:.7,roughness:.2}),dr=bx66(D,.72,2.2,.05,0xd8dce4,5.55,1.1,4.82,{metalness:.7,roughness:.2});dl.userData.dyn64=dr.userData.dyn64=1;
+  const lt=new T.Mesh(new T.CircleGeometry(.06,10),new T.MeshBasicMaterial({color:0xff6a2a}));lt.position.set(6.2,1.3,4.8);lt.rotation.y=Math.PI;W.add(lt);
+  for(let i=0;i<6;i++){const s=bx66(D,1.6,.2*(i+1),.4,0xc8bcae,1+0,.1*(i+1),4.75-i*.4)}I.boxes.push({x:5.2,z:4.6,hx:.9,hz:.4},{x:1,z:3.7,hx:.85,hz:1.3});
+  const go=(how)=>{const door=how==='asansör';if(door&&!APT74.elev)return toast('🛗 Asansör arızalı · merdivenden çık');startAct({name:door?'🛗 Asansörle çıkıyorsun':'🚶 Merdivenden çıkıyorsun',ic:door?'🛗':'🚶',dur:door?4:6,tm:2,tick:(dt,t)=>{if(door){const k=Math.min(1,ACT.t/1);dl.position.x=4.85-.35*k;dr.position.x=5.55+.35*k}},
+    end:()=>{dl.position.x=4.85;dr.position.x=5.55;corridor74()}})};
+  I.spots.push({x:5.2,z:3.6,r:1.6,t:'E: 🛗 Asansör · daireme çık',fn:()=>{if(Math.random()<.4){const nb=pick(Object.keys(NB).map(k=>NB[k]));say(player,'Merhaba!',1.2);setTimeout(()=>toast('🛗 Asansörde '+nb.n+': "'+pick(['Hava ne güzel bugün değil mi? ☀️','Aidat yine arttı, duydun mu? 😅','Akşam çaya gel kızım ☕','Kargoların aşağıda bekliyordu 📦'])+'"'),900);nb.v=clamp(nb.v+2,0,100)}go('asansör')}},{x:1,z:1.8,r:1.4,t:'E: 🚶 Merdivenden çık',fn:()=>go('merdiven')});
+  bx66(D,2.4,.02,1.3,0x8a2a2a,-4.5,.011,-3.8);for(let i=0;i<2;i++)pendant66(D,-2+i*5,0,2.9,0xe8c860);mergeDeep64(D);tick57(I)}
+function corridor74(){enter(HOME.cur);setTimeout(()=>toast('🚪 '+pick(['3.','5.','7.'])+' kat koridoru · anahtarı çevirip kapını açtın'),900)}
+/* apartman evlerinde: dış kapıdan girişte önce bina girişi (lobi) */
+let LOBBYSKIP74=false;
+{const _en=enter;enter=function(kind){try{if(!LOBBYSKIP74&&mode==='world'&&kind===HOME.cur&&isApt74(kind)&&SET.lobby74!==false){LOBBYSKIP74=true;const r=_en.call(this,'rest_x74lobby');LOBBYSKIP74=false;return r}}catch(e){LOBBYSKIP74=false}return _en.apply(this,arguments)}}
+/* sabah karşılaşmaları: evden çıkınca komşu */
+{const _lv=leave;leave=function(){const was=curI&&curI.name;const r=_lv.apply(this,arguments);try{if(was&&isApt74(was)&&GT>7*60&&GT<10*60&&Math.random()<.5){setTimeout(()=>{const k=pick(Object.keys(NB)),n=NB[k];actionMenu('👋 '+n.n+' de işe çıkıyor',[['👋','Günaydın de',()=>{n.v=clamp(n.v+3,0,100);toast('☀️ '+n.n+': "Günaydın! İyi çalışmalar"')}],['🤝','Yardım ister misin?',()=>{n.v=clamp(n.v+8,0,100);toast('🛍️ '+n.n+'\'nin poşetlerini taşıdın · çok teşekkür etti');emitSafe('nb_help')}],['☕','Akşama çaya buyur',()=>{n.v=clamp(n.v+6,0,100);memAdd('☕',n.n+'\'yi çaya davet ettim');toast('☕ '+n.n+': "Gelirim tabii, ben de börek getiririm!"')}]])},1800)}}catch(e){}return r}}
+/* komşudan rastgele yardım isteği / davet */
+{const _nd=newDay;newDay=function(){const r=_nd.apply(this,arguments);try{if(Math.random()<.2){const k=pick(Object.keys(NB)),n=NB[k];setTimeout(()=>notify('🏠 '+n.n,pick(['Kızım bir tüp gaz taşımama yardım eder misin? 🙏','Akşam misafirliğe gelsene, kek yaptım 🍰','Çiçeklerimi sulayabilir misin, iki gün yokum 🌷']),[{t:'Tabii 💛',fn:()=>{n.v=clamp(n.v+10,0,100);mood=clamp(mood+4,0,100);emitSafe('nb_help');toast('💛 '+n.n+' çok sevindi')}},{t:'Kusura bakma',fn:()=>{n.v=clamp(n.v-3,0,100)}}]),5000)}}catch(e){}return r}}
+{const _sv=save25;save25=function(){const o=_sv.apply(this,arguments);try{o.x74={mv:MOVE74,apt:APT74}}catch(e){}return o}}
+{const _ld=load25;load25=function(x){const r=_ld.apply(this,arguments);try{if(x&&x.x74){Object.assign(MOVE74,x.x74.mv||{});Object.assign(APT74,x.x74.apt||{})}}catch(e){}return r}}
 
 /* ---------- döngü ---------- */
 const clock=new T.Clock();let hudT=0;
