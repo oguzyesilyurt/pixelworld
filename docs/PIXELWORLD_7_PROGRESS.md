@@ -55,3 +55,10 @@ Durum anahtarı: ✅ tamam · 🟡 kısmi · ⏳ yapılmadı
 - Yeni nesil karakter yalnız Oğuz için (prototip); diğer karakterler onay sonrası.
 - Çiğli'de 3 eski giriş görüş sorunu kalıyor (yüksek kule binaları önünde).
 - Dış halka binaları dekor (girilemez).
+
+## v61 — kullanıcı geri bildirimi düzeltmeleri
+- Oğuz yeniden eski (diğer karakterlerle aynı) modele döndü. Yeni SDF modeli artık Ayarlar → "Yeni nesil Oğuz (deneysel)" ile isteğe bağlı (varsayılan kapalı; eski `SET.proto` anahtarı yok sayılır).
+- Yol kenarı park araçlarında (parkCar, galeri, otopark dışı) tekerlekler hiç çizilmiyordu → araç başına tek birleşik teker mesh'i eklendi.
+- Bina kaldırma sonrası konan alçak park (lowPark38) yola taşıyorsa artık konmuyor (Karşıyaka sahil yolundaki çit+bank).
+- `terrain()` içindeki 60 rastgele yarı saydam yeşil zemin lekesi kaldırıldı; lowFill55 çimi normal çim rengine çekildi.
+- Yeni mekân yerleşimi (spor salonu, süpermarket, oto yıkama, bowling, üniversite) `rsv60`: kapı önü 7 m boş + tabela görünürlüğü; olmazsa girişsiz sıradan binaları kaldırıp yer açar; en son dış halka (x=94) — bu durumda kamera sınırı o mahallede genişler, mekânlar birbirinin önünü kapatmaz.
