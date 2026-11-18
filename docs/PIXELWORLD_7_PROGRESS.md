@@ -22,6 +22,12 @@ Durum anahtarı: ✅ tamam · 🟡 kısmi · ⏳ yapılmadı
 - ✅ Kutlama (telefon): davetiye, pasta, süsleme, hediye; evde parti: balon & afiş, mumlu pasta, misafirler şarkı söyler, mum üfleme, hediye açma, fotoğraf (PixelGram + anılar).
 - ✅ Hediye paketleme: 8 hediye × 4 paket kâğıdı, yanındaki karaktere verme, kutudan çıkma animasyonu, kişiye göre tepki (Denel Lego/F1 sever) ve bağ artışı. GTA 6 tek seferlik sürprizine dokunulmadı.
 
+## v59
+- ✅ GünGün Süpermarket (Çiğli, Karşıyaka, Kocaeli, Bostanlı, Karabağlar): oyuncunun önünde yürüyen alışveriş arabası (ürünler arabada görünür), 7 reyon/26 ürün, iki kasa ve kasiyer, ödeme → ürünler envantere (yemek sistemiyle aynı format), elde poşetler, alışveriş yapan NPCler.
+- ✅ Ege Üniversitesi kampüsü (Karşıyaka, Kocaeli): 5 bölüm, kayıt, ders (oturarak), kütüphane, kantin, 3 soruluk bölüm sınavı (bilgi + doğru cevap → AA–FF, +6 kredi), transkript, 24 kredide mezuniyet (anı + PixelGram).
+- ✅ Otel işleri: otel resepsiyonlarının yanında iş noktası; resepsiyonist/garson/temizlik/aşçı/güvenlik; başvuru, vardiya animasyonu, ücret (+ garsona bahşiş).
+- ✅ Yeni mekânlar yerleştirilirken giriş görüşü kontrolü (kamera önünü bina kapatmıyor).
+
 ## Paket 7.0 maddeleri
 | Madde | Durum |
 |---|---|
@@ -29,13 +35,20 @@ Durum anahtarı: ✅ tamam · 🟡 kısmi · ⏳ yapılmadı
 | Aksaz koruma | ✅ dokunulmadı |
 | NPC günlük yaşam (simit, telefon, tartışma, iş) | ✅ v56 (iş yerinde çalışma animasyonu yok) |
 | Araç bakımı / oto yıkama | ✅ v57 |
-| Süpermarket | ⏳ |
-| Okul/üniversite | ⏳ |
-| Kendi işletmen | ⏳ |
-| Trafik kuralları | ⏳ |
+| Süpermarket | ✅ v59 |
+| Okul/üniversite | ✅ v59 (üniversite; ilk/orta okul yok) |
+| Kendi işletmen | ⏳ yapılmadı |
+| Trafik kuralları | ⏳ yapılmadı (sürüş koduna dokunma kuralı nedeniyle ayrı tasarım gerekiyor) |
 | Spor salonu | ✅ v57 |
-| Otel işleri | ⏳ |
+| Otel işleri | ✅ v59 |
 | Doğum günü | ✅ v58 |
 | Sosyal medya | ✅ v58 |
 | Hediye paketleme | ✅ v58 |
 | Bowling / bilardo | ✅ v57 (2D oyun ekranı) |
+
+## Bilinen sorunlar / eksikler
+- Kendi işletmeni açma ve trafik kuralları (ışık, yaya geçidi, ceza, sürüş modları) yapılmadı.
+- NPCler iş yerinde çalışma animasyonu yapmıyor (iş saatinde görünmez oluyorlar).
+- Yeni nesil karakter yalnız Oğuz için (prototip); diğer karakterler onay sonrası.
+- Çiğli'de 3 eski giriş görüş sorunu kalıyor (yüksek kule binaları önünde).
+- Dış halka binaları dekor (girilemez).

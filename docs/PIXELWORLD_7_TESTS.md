@@ -17,3 +17,8 @@
 
 ## v58
 - t58: PixelGram fotoğraf (12 KB), gönderi; evde parti: misafir, mum, hediye, fotoğraf, anılar ✅; x58 kayıt boyutu ~22 KB
+
+## v59
+- t59: market (3 ürün envantere), kampüs sınavı (BB, +6 kredi), otel vardiyası (+180🪙) ✅
+- regresyon: t38b, t39b, t43 (lunapark/salon/ultra), t46 (F1 çerçevesi seçilebilir, çarşı), t48, t53, t57 ✅ · p38 409/429/391 çağrı · tmob 284 ✅
+- occ46 giriş görüşü: kocaeli 0, karsiyaka 1, bostanli 1, cigli 3 (eski kuleler)
