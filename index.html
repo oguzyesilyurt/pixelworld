@@ -8263,7 +8263,7 @@ const dname72=k=>((TRAVEL_LBL&&TRAVEL_LBL[k])||k).split(' ·')[0];
 /* durakların yerini kaydet */
 {const _bs=busStop;busStop=function(x,z,ang,name){const r=_bs.apply(this,arguments);try{(C.stops72||(C.stops72=[])).push({x:x,z:z,ang:ang,name:name})}catch(e){}return r}}
 let RIDE72=null;
-function nearStop72(){const A=activeD;if(!A||!A.stops72)return null;let b=null,bd=9;A.stops72.forEach(s=>{const d=Math.hypot(s.x-pl.x,s.z-pl.z);if(d<bd){bd=d;b=s}});return b}
+function nearStop72(){const A=activeD;if(!A)return null;let b=null,bd=12;(A.stops72||[]).forEach(s=>{const d=Math.hypot(s.x-pl.x,s.z-pl.z);if(d<bd){bd=d;b=s}});if(b)return b;let q=null,qd=12;A.roadSamples.forEach(r=>{const d=Math.hypot(r.x-pl.x,r.z-pl.z);if(d<qd){qd=d;q=r}});return q?{x:pl.x,z:pl.z,ang:Math.atan2(q.x-pl.x,q.z-pl.z),name:'Durak',v:1}:null}
 /* ulaşım seçimi: otobüs/tren türleri gerçek yolculuk yapar */
 {const _tt=travelTo;travelTo=function(dest,how,icon,cost){if(busy||mode!=='world')return _tt.apply(this,arguments);if(coins<cost){toast('İzmirim Kart bakiyesi yetersiz 🪙');return}
   const bus=/ESHOT|Havaş|otobüs/i.test(how),st=bus?nearStop72():null;RIDE72={dest:dest,how:how,icon:icon,cost:cost,kind:bus?'bus':/Taksi/.test(how)?'taxi':'rail',from:activeD.name};if(RIDE72.kind==='taxi')return taxiRide72(dest,cost);
