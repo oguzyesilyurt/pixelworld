@@ -17,6 +17,11 @@ Durum anahtarı: ✅ tamam · 🟡 kısmi · ⏳ yapılmadı
 - ✅ Strike Bowling & Bilardo (Bostanlı, Alsancak): bowling — pist fiziği, labut çarpışmaları, 10 frame strike/spare skoru, partnerle sıra; bilardo — 8 top kuralları (grup atama, faul, 8 topla kazanma/kaybetme), top fiziği, rakip yapay zekâsı.
 - ✅ Parlak Oto Yıkama & Servis (Çiğli, Bostanlı, Kocaeli): otomatik/elle yıkama, yağ bakımı (5000 km), lastik, muayene (1 yıl), aksesuar. Araç kiri sürüşle/yağmurla artar ve arabanın rengine görünür şekilde yansır; bakım hatırlatması.
 
+## v58
+- ✅ PixelGram (telefon): akış, profil, bildirim; oyundan gerçek fotoğraf çekip paylaşma ya da anı paylaşma; beğeni, yorum, takip; karakterler zamanla paylaşım yapar, gönderine beğeni/yorum gelir; takip/beğeni ilişki bağını artırır.
+- ✅ Kutlama (telefon): davetiye, pasta, süsleme, hediye; evde parti: balon & afiş, mumlu pasta, misafirler şarkı söyler, mum üfleme, hediye açma, fotoğraf (PixelGram + anılar).
+- ✅ Hediye paketleme: 8 hediye × 4 paket kâğıdı, yanındaki karaktere verme, kutudan çıkma animasyonu, kişiye göre tepki (Denel Lego/F1 sever) ve bağ artışı. GTA 6 tek seferlik sürprizine dokunulmadı.
+
 ## Paket 7.0 maddeleri
 | Madde | Durum |
 |---|---|
@@ -30,7 +35,7 @@ Durum anahtarı: ✅ tamam · 🟡 kısmi · ⏳ yapılmadı
 | Trafik kuralları | ⏳ |
 | Spor salonu | ✅ v57 |
 | Otel işleri | ⏳ |
-| Doğum günü | ⏳ |
-| Sosyal medya | ⏳ |
-| Hediye paketleme | ⏳ |
+| Doğum günü | ✅ v58 |
+| Sosyal medya | ✅ v58 |
+| Hediye paketleme | ✅ v58 |
 | Bowling / bilardo | ✅ v57 (2D oyun ekranı) |

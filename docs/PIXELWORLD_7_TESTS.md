@@ -14,3 +14,6 @@
 - t56: simit go→buy→back, tartışma go→arg, telefon, bank ✅ (karsiyaka, cigli, bostanli)
 - t57: spor salonu giriş + 2 antrenman (kondisyon 0.3), bowling 2 frame skorlandı, bilardo açılış + rakip sırası ✅
 - regresyon t38b, t39b, t48, t53 ✅ · p38: 408/440/401 çağrı · tmob 284 çağrı ✅
+
+## v58
+- t58: PixelGram fotoğraf (12 KB), gönderi; evde parti: misafir, mum, hediye, fotoğraf, anılar ✅; x58 kayıt boyutu ~22 KB
