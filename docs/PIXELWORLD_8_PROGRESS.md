@@ -14,3 +14,12 @@ Durum işaretleri: ✅ tamam · 🟡 kısmi · ⏳ yapılmadı
 - ✅ **Tamir becerisi**: arızalanabilenlere lamba, komodin, mikrodalga, kettle, kahve makinesi, klozet, konsol ve mobilyalar eklendi (+ Marangoz servisi). Pazarcık'tan Tamir Seti → "Kendim tamir et": eşyaya yürür, elde anahtar ile çalışır, zamanlama mini oyunu (5 denemede 3 isabet; zorluk eşyaya göre 1–4, beceri arttıkça yeşil alan büyür). Mevcut servis çağırma korunuyor.
 - ✅ **Kitapçı & kütüphane**: Sayfa Kitabevi (Bostanlı, Çiğli, Kocaeli, Karabağlar) ve Kent Kütüphanesi (Alsancak, Karşıyaka, Kocaeli). 7 tür, 21 kitap; kitapçıda satın al, kütüphanede 7 gün ücretsiz ödünç (süre dolunca otomatik iade). Çantadan "📖 Oku": karakter kitabı elinde tutar; 3 bölümde biter. Etkiler: Yemek → tarif öğrenir + mutfak; Teknoloji → tamir; Bilim/Tarih/Eğitim → üniversite bilgisi (sınav); Roman → keyif/sanat. Kütüphane: sessiz çalışma (bilgi +2), araştırma bilgisayarı, çalışan öğrenciler.
 - 🟡 Kitap okurken/yemekte el nesneleri karakterin önünde konumlanıyor (kol kemiğine bağlı değil); karakterin kolları "telefon" pozunda.
+
+## v67 — sağlık
+- ✅ **Hasta akışı** (`life71.js`): telefonda 🩺 Sağlığım (durum, randevu al, rapor, reçete, muayene geçmişi) → hastanede "Hasta kaydı" (randevulu: kısa sıra; randevusuz: acil 60🪙) → bekleme koltuğunda otur, ekranda sıra numarası ilerler → "Muayene odasına gir" (bölmeli oda, perde, muayene masası; doktor konuşur) → teşhis.
+- ✅ **Teşhise göre tedavi**: soğuk algınlığı (ilaç + 1 gün rapor), grip (ilaç + 2 gün rapor), halsizlik (gözlem yatağında serum + vitamin), baş ağrısı (ağrı kesici). Serum yalnızca halsizlikte. Mevcut ILL / medTake / eczane / "Muayene ol" mekanikleri korunuyor.
+- ✅ **Reçete & eczane**: her eczanede "Reçeteyi göster" (25🪙 katkı payı), ilaç çantaya + ilk doz.
+- ✅ **Rapor / devamsızlık**: raporluyken işyerine girince "çalışman gerekmiyor" uyarısı; ağır hastalıkta raporsuz günler sonraki maaştan %5/gün kesilir.
+- ✅ **Yeni hastane**: Karşıyaka Devlet Hastanesi (Karşıyaka ve Bostanlı) — kabul, bekleme salonu, hastane eczanesi, muayene odası, gözlem yatağı, yürüyen hastalar. Kocaeli Şehir Hastanesi'ne de muayene odası + sıra ekranı + gözlem yatağı eklendi.
+- ✅ **Almira'nın nöbeti**: görev türüne göre elde ekipman (tansiyon aleti, ilaç kabı, sargı, serum torbası), hasta teşekkür tepkileri, serum görevinden sonra yatağın yanında serum askısı kalır. Meslek/kimlik değişmedi.
+- 🔧 Dış halkaya ikinci mekân sırası (x=114) eklendi; kalabalık Karşıyaka'da kütüphane ve hastane artık yerleşiyor.
