@@ -7614,6 +7614,128 @@ function kartGame(){if(document.getElementById('kartg'))return;uiPC=true;const o
 
 /* dış halka blokları ayrılmış mekân önlerine/pistlere bina koymasın */
 {const _o=out55;out55=function(ch0,b0,c0){const tmp=(C&&C.fr60||[]).map(q=>({x:(q[0]+q[2])/2,z:(q[1]+q[3])/2,hx:(q[2]-q[0])/2,hz:(q[3]-q[1])/2,t60:1}));if(tmp.length)C.boxes.unshift(...tmp);try{return _o.call(this,ch0,b0!=null?b0+tmp.length:b0,c0)}finally{if(tmp.length)C.boxes=C.boxes.filter(b=>!b.t60)}}}
+/* ================= v63: mevsimsel hava süreci (kar dahil), sıcaklık, üşüme → hastalık, kışlık giyim, yeni Pazarcık ================= */
+/* --- hava durumu: günler arası süreç; yağış bitince ertesi gün bulutlu → parçalı → açık --- */
+const WXS={k:'acik',n:0,cover:0,anom:0};WX.snow=0;WX.sTarget=0;WX.cloud=0;
+const WXN={acik:['☀️','Açık'],parcali:['⛅','Parçalı bulutlu'],bulutlu:['☁️','Bulutlu'],yagmur:['🌧️','Yağmurlu'],kar:['❄️','Karlı']};
+function seasonT64(){return (((HOME.day||1)-1)%120)/30}
+function meanTemp64(){const t=seasonT64();return 19+11*Math.cos(2*Math.PI*(t-1.6)/4)+WXS.anom+(WXS.k==='kar'?-3:WXS.k==='yagmur'?-2:WXS.k==='bulutlu'?-1:0)}
+function tempNow64(){const h=GT/60;return Math.round(meanTemp64()+4.5*Math.cos(2*Math.PI*(h-15)/24))}
+function snowOK64(){const t=seasonT64(),d=((HOME.day||1)-1)%30;return t>=3||(t>=2&&d>=22)||(t<1&&d<=5)}
+function wxNewDay64(){const s=seasonT64(),win=s>=3||s<.2,sum=s>=1&&s<2;WXS.anom=clamp(WXS.anom*.6+(Math.random()-.5)*5,-6,6);
+  const precip=()=>{const cold=meanTemp64()-(WXS.k==='kar'?0:3)<=5;return (snowOK64()&&cold&&Math.random()<.8)?'kar':'yagmur'};const p=Math.random(),k=WXS.k;let nk=k;
+  if(k==='kar'||k==='yagmur'){nk=(WXS.n<2&&p<(k==='kar'?.45:.35))?k:'bulutlu'}
+  else if(k==='bulutlu'){nk=p<.55?'parcali':p<.75?precip():'bulutlu'}
+  else if(k==='parcali'){nk=p<.55?'acik':p<.85?'bulutlu':precip()}
+  else{const pr=sum?.03:win?.22:.1;nk=p<pr?precip():p<pr+.25?'parcali':'acik'}
+  if(nk==='kar')WXS.anom=Math.min(WXS.anom,-7);WXS.n=nk===k?WXS.n+1:0;WXS.k=nk;
+  /* yerdeki kar: gece boyunca erir (sıcaklığa ve güneşe göre) */if(nk!=='kar'){const m=Math.max(0,meanTemp64())*.05+(nk==='acik'?.25:nk==='parcali'?.15:.06)+(nk==='yagmur'?.3:0);WXS.cover=Math.max(0,WXS.cover-m)}
+  if(nk!==k)setTimeout(()=>{try{toast(WXN[nk][0]+' Bugün hava: '+WXN[nk][1]+' · '+tempNow64()+'°C'+(nk==='kar'?' · Kalın giyin!':''))}catch(e){}},2500)}
+{const _nd=newDay;newDay=function(){const r=_nd.apply(this,arguments);try{wxNewDay64()}catch(e){showErrOnce(e)}return r}}
+weatherTick=function(dt){const k=WXS.k;WX.t-=dt;
+  if(WX.t<=0){if(k==='yagmur'){if(WX.target>0){WX.target=Math.random()<.25?0:.35+Math.random()*.4;WX.t=40+Math.random()*90}else{WX.target=.5+Math.random()*.45;WX.t=60+Math.random()*120}}
+    else if(k==='kar'){WX.target=0;WX.sTarget=WX.sTarget>.2&&Math.random()<.3?.15:.45+Math.random()*.55;WX.t=60+Math.random()*120}
+    else if(k==='bulutlu'){WX.target=Math.random()<.12?.22:0;WX.sTarget=0;WX.t=60+Math.random()*90}else{WX.target=0;WX.sTarget=0;WX.t=120}}
+  if(k!=='kar')WX.sTarget=0;if(k==='acik'||k==='parcali')WX.target=0;
+  WX.rain+=(WX.target-WX.rain)*Math.min(1,dt*.5);WX.snow+=(WX.sTarget-WX.snow)*Math.min(1,dt*.4);const cl={acik:0,parcali:.25,bulutlu:.6,yagmur:.75,kar:.7}[k]||0;WX.cloud+=(cl-WX.cloud)*Math.min(1,dt*.2);
+  if(WX.snow>.1&&mode!=='int')WXS.cover=Math.min(1,WXS.cover+dt*WX.snow*.004);else if(tempNow64()>3)WXS.cover=Math.max(0,WXS.cover-dt*.00008*Math.max(1,tempNow64()));snowCover64()};
+/* gökyüzü: bulut/kar griliği */
+const snowGray64=new T.Color(0xc8ccd4);
+{const _at=applyTime;applyTime=function(dt){_at.apply(this,arguments);try{const g=Math.max(WX.cloud*.55,WX.snow*.8)-WX.rain*.4;if(g>.02){scene.background.lerp(snowGray64,g*.35);scene.fog.color.lerp(snowGray64,g*.35);hemi.intensity*=1-.15*g;sun.intensity*=1-.4*g;
+  if(DR.built){dscene.background.lerp(snowGray64,g*.35);dscene.fog.color.lerp(snowGray64,g*.35)}}}catch(e){}}}
+/* yağmur + kar taneleri (aynı tuval) */
+const flakes64=[];for(let i=0;i<320;i++)flakes64.push({x:Math.random(),y:Math.random(),r:1+Math.random()*2.6,s:.12+Math.random()*.2,ph:Math.random()*6});
+drawRain=function(dt){if(!rainG)return;const w=innerWidth,h=innerHeight;if(rainC.width!==w||rainC.height!==h){rainC.width=w;rainC.height=h}
+  const hide=mode==='int'||mode==='pick',rOn=WX.rain>=.03&&!hide,sOn=WX.snow>=.03&&!hide;if(!rOn&&!sOn){if(!rainC._clean){rainG.clearRect(0,0,w,h);rainC._clean=true}return}rainC._clean=false;rainG.clearRect(0,0,w,h);
+  if(rOn){rainG.strokeStyle='rgba(205,220,240,'+(.25+.3*WX.rain)+')';rainG.lineWidth=1.3;rainG.beginPath();const n=Math.floor(drops.length*WX.rain);
+    for(let i=0;i<n;i++){const d=drops[i];d.y+=dt*d.s*1.4;d.x-=dt*d.s*.25;if(d.y>1.05){d.y=-.05;d.x=Math.random()*1.2}if(d.x<-.05)d.x=1.05;const x=d.x*w,y=d.y*h;rainG.moveTo(x,y);rainG.lineTo(x-4*d.l,y+18*d.l*(1+WX.rain))}rainG.stroke()}
+  if(sOn){const n=Math.floor(flakes64.length*Math.min(1,WX.snow)),t=performance.now()/1000;rainG.fillStyle='rgba(255,255,255,.9)';rainG.beginPath();
+    for(let i=0;i<n;i++){const f=flakes64[i];f.y+=dt*f.s*(mode==='drive'?2.6:1);f.x+=dt*(Math.sin(t*.8+f.ph)*.02-(mode==='drive'?.05:.01));if(f.y>1.03){f.y=-.03;f.x=Math.random()*1.1}if(f.x<-.03)f.x=1.03;const x=f.x*w,y=f.y*h;rainG.moveTo(x+f.r,y);rainG.arc(x,y,f.r,0,6.283)}rainG.fill()}};
+/* yerdeki kar örtüsü: mahalle zemini üstünde yarı saydam karlı katman (denize taşmaz) */
+const snowTex64=canvasTex(128,128,(g,w,h)=>{g.fillStyle='#ffffff';g.fillRect(0,0,w,h);for(let i=0;i<260;i++){const v=225+Math.random()*30|0;g.fillStyle='rgba('+v+','+v+','+(v+5)+',.6)';g.beginPath();g.arc(Math.random()*w,Math.random()*h,2+Math.random()*7,0,7);g.fill()}},{repeat:true});
+function snowCover64(){const A=activeD;if(!A||!A.G)return;const c=WXS.cover;if(c<.02&&!A.snow64)return;
+  if(!A.snow64){const P=[],U=[],x1=A.bounds?A.bounds[1]+60:220,x0f=z=>A.noSea||A.bounds?(A.bounds?A.bounds[0]-60:-200):shore(z)+.6,z0=A.bounds?A.bounds[2]-60:-170,z1=A.bounds?A.bounds[3]+60:170,st=10;
+    for(let z=z0;z<z1;z+=st){const xa=x0f(z),xb=x0f(z+st);P.push(xa,0,z,x1,0,z+st,x1,0,z,xa,0,z,xb,0,z+st,x1,0,z+st);[[xa,z],[x1,z+st],[x1,z],[xa,z],[xb,z+st],[x1,z+st]].forEach(q=>U.push(q[0]/9,q[1]/9))}
+    const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(P,3));g.setAttribute('uv',new T.Float32BufferAttribute(U,2));g.computeVertexNormals();const n=g.attributes.normal;for(let i=0;i<n.count;i++)n.setXYZ(i,0,1,0);
+    const m=new T.MeshStandardMaterial({map:snowTex64,color:0xf6f8fc,roughness:.9,transparent:true,opacity:0,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2});const ms=new T.Mesh(g,m);ms.position.y=.1;ms.renderOrder=2;ms.receiveShadow=true;A.G.add(ms);A.snow64=ms}
+  const o=Math.min(.88,c*.95);A.snow64.material.opacity=o;A.snow64.visible=o>.01}
+/* saat göstergesine sıcaklık ve hava */
+{const _ht=hudTick;hudTick=function(dt){_ht.apply(this,arguments);try{const e=$('pclock');if(e&&e.textContent.indexOf('°')<0)e.textContent+=' · '+WXN[WXS.k][0]+' '+tempNow64()+'°'}catch(er){}}}
+
+/* --- üşüme: soğukta ince giyinirsen (her zaman değil) hasta olabilirsin --- */
+const WEAR61={own:{},on:{}};let CHILL64=0,chillHint64=0;
+const TOPW64={tisort:0,elbise:.05,gomlek:.12,sweat:.3,hoodie:.35,kazak:.45,zip:.45,ceket:.45};const ACCW64={bere:.08,atki:.1,eldiven:.05,bot:.12,termal:.15};
+function warmth64(){const L=me&&me.look||{};let w=TOPW64[L.top]||0;if(L.coat61&&(L.top==='zip'||L.top==='ceket'))w+=.3;for(const k in ACCW64)if(WEAR61.on[k])w+=ACCW64[k];return w}
+function needW64(t){return t>=21?0:t>=15?.15:t>=9?.42:t>=4?.68:.9}
+function chillTick64(dt){if(!me||busy)return;const out=mode==='world'&&!curI,t=tempNow64(),wet=(WX.rain>.2&&!WEAR61.on.semsiye&&!(me.look&&me.look.rain61))||WX.snow>.2;
+  if(out){const def=needW64(t)+(wet?.15:0)-warmth64();if(def>0){CHILL64+=dt*def*1.1;if(CHILL64>35&&Math.random()<dt*.04)say(player,pick(['Brr… üşüdüm 🥶','Hava buz gibi! 🥶','Keşke montumu giyseydim 🧥','Ellerim dondu 🧤']),2)}else CHILL64=Math.max(0,CHILL64-dt*1.5)}
+  else CHILL64=Math.max(0,CHILL64-dt*(curI&&isHome&&isHome()?4:2.5));
+  if(out&&needW64(t)-warmth64()>.25&&Date.now()-chillHint64>240000){chillHint64=Date.now();toast('🌡️ Dışarısı '+t+'°C · ince giyinmişsin. Pazarcık ❄️ Kışlık\'tan mont, bot, atkı alabilirsin · saate dokun: hava & kışlıklar')}
+  if(CHILL64>100){CHILL64=55;if(!ILL&&HOME.day-(STATS.lastIll||-99)>=3&&Math.random()<.22){const q=Math.random()<.7?ILLS[0]:ILLS[1];ILL={n:q[0],e:q[1],days:q[2],sev:q[3],d0:HOME.day,surp:false,cold:1};STATS.lastIll=HOME.day;
+      setTimeout(()=>notify(q[1]+' Üşüttün','Soğukta ince giyindin ve '+q[0].toLowerCase()+' oldun. Sıcak bir ıhlamur, dinlenme ve eczaneden ilaç iyi gelir.',[{t:'Tamam',fn:()=>{}}]),600);memAdd(q[1],'Soğukta üşütüp '+q[0].toLowerCase()+' oldum')}
+    else say(player,'Hapşu! 🤧 Neyse ki bir şey olmadı',2)}}
+setInterval(()=>{try{chillTick64(.5)}catch(e){}},500);
+/* ıhlamur/çorba: üşümeyi alır, hastalığı hafifletir */
+{const _md=medTake;medTake=function(x){return _md.apply(this,arguments)}}
+
+/* --- yeni Pazarcık: net kategoriler, arama, kışlık + elektronik + daha çok ürün --- */
+const MCAT64=['Tümü','❄️ Kışlık','Giyim','Ayakkabı','Aksesuar','Makyaj & Bakım','Elektronik','Mobilya','Ev & Mutfak','Spor & Outdoor','Kitap & Hobi','Oyuncak','Market','Siparişlerim'];
+const KCOL64=[['Siyah',0x1f1f24],['Lacivert',0x1d2a4a],['Bordo',0x6a1a2a],['Haki',0x4a5a3a],['Krem',0xe8dcc8],['Kahve',0x5a3a24]];
+const MKT64=[
+ ['❄️ Kışlık','Şişme Mont','🧥',420,KCOL64,c=>({a:{top:'zip',shirt:c,coat61:1}})],['❄️ Kışlık','Yün Kaban','🧥',520,KCOL64,c=>({a:{top:'ceket',shirt:0xf2f2f0,jacket:c,coat61:1}})],
+ ['❄️ Kışlık','Balıkçı Yaka Kazak','🧶',190,KCOL64,c=>({a:{top:'kazak',shirt:c}})],['❄️ Kışlık','Polar Hırka','🧥',160,KCOL64,c=>({a:{top:'zip',shirt:c}})],['❄️ Kışlık','Sarı Yağmurluk','🌂',210,null,()=>({a:{top:'zip',shirt:0xf4c21a,rain61:1}})],
+ ['❄️ Kışlık','Kar Botu','🥾',260,[['Siyah',0x1f1f24],['Kahve',0x5a3a24],['Gri',0x7a7a82]],c=>({a:{shoes:c},w61:'bot'})],['❄️ Kışlık','Yün Bere','🧢',60,null,()=>({w61:'bere'})],['❄️ Kışlık','Örgü Atkı','🧣',70,null,()=>({w61:'atki'})],
+ ['❄️ Kışlık','Dokunmatik Eldiven','🧤',55,null,()=>({w61:'eldiven'})],['❄️ Kışlık','Termal İçlik Takımı','🩲',120,null,()=>({w61:'termal'})],['❄️ Kışlık','Rüzgâr Geçirmez Şemsiye','☂️',80,null,()=>({w61:'semsiye'})],['❄️ Kışlık','Elektrikli Isıtıcı','🔥',480,null,()=>({w61:'isitici',m:6})],
+ ['Elektronik','Dizüstü Bilgisayar','💻',2400,null,()=>({m:16,inv:{n:'Dizüstü bilgisayar',e:'💻',u:'elek'}})],['Elektronik','Tablet','📱',1200,null,()=>({m:12,inv:{n:'Tablet',e:'📱',u:'elek'}})],['Elektronik','Kablosuz Kulaklık','🎧',450,null,()=>({m:10,fun:10})],
+ ['Elektronik','Akıllı Saat','⌚',900,null,()=>({m:12})],['Elektronik','Bluetooth Hoparlör','🔊',350,null,()=>({m:8,fun:12})],['Elektronik','Instant Fotoğraf Makinesi','📸',650,null,()=>({m:14,fun:14})],['Elektronik','Powerbank 20.000 mAh','🔋',150,null,()=>({m:4})],
+ ['Ev & Mutfak','Airfryer','🍟',850,null,()=>({m:12})],['Ev & Mutfak','Filtre Kahve Makinesi','☕',600,null,()=>({m:10})],['Ev & Mutfak','Çelik Çaydanlık Seti','🫖',280,null,()=>({m:8})],['Ev & Mutfak','Granit Tencere Seti','🍲',750,null,()=>({m:10})],
+ ['Ev & Mutfak','Pamuk Nevresim Takımı','🛏️',320,null,()=>({m:8,hyg:6})],['Ev & Mutfak','Çiçekli Kupa Seti','🍵',140,null,()=>({m:6})],['Ev & Mutfak','Monstera Saksı Bitkisi','🪴',180,null,()=>({m:10})],
+ ['Spor & Outdoor','Yoga Matı','🧘',150,null,()=>({m:6,fun:6})],['Spor & Outdoor','Dambıl Seti 2×5 kg','🏋️',380,null,()=>({m:6,fit:.03})],['Spor & Outdoor','Koşu Ayakkabısı','👟',420,[['Neon',0xb8f040],['Beyaz',0xf2f2f2],['Siyah',0x1f1f24]],c=>({a:{shoes:c}})],
+ ['Spor & Outdoor','Kamp Çadırı (2 kişilik)','⛺',900,null,()=>({m:12})],['Spor & Outdoor','Bisiklet Kaskı','🪖',260,null,()=>({m:4})],['Spor & Outdoor','Çelik Su Matarası','🥤',90,null,()=>({m:4})],
+ ['Kitap & Hobi','Roman · Kürk Mantolu Madonna','📕',60,null,()=>({m:10})],['Kitap & Hobi','Polisiye Roman','📗',70,null,()=>({m:8,fun:6})],['Kitap & Hobi','1000 Parça Puzzle','🧩',140,null,()=>({m:8,fun:14})],
+ ['Kitap & Hobi','Sulu Boya Seti','🎨',120,null,()=>({m:8,fun:10})],['Kitap & Hobi','Ukulele','🎸',650,null,()=>({m:12,fun:16})],['Kitap & Hobi','Örgü Seti','🧶',110,null,()=>({m:8,fun:8})],
+ ['Makyaj & Bakım','Parfüm · Ege Esintisi','🌸',480,null,()=>({m:14})],['Makyaj & Bakım','Cilt Bakım Seti','🧴',260,null,()=>({m:8,hyg:10})],['Makyaj & Bakım','Şampuan & Saç Kremi','🧼',90,null,()=>({hyg:12})],['Makyaj & Bakım','Elektrikli Diş Fırçası','🪥',300,null,()=>({hyg:8,m:4})],
+ ['Market','Ihlamur Çayı (üşütmeye iyi gelir)','🍵',40,null,()=>({inv:{n:'Ihlamur',e:'🍵',u:'gida',h:2,m:6,warm:1}})],['Market','Çam Balı 450 g','🍯',120,null,()=>({inv:{n:'Çam balı',e:'🍯',u:'gida',h:8,m:6}})],['Market','Kuru Kayısı','🍑',45,null,()=>({inv:{n:'Kuru kayısı',e:'🍑',u:'gida',h:10,m:3}})],
+ ['Market','Fındık 200 g','🌰',60,null,()=>({inv:{n:'Fındık',e:'🌰',u:'gida',h:12,m:3}})],['Market','Mercimek Çorbası (hazır)','🥣',35,null,()=>({inv:{n:'Mercimek çorbası',e:'🥣',u:'gida',h:30,m:6,warm:1}})],['Market','Türk Kahvesi','☕',55,null,()=>({inv:{n:'Türk kahvesi',e:'☕',u:'gida',h:2,m:8}})]];
+const ELEC64=/Bilgisayar|PC|TV|Televizyon|Konsol|Laptop|Monitör|Hoparlör|Müzik|Ses Sistemi|Projeks|Oyun Bilgisayarı|PlayStation/i;
+function cats64(it,grp){const c=it.c,n=it.n||'';if(c==='Mobilya')return (grp&&/PC|Elektronik|TV/i.test(grp.cat||''))||ELEC64.test(n)?['Elektronik']:['Mobilya'];if(c==='Makyaj')return ['Makyaj & Bakım'];if(c==='Ev & Yaşam')return ['Ev & Mutfak'];
+  if(c==='Giyim'&&/Mont|Kaban|Kazak|Polar|Hırka|Yağmurluk|Termal/i.test(n))return ['Giyim','❄️ Kışlık'];if(c==='Ayakkabı'&&/Bot/i.test(n))return ['Ayakkabı','❄️ Kışlık'];return [c]}
+let mktQ64='';
+marketView2=function(box){const oc=box.querySelector('.cats'),ob=box.querySelector('.body');if(oc)mktScroll.c=oc.scrollLeft;if(ob)mktScroll.b=ob.scrollTop;if(!MCAT64.includes(mktCat))mktCat='Tümü';box.innerHTML='';const w=el('div');w.id='mkt';box.appendChild(w);const h=el('div','mh');h.appendChild(el('b','','🧡 Pazarcık'));h.appendChild(el('span','','🪙 '+coins));w.appendChild(h);
+  const b=el('div','body');w.appendChild(b);const sr=document.createElement('input');sr.className='srch';sr.placeholder='🔍 Ürün ara (mont, bot, laptop…)';sr.value=mktQ64;sr.style.cssText='width:100%;box-sizing:border-box;border:0;font:inherit;outline:none';b.appendChild(sr);
+  const cs=el('div','cats');MCAT64.forEach(c=>{const x=el('button',mktCat===c?'on':'',c);x.onclick=()=>{const keep=cs.scrollLeft;mktCat=c;mktScroll.c=keep;mktScroll.b=0;marketView(box)};cs.appendChild(x)});b.appendChild(cs);
+  requestAnimationFrame(()=>{cs.scrollLeft=mktScroll.c;b.scrollTop=mktScroll.b});if(mktCat==='Siparişlerim'){cargoList(b,'cargo');return}
+  const g=el('div','grid');b.appendChild(g);const q=()=>mktQ64.trim().toLocaleLowerCase('tr');
+  const card=(it,cols,mk,cl)=>{const c=el('div','card');c.dataset.n=(it.n+' '+cl.join(' ')).toLocaleLowerCase('tr');c.appendChild(el('div','em',it.e));const nm=el('div','nm',it.n);c.appendChild(nm);
+    c.appendChild(el('div','rt','★'.repeat(Math.round(it.r))+' '+fmtR(it.r)+' ('+(Math.round(it.r*317)%900+120)+')'));c.appendChild(el('div','px',it.p+' 🪙'));let cur=it;
+    if(cols){const key=it.n;let si=MSEL[key]||0;if(si>=cols.length)si=0;const sw=el('div','');sw.style.cssText='display:flex;flex-wrap:wrap;gap:4px;margin:4px 0';const upd=()=>{cur=mk(si);nm.textContent=cur.n;[...sw.children].forEach((d,i)=>d.style.outline=i===si?'2px solid #f27a1a':'1px solid rgba(0,0,0,.2)')};
+      cols.forEach((qq,i)=>{const d=el('button','');d.title=qq[0];d.style.cssText='width:18px;height:18px;border-radius:50%;border:0;padding:0;cursor:pointer;background:#'+new T.Color(qq[1]).getHexString();d.onclick=e=>{e.stopPropagation();si=i;MSEL[key]=i;upd()};sw.appendChild(d)});c.appendChild(sw);upd()}
+    c.appendChild(el('div','kb',it.f||(cur&&cur.f)?'🚚 Ücretsiz kargo · kurulum dahil':'🚚 Ücretsiz kargo · 2-4 saatte kapında'));const bt=el('button','buy','Sepete ekle · Al');bt.onclick=()=>checkout(cur,box);c.appendChild(bt);g.appendChild(c)};
+  const show=cl=>mktCat==='Tümü'||cl.includes(mktCat);
+  MKT64.forEach((x,i)=>{const cl=[x[0]];if(!show(cl))return;const base={c:x[0],n:x[1],e:x[2],p:x[3],r:4.3+((i*7)%7)/10};const mk=si=>{const o=x[5](x[4]?x[4][si][1]:0);return Object.assign({c:x[0],n:x[1]+(x[4]?' · '+x[4][si][0]:''),e:x[2],p:x[3],r:4.6,x64:1},o)};card(base,x[4],x[4]?mk:null,cl);if(!x[4]){const c=g.lastChild;const it=mk(0);c.querySelector('.buy').onclick=()=>checkout(it,box)}});
+  CLOTH.forEach((x,i)=>{const it={c:x[0],n:x[1]};const cl=cats64(it);if(!show(cl))return;const cols=x[1]==='Jean'?JEANS:x[0]==='Makyaj'?LIPS37:PCOL;card({c:x[0],n:x[1],e:x[2],p:x[3],r:4.2+((i*7)%8)/10},cols,si=>({c:x[0],n:x[1]+' · '+cols[si][0],e:x[2],p:x[3],r:4.5,a:x[4](cols[si][1])}),cl)});
+  Object.keys(VGRP).forEach((k,i)=>{const G=VGRP[k],cl=cats64({c:'Mobilya',n:G.n},G);if(!show(cl))return;card({c:'Mobilya',n:G.n,e:G.e,p:G.p,r:4.3+((i*3)%7)/10,f:G.keys[0]},G.cols,si=>({c:'Mobilya',n:FURN[G.keys[si]][0],e:G.e,p:G.p,r:4.5,f:G.keys[si]}),cl)});
+  MKT.forEach(it=>{const cl=cats64(it);if(show(cl))card(it,null,null,cl)});
+  const filt=()=>{const s=q();let n=0;[...g.children].forEach(c=>{const ok=!s||c.dataset.n.indexOf(s)>=0;c.style.display=ok?'':'none';if(ok)n++});let e=b.querySelector('.none64');if(!n){if(!e){e=el('div','sub none64','Bu aramaya uygun ürün yok 🙈');b.appendChild(e)}}else if(e)e.remove()};
+  sr.oninput=()=>{mktQ64=sr.value;if(mktQ64&&mktCat!=='Tümü'){mktCat='Tümü';marketView(box);const s2=box.querySelector('input.srch');if(s2){s2.focus();s2.setSelectionRange(s2.value.length,s2.value.length)}return}filt()};filt()};
+/* sipariş defteri: renk seçmeli/yeni ürünler kargo açılınca da tanınır (eski hata: varyantlar kayboluyordu) */
+const REG64={};
+{const _co=checkout;checkout=function(it){try{if(it&&MKT.indexOf(it)<0)REG64[it.n]=JSON.parse(JSON.stringify(it))}catch(e){}return _co.apply(this,arguments)}}
+function x64fx(it){if(!it||!it.x64)return;if(it.w61){WEAR61.own[it.w61]=1;WEAR61.on[it.w61]=1;toast('🧣 '+it.n+' tamam · saate dokunup ❄️ Kışlıklar menüsünden takıp çıkarabilirsin')}
+  if(it.inv){INV.push(Object.assign({},it.inv));toast(it.inv.e+' '+it.inv.n+' çantana eklendi 🎒')}if(it.fun)NEED.fun=clamp(NEED.fun+it.fun,0,100);if(it.hyg)HOME.hyg=clamp(HOME.hyg+it.hyg,0,100);if(it.fit&&typeof SK!=='undefined')SK.fit=Math.min(1,(SK.fit||0)+it.fit)}
+{const _oc=openCargo;openCargo=function(o){let it=MKT[o.i]||MKT.find(x=>x.n===o.n),tmp=false;if(!it&&REG64[o.n]){it=REG64[o.n];MKT.push(it);o.i=MKT.length-1;tmp=true}
+  try{return _oc.apply(this,arguments)}finally{if(tmp){MKT.pop();delete REG64[o.n]}try{x64fx(it)}catch(e){showErrOnce(e)}}}}
+/* sıcak içecek/çorba üşümeyi giderir */
+{const _ue=typeof useItem==='function'?useItem:null;if(_ue)useItem=function(it){const r=_ue.apply(this,arguments);try{if(it&&it.warm){CHILL64=0;if(ILL&&ILL.cold&&Math.random()<.5){ILL.days=Math.max(0,ILL.days-1);toast('🍵 İçini ısıttı, kendini daha iyi hissediyorsun')}}}catch(e){}return r}}
+/* kışlık aksesuarları tak/çıkar */
+function warmMenu64(){const ks=Object.keys(WEAR61.own);const N={bere:'🧢 Bere',atki:'🧣 Atkı',eldiven:'🧤 Eldiven',bot:'🥾 Bot (sıcak tutar)',termal:'🩲 Termal içlik',semsiye:'☂️ Şemsiye',isitici:'🔥 Isıtıcı (evde)'};
+  if(!ks.length){toast('❄️ Henüz kışlık aksesuarın yok · Pazarcık > ❄️ Kışlık');return}actionMenu('❄️ Kışlıklar · '+tempNow64()+'°C · sıcaklık '+Math.round(warmth64()*100),ks.map(k=>[WEAR61.on[k]?'✅':'⬜',N[k]||k,()=>{WEAR61.on[k]=!WEAR61.on[k];toast((WEAR61.on[k]?'Taktın: ':'Çıkardın: ')+(N[k]||k));setTimeout(warmMenu64,80)}]))}
+{const _sv=save25;save25=function(){const o=_sv.apply(this,arguments);try{o.x64={wx:WXS,wear:WEAR61,chill:Math.round(CHILL64),reg:REG64}}catch(e){}return o}}
+{const _ld=load25;load25=function(x){const r=_ld.apply(this,arguments);try{if(x&&x.x64){Object.assign(WXS,x.x64.wx||{});if(x.x64.wear){WEAR61.own=x.x64.wear.own||{};WEAR61.on=x.x64.wear.on||{}}CHILL64=x.x64.chill||0;Object.assign(REG64,x.x64.reg||{})}}catch(e){}return r}}
+
+/* saate dokununca: hava durumu + üşüme + kışlıklar */
+function wxPanel64(){const t=tempNow64(),w=warmth64(),nd=needW64(t);actionMenu(WXN[WXS.k][0]+' '+WXN[WXS.k][1]+' · '+t+'°C'+(WXS.cover>.05?' · yerde kar':''),[['🌡️','Giyim sıcaklığı '+Math.round(w*100)+' / gereken '+Math.round(nd*100)+(w>=nd?' · rahatsın ✅':' · üşüyebilirsin 🥶'),()=>{}],['❄️','Kışlıklarını tak / çıkar',()=>setTimeout(warmMenu64,60)],['🧡','Pazarcık · Kışlık',()=>{mktCat='❄️ Kışlık';try{phoneApp('market')}catch(e){}}]])}
+setTimeout(()=>{try{const e=$('pclock');if(e){e.style.cursor='pointer';e.addEventListener('click',ev=>{ev.stopPropagation();wxPanel64()})}}catch(e){}},500);
 
 /* ---------- döngü ---------- */
 const clock=new T.Clock();let hudT=0;

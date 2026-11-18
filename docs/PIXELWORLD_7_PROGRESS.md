@@ -71,3 +71,12 @@ Durum anahtarı: ✅ tamam · 🟡 kısmi · ⏳ yapılmadı
 - Dalış: alan genişledi, kayalar takılmıyor, bırakınca süzülme, daha çok balık sürüsü, bazen köpek balığı.
 - Safari parkı: zürafa, zebra, fil, aslan, geyik, flamingo pürüzsüz (SDF) modeller + desen (benek/çizgi).
 - Go-kart: pist boş alana (Karabağlar dış halka) taşındı; gerçek parkur (asfalt, kerb, kum, lastik bariyer, start köprüsü ışıkları, tribün, pit, bayraklar, dönen kartlar). Yeni yarış oyunu: takip kamerası, gerçek parkur, 4 rakip, minimap, start ışıkları, fren.
+
+## v63 — mevsimsel hava, kar, üşüme, yeni Pazarcık
+- Hava artık günler arası süreç: açık / parçalı / bulutlu / yağmurlu / karlı. Yağış bitince ertesi gün hemen güneş açmaz (bulutlu → parçalı → açık). Kar sadece kışın ve mevsim geçişlerinde (sonbahar sonu, ilkbahar başı), soğuk günlerde.
+- Sıcaklık: mevsim eğrisi + günlük salınım + rastgele sapma; saatte gösterilir (örn. "❄️ 2°"). Saate dokununca hava paneli.
+- Kar: düşen tane efekti (sürüşte de), yerde biriken ve günler içinde eriyen kar örtüsü (denize taşmaz), gri gökyüzü.
+- Üşüme: soğukta giyim sıcaklığı yetersizse üşüme birikir ("Brr… üşüdüm"); eşik aşılınca yalnızca bazen (%22) soğuk algınlığı/grip (mevcut hastalık sistemi). Ihlamur/çorba üşümeyi alır.
+- Kışlık giyim: mont/kaban (yüksek sıcaklık), kazak, polar, yağmurluk, kar botu, bere, atkı, eldiven, termal içlik, şemsiye, ısıtıcı. Aksesuarlar saat paneli > Kışlıklar'dan takılıp çıkarılır. (Bere/atkı/eldiven için karakter üstünde görsel yok — sadece sıcaklık etkisi.)
+- Pazarcık: yeni kategoriler (❄️ Kışlık, Elektronik, Ev & Mutfak, Spor & Outdoor, Kitap & Hobi, Makyaj & Bakım…), çalışan arama kutusu, ~50 yeni ürün. Bilgisayar/TV/konsol artık Mobilya'da değil Elektronik'te.
+- Eski hata düzeltildi: renk seçmeli ürünler kargo açılınca kayboluyordu (sipariş defteri eklendi, kayda yazılır).
