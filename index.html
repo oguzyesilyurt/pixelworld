@@ -7027,7 +7027,7 @@ function simits56(){if(!C||C.bounds||C.aks||C.air||(C.simits&&C.simits.length>=2
 const X57={gym:{n:0},car:{dirt:.12,km:0,svc:0,tire:0,muay:-1,acc:[]},bowl:{best:0,games:0},pool:{w:0,l:0}};
 {const _s=save25;save25=function(){const o=_s.apply(this,arguments);try{o.x57=JSON.parse(JSON.stringify(X57))}catch(e){}return o}}
 {const _l=load25;load25=function(x){const r=_l.apply(this,arguments);try{if(x&&x.x57){['gym','car','bowl','pool'].forEach(k=>{if(x.x57[k])Object.assign(X57[k],x.x57[k])})}}catch(e){}return r}}
-function rsv57(r,pref){const D=[[0,0],[8,0],[-8,0],[0,8],[0,-8],[14,6],[-14,6],[14,-10],[-14,-10],[20,0],[-20,0]];for(const q of D){const p=reserveSpotF(r,[pref[0]+q[0],pref[1]+q[1]]);if(p&&(typeof viewOK38!=='function'||viewOK38(p[0],p[1]+r+1)))return p}return null}
+function rsv57(r,pref){const D=[[0,0],[8,0],[-8,0],[0,8],[0,-8],[14,6],[-14,6],[14,-10],[-14,-10],[20,0],[-20,0]];for(const q of D){const p=reserveSpotF(r,[pref[0]+q[0],pref[1]+q[1]]);if(p&&(typeof viewOK38!=='function'||viewOK38(p[0],p[1]+r+1)))return p}const F=[[94,-6],[94,12],[94,30],[94,-24],[94,46],[94,-42]];for(const f of F){if(C.boxes.some(b=>Math.abs(b.x-f[0])<b.hx+r+1&&Math.abs(b.z-f[1])<b.hz+r+1)||C.roadSamples.some(q=>Math.hypot(q.x-f[0],q.z-f[1])<q.r+r))continue;return f}return null}
 /* ---------- mekânlar ---------- */
 {const _cs=citySpecials;citySpecials=function(){_cs.apply(this,arguments);const n=C.name;try{
   if(n==='cigli'||n==='kocaeli'||n==='karsiyaka'){const p=rsv57(7,n==='cigli'?[10,40]:[20,36]);if(p)venueB(p[0],p[1],12,9,7,'FİTPARK SPOR SALONU 💪','#2a2a34','rest_x57gym',60,'💪 Spor salonu · günlük giriş')}

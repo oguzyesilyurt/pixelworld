@@ -28,6 +28,9 @@ Durum anahtarı: ✅ tamam · 🟡 kısmi · ⏳ yapılmadı
 - ✅ Otel işleri: otel resepsiyonlarının yanında iş noktası; resepsiyonist/garson/temizlik/aşçı/güvenlik; başvuru, vardiya animasyonu, ücret (+ garsona bahşiş).
 - ✅ Yeni mekânlar yerleştirilirken giriş görüşü kontrolü (kamera önünü bina kapatmıyor).
 
+## v60 (düzeltme)
+- ✅ v59'daki görüş kontrolü yoğun ilçelerde (Çiğli) hiç yer bulamayınca spor salonu/oto yıkama/market yerleşmiyordu. Artık çekirdekte görüşü açık yer yoksa mekân doğu halka yolunun karşısına (dış halka) yerleşiyor; önü açık ve yürüyerek ulaşılabilir.
+
 ## Paket 7.0 maddeleri
 | Madde | Durum |
 |---|---|
