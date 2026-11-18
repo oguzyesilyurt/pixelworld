@@ -11,20 +11,26 @@ Durum anahtarı: ✅ tamam · 🟡 kısmi · ⏳ yapılmadı
 - ✅ Dış şehir halkası: Aksaz ve Bozdağ hariç tüm ilçelerde çekirdeğin çevresine ilçe karakterine göre blok, sokak, park parselleri (Çiğli konut, Karşıyaka/Alsancak ticari, Kocaeli kule+konut, Karabağlar alçak evler, Marmaris beyaz/kiremit, havalimanı depo). Tek birleşik mesh, gece pencere ışıkları.
 - ✅ Çekirdekteki boşluklar: giriş/tabela kurallarını kontrol eden ikinci dolgu geçişi; önü açık tutulması gereken bölgelere görüşü kapatmayan alçak bahçe/çiçeklik.
 
+## v56–57 (2026-11-18)
+- ✅ NPC günlük yaşam yönetmeni: simit arabasına yürüme → sıra → satın alma → yerken yürüme; telefonla konuşma (telefon elde, konuşma balonları); bank molası (oturma pozu); nadir tartışma (yaklaşma, el kol hareketi, çevredekiler durup bakar, %12 kısa itişme, sakinleşme); iş saatleri (sabah/akşam işe gidip gelenler hızlı yürür, gece şehir sakinleşir; görünürlük kameradan uzaktayken değişir). Simit arabası olmayan ilçelere kaldırıma 2 araba.
+- ✅ FitPark Spor Salonu (Çiğli, Kocaeli, Karşıyaka): koşu bandı, kondisyon bisikleti, dambıl, yoga, pilates, su sebili; kondisyon artar, her 4 antrenmanda kas +/kilo − (karakter modeline yansır); antrenman yapan NPC'ler.
+- ✅ Strike Bowling & Bilardo (Bostanlı, Alsancak): bowling — pist fiziği, labut çarpışmaları, 10 frame strike/spare skoru, partnerle sıra; bilardo — 8 top kuralları (grup atama, faul, 8 topla kazanma/kaybetme), top fiziği, rakip yapay zekâsı.
+- ✅ Parlak Oto Yıkama & Servis (Çiğli, Bostanlı, Kocaeli): otomatik/elle yıkama, yağ bakımı (5000 km), lastik, muayene (1 yıl), aksesuar. Araç kiri sürüşle/yağmurla artar ve arabanın rengine görünür şekilde yansır; bakım hatırlatması.
+
 ## Paket 7.0 maddeleri
 | Madde | Durum |
 |---|---|
 | Boş alan doldurma, min zoom | ✅ v55 |
 | Aksaz koruma | ✅ dokunulmadı |
-| NPC günlük yaşam (simit, telefon, tartışma, iş) | ⏳ |
-| Araç bakımı / oto yıkama | ⏳ |
+| NPC günlük yaşam (simit, telefon, tartışma, iş) | ✅ v56 (iş yerinde çalışma animasyonu yok) |
+| Araç bakımı / oto yıkama | ✅ v57 |
 | Süpermarket | ⏳ |
 | Okul/üniversite | ⏳ |
 | Kendi işletmen | ⏳ |
 | Trafik kuralları | ⏳ |
-| Spor salonu | ⏳ |
+| Spor salonu | ✅ v57 |
 | Otel işleri | ⏳ |
 | Doğum günü | ⏳ |
 | Sosyal medya | ⏳ |
 | Hediye paketleme | ⏳ |
-| Bowling / bilardo | ⏳ |
+| Bowling / bilardo | ✅ v57 (2D oyun ekranı) |
