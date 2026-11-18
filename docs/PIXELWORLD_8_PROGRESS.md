@@ -23,3 +23,11 @@ Durum işaretleri: ✅ tamam · 🟡 kısmi · ⏳ yapılmadı
 - ✅ **Yeni hastane**: Karşıyaka Devlet Hastanesi (Karşıyaka ve Bostanlı) — kabul, bekleme salonu, hastane eczanesi, muayene odası, gözlem yatağı, yürüyen hastalar. Kocaeli Şehir Hastanesi'ne de muayene odası + sıra ekranı + gözlem yatağı eklendi.
 - ✅ **Almira'nın nöbeti**: görev türüne göre elde ekipman (tansiyon aleti, ilaç kabı, sargı, serum torbası), hasta teşekkür tepkileri, serum görevinden sonra yatağın yanında serum askısı kalır. Meslek/kimlik değişmedi.
 - 🔧 Dış halkaya ikinci mekân sırası (x=114) eklendi; kalabalık Karşıyaka'da kütüphane ve hastane artık yerleşiyor.
+
+## v68 — ulaşım & navigasyon
+- ✅ **Otobüs** (`life72.js`): durakta durak panelinden hedef seç → durakta beklersin (hat no + tahmini süre), ESHOT/Havaş otobüsü yoldan gelip durur, İzmirim Kart ile binersin (ücret hareketlere yazılır) → otobüs içi: koltukta oturursun, diğer yolcular/şoför, kayan manzara ve yol, "Sıradaki durak" anonsu → hedefte durağın önünde inersin.
+- ✅ **Tramvay/İZBAN/metro**: aynı kabin içi yolculuk (bekleme sahnesi yok).
+- ✅ **Taksi**: telefonda 🚕 Taksi → sarı taksi yoldan gelip yanında durur → "Taksiye bin" → hedef ve taksimetre ücreti (mesafeye göre) → taksi içinde yolculuk (şoför, taksimetre) → varış. 90 sn beklemezsen gider.
+- ✅ **Navigasyon** (🧭): şehir içi yakındaki mekânlar → zeminde mavi rota + hedef iğnesi (engellerden kaçan A* yol bulma), mesafe ve yürüme süresi, alternatif güzergâh; hedefe varınca "Vardın". Şehirler arası: her hedef için 🚗 (süre) / 🚌 (süre + ücret) / 🚕 (süre + ücret) seçenekleri.
+- ✅ Aksaz Askerî Lojmanı gibi kısıtlı alanlar navigasyon/taksi listelerinde yok; erişim kuralları değişmedi. Marmaris/Aksaz/Kocaeli bağlantıları (mevcut yollar) korunuyor.
+- 🟡 Otobüsler belirli sefer saatine göre değil, durağa gelişte rastgele 6–10 dk bekleme ile geliyor.

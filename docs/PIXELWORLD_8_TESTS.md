@@ -4,3 +4,4 @@
 - t69: Çiğli'de 8 kedi + 4 köpek oluştu, 50 ağaç konma noktası; kedi/köpek yakın plan görüntü; Alsancak martılar; çizim çağrısı ~201.
 - t70: Menemen tarifi 4 adım (malzeme → doğrama → tava → servis) tamamlandı, mutfak +0,12, ST.cook 1; lamba arızası → Kendim tamir → yürüme + tamir animasyonu + mini oyun açıldı; kitapçıdan Ege Mutfağı alındı, okununca Pankek tarifi öğrenildi; kütüphane ~226 çizim çağrısı.
 - t71: Halsizlik + randevu → kayıt (A-43) → bekleme (ekran ilerliyor) → muayene → serum → reçete (Vitamin takviyesi) + rapor (Gün 2) → hastane eczanesinde reçete → çanta; Sağlığım uygulaması; ~236 çizim çağrısı. t71b: Karşıyaka'da kütüphane (114,-33) ve hastane (114,-5), Bostanlı'da hastane.
+- t72: Çiğli durağında Hat bekleme → otobüs yoldan geldi → biniş → kabin içi oturma (yolcular görünür) → Karşıyaka durağında iniş, ST.trans güncellendi; A* rota 1–4 ms (ikili yığın); taksi çağrı → yol kenarında 'bekliyor'. Regresyon: t62a (ESHOT paneli + tekne), t38b, tmob.
