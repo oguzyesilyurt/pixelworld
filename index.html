@@ -11014,6 +11014,136 @@ function fl102Hi(I,RM,r){if(I.fl102hi&&I.fl102hi.parent)I.fl102hi.parent.remove(
 {const _sv=save25;save25=function(){const o=_sv.apply(this,arguments);try{o.x102=FLOOR102}catch(e){}return o}}
 {const _ld=load25;load25=function(x){const r=_ld.apply(this,arguments);try{if(x&&x.x102)FLOOR102=x.x102;Object.keys(INT).forEach(k=>{const I=INT[k];if(I&&I.fl102done)floorApply102(I)})}catch(e){}return r}}
 window.__fl102={rt:()=>{const o=save25();FLOOR102={};load25(o);return FLOOR102},rebuild:k=>{const o=INT[k];if(o){if(o.G&&o.G.parent)o.G.parent.remove(o.G);delete INT[k]}},rooms:()=>rooms102(curI),get F(){return FLOOR102},set F(v){FLOOR102=v},apply:()=>floorApply102(curI),tex:ftex102,UI:FL102UI};
+/* ================= v103: telefon aramaları · dallanan konuşma ağaçları (DLG[kişi].agaclar) · asla başa sarmaz ================= */
+/* düğüm: {id, npc, secenekler:[{t, git, etki:{bag,mood,gorev,siparis}}]} · bitiş: {id, npc, son:true} */
+function AG103(id,kosul,rows){const d={};rows.forEach(r=>{const n={id:r[0],npc:r[1]};if(r[2]==='son')n.son=true;else n.secenekler=r[2].map(o=>({t:o[0],git:o[1],etki:o[2]||{}}));d[r[0]]=n});return {id:id,kosul:kosul,bas:rows[0][0],dugumler:d}}
+const H103=()=>GT/60;
+DLG.P.agaclar=[
+ AG103('gece',S=>S.h>=23||S.h<6,[['g','Mmh… alo? Uyuyor muydum, ne oldu? 😴',[['Özür dilerim, uyandırdım mı?','n1'],['Uyuyamadım, sesini duymak istedim','n2',{bag:2}]]],
+   ['n1','Önemli değil… Bir şey mi oldu?',[['Yok, sadece seni düşündüm','n2',{bag:2}],['Yarın erken kalkacağım, iyi geceler demek istedim','n3']]],
+   ['n2','Ne tatlısın… Ben de rüyamda seni görüyordum 🥰',[['Gerçekten mi? Ne gördün?','n4'],['Hadi uyu o zaman, yarın görüşürüz','n3']]],
+   ['n3','Sen de erken yat ama tamam mı? 💙',[['Tamam, söz','n5',{mood:2}]]],
+   ['n4','Kordon\'da yürüyorduk, martılar falan… klasik biz 😄',[['Yarın gerçekten yapalım','n5',{gorev:'aksam',bag:2}],['Çok tatlı 🥹','n5',{bag:2}]]],
+   ['n5','İyi geceler aşkım, tatlı rüyalar 😴💙','son']]),
+ AG103('aksam',S=>S.h>=9&&S.h<21&&!S.aksam,[['g','Alo aşkım! Tam da seni düşünüyordum 🥰',[['Akşam ne yapıyoruz? 😊','a1'],['Bu akşam dışarı çıkalım mı?','a2',{bag:2}]]],
+   ['a1','Bilmem, sen ne istersin? Evde film mi, dışarıda yemek mi?',[['Kordon\'da yürüyüp bir şeyler yiyelim 🌅','a3',{mood:3}],['Evde film + mısır 🍿','a4',{mood:2}]]],
+   ['a2','Olur! Nereye gidelim?',[['Alsancak\'ta yeni açılan yere','a3'],['Bostanlı sahile, gün batımına','a3',{bag:2}]]],
+   ['a3','Harika fikir! Saat kaçta buluşalım?',[['Akşam 8\'de','a5',{gorev:'aksam',bag:3}],['7 gibi, gün batımını kaçırmayalım','a5',{gorev:'aksam',bag:4}]]],
+   ['a4','Tamam, filmi ben seçiyorum ama 😏',[['Yine romantik komedi mi? 😅','a6',{mood:2}],['Anlaştık, mısırı ben alırım','a6',{gorev:'film',bag:3}]]],
+   ['a5','Süper, buluşma noktasında görüşürüz, seni bekliyorum 💙','son'],['a6','Hihi, akşam görüşürüz o zaman 😘','son']]),
+ AG103('is',S=>S.h>=16,[['g','Alo? Sesin yorgun geliyor, iyi misin?',[['Bugün iş çok yoğundu 😩','i1'],['Güzel geçti aslında!','i2',{mood:2}]]],
+   ['i1','Ay kıyamam… Ne oldu, anlat bakalım',[['Toplantı üstüne toplantı, bir de patron…','i3'],['Boş ver, sesini duymak iyi geldi','i4',{bag:3}]]],
+   ['i2','Oh ne güzel! Ne oldu, anlat 😊',[['Sunumum çok beğenildi 🎉','i5',{mood:4}],['Yeni bir projeye başladık','i5']]],
+   ['i3','Bu akşam seni şımartayım o zaman. Masaj + sevdiğin tatlı?',[['Bayılırım 🥹','i6',{mood:5,bag:3}],['Sadece sarılsan yeter','i6',{bag:4}]]],
+   ['i4','Ben de seni özledim. Akşam erken gel tamam mı?',[['Söz, erken çıkarım','i6',{bag:2}]]],
+   ['i5','Gurur duydum seninle! Bunu kutlamamız lazım 🥂',[['Akşam kutlarız 😍','i6',{mood:3}]]],
+   ['i6','Tamam aşkım, kendine iyi bak, akşam görüşürüz 💙','son']]),
+ AG103('ozlem',S=>true,[['g','Alo 🥰 Sesin çok tatlı geliyor, ne oldu?',[['Seni özledim 🥺','o1',{bag:3}],['Sadece sesini duymak istedim','o2',{bag:2}]]],
+   ['o1','Ben de seni çok özledim… Sabah ayrıldık ama sanki günler geçti',[['Bir an önce sarılmak istiyorum 🤗','o3',{mood:3}],['Seni ne kadar sevdiğimi biliyor musun?','o4',{bag:4}]]],
+   ['o2','Ne tatlısın… Benim de gülümsememe yetti 😊',[['İyi ki varsın','o4',{bag:3}]]],
+   ['o3','Akşam kapıda karşılayacağım seni, söz 💙',[['Sabırsızlanıyorum 😍','o5',{mood:3}]]],
+   ['o4','Biliyorum… Ben de seni dünyalar kadar seviyorum 💙',[['Sen benim her şeyimsin','o5',{bag:4,mood:2}],['Bu akşam sadece ikimiz olalım','o5',{gorev:'aksam',bag:3}]]],
+   ['o5','Kapatmadan bir öpücük 😘 Görüşürüz aşkım','son']]),
+ AG103('sorun',S=>S.bag<55||S.r<.18,[['g','Efendim… (sesi biraz soğuk)',[['Bir şey mi oldu? Sesin tuhaf','s1'],['Dünkü konu için aradım','s2']]],
+   ['s1','Dün akşam beni beklettin, mesajlarıma da cevap vermedin',[['Haklısın, özür dilerim 🙏','s3',{bag:4}],['Çok yoğundum, anlamalısın','s4',{bag:-4,mood:-3}]]],
+   ['s2','Hı, o konu… Biraz kırıldım açıkçası',[['Seni kırmak istemezdim, özür dilerim','s3',{bag:4}],['Bence abartıyorsun','s4',{bag:-5,mood:-3}]]],
+   ['s3','Tamam… Özrünü kabul ediyorum ama bir daha olmasın 💙',[['Söz veriyorum. Akşam telafi edeyim mi?','s5',{bag:3,gorev:'aksam'}],['Teşekkür ederim, seni seviyorum','s5',{bag:3}]]],
+   ['s4','Abartmıyorum ama… Neyse, şimdi tartışmayalım',[['Haklısın, sakin kafayla konuşalım. Özür dilerim','s3',{bag:2}],['Peki, sonra konuşuruz','s6',{bag:-2}]]],
+   ['s5','Barıştık o zaman 😊 Seni seviyorum, görüşürüz','son'],['s6','Tamam. Görüşürüz.','son']]),
+ AG103('yemek',S=>((S.h>=11&&S.h<14.5)||(S.h>=18&&S.h<22.5))&&!S.siparis,[['g','Alo, karnım zil çalıyor 😅',[['Bir şeyler sipariş edelim mi? 🛵','y1'],['Ben de açım, ne yesek?','y1']]],
+   ['y1','Ne istersin? Pizza, lahmacun, sushi?',[['Lahmacun + ayran 🌯','y2'],['Pizza 🍕','y3'],['Sushi 🍣','y4']]],
+   ['y2','Acılı mı acısız mı? 🌶️',[['Acılı tabii','y5',{siparis:['🌯 Lahmacun + ayran',90]}],['Acısız olsun','y5',{siparis:['🌯 Lahmacun + ayran',90]}]]],
+   ['y3','Margarita mı, karışık mı?',[['Karışık, bol malzemeli','y5',{siparis:['🍕 Karışık pizza',140]}],['Margarita yeter','y5',{siparis:['🍕 Margarita',120]}]]],
+   ['y4','Ooo lüks 😏 Tamam, iki kişilik set söylüyorum',[['Ben ısmarlıyorum 😎','y5',{siparis:['🍣 Sushi seti',220],bag:3}]]],
+   ['y5','Siparişi verdim, yarım saate kapıda! 🛵','son']])];
+DLG.S.agaclar=[
+ AG103('gece',S=>S.h>=23||S.h<6,[['g','Alo?? Bu saatte? Uyuyor muydun yoksa sen mi uyandın? 😅',[['Uyuyamadım, konuşalım mı biraz?','sg1'],['Pardon, saati fark etmedim','sg2']]],
+   ['sg1','Tabii konuşalım. Aklını kurcalayan bir şey mi var?',[['Biraz kafam dolu, iş, ev…','sg3'],['Yok, sadece canım sıkıldı','sg3']]],
+   ['sg2','Önemli değil, ben de dizi izliyordum zaten 📺',[['Hangi dizi?','sg4']]],
+   ['sg3','Her şey yoluna girecek, biliyorsun değil mi? Ben buradayım 💛',[['Biliyorum, iyi ki varsın','sg5',{bag:4,mood:3}]]],
+   ['sg4','Muhteşem Yüzyıl tekrarı 😂 Uyku tutmuyor işte',[['Yarın bana da anlat 😄','sg5',{bag:2}]]],
+   ['sg5','Hadi uyu artık, iyi geceler 🌙','son']]),
+ AG103('aksam',S=>S.h>=9&&S.h<21&&!S.aksam,[['g','Alo canım! Tam seni arayacaktım 😊',[['Akşam boş musun?','sa1'],['Bu akşam size geleyim mi?','sa2',{bag:2}]]],
+   ['sa1','Boşum! Ne yapmayı düşünüyorsun?',[['Kahve + dedikodu ☕','sa3',{mood:2}],['Alışverişe çıkalım 🛍️','sa3']]],
+   ['sa2','Gel tabii, sofraya bir tabak daha 🍽️ Ne pişireyim?',[['Mantı! 🥟','sa4',{mood:3}],['Ne yaparsan yerim 😄','sa4',{bag:2}]]],
+   ['sa3','Anlaştık! Kaçta?',[['7\'de buluşalım','sa5',{gorev:'aksam',bag:3}],['Yemekten sonra, 9 gibi','sa5',{gorev:'aksam',bag:2}]]],
+   ['sa4','Tamam, akşam 8\'de bekliyorum, tatlıyı da sen getir 😉',[['Baklava benden 🍯','sa5',{gorev:'aksam',bag:3}]]],
+   ['sa5','Süper, akşam görüşürüz! 💛','son']]),
+ AG103('is',S=>S.h>=12,[['g','Efendim canım, nasıl gidiyor?',[['Bugün işte ne oldu bil bakalım','si1'],['Biraz yorgunum','si2']]],
+   ['si1','Ne oldu? Merak ettim 😮',[['Patron beni övdü 🎉','si3',{mood:4}],['Yine fazla mesai 😩','si2']]],
+   ['si2','Of, kendini çok yoruyorsun. Bu hafta sonu dinlen bari',[['Haklısın, bir plan yapalım','si4',{bag:2}],['Keşke… işler bitmiyor','si4']]],
+   ['si3','Helal olsun! Seninle gurur duyuyorum 🥳',[['Teşekkürler, kutlamamız lazım','si4',{bag:3}]]],
+   ['si4','Hafta sonu kahvaltıya gelin, hem dinlenirsin hem konuşuruz ☕',[['Olur, geliriz 😊','si5',{bag:2,mood:2}]]],
+   ['si5','Tamamdır, kendine iyi bak 💛','son']]),
+ AG103('yemek',S=>!S.siparis,[['g','Alo, ne yapıyorsun? Ben mutfaktayım 🍳',[['Ne pişiriyorsun?','sy1'],['Acıktım, bir şey söyleyelim mi?','sy2']]],
+   ['sy1','Karnıyarık! Tarifini ister misin?',[['İsterim, anlat','sy3',{mood:2}],['Ben gelip yesem daha iyi 😄','sy4',{bag:2}]]],
+   ['sy2','Olur! Kumpir mi söylesek, pide mi?',[['Pide 🫓','sy5',{siparis:['🫓 Kıymalı pide',110]}],['Kumpir 🥔','sy5',{siparis:['🥔 Kumpir',95]}]]],
+   ['sy3','Patlıcanları közle, kıymayı soğanla kavur, fırına ver. Bu kadar 😉',[['Bu akşam deneyeceğim','sy5',{mood:2}]]],
+   ['sy4','Gel gel, kapı açık 😂',[['Yola çıkıyorum!','sy5',{gorev:'aksam'}]]],
+   ['sy5','Afiyet olsun şimdiden! Görüşürüz 💛','son']])];
+DLG.A.agaclar=[
+ AG103('gece',S=>S.h>=23||S.h<6,[['g','Alo?! {c}, bu saatte bir şey mi oldu? 😨',[['Yok anne, merak etme, iyiyim','ag1'],['Uyuyamadım, sesini duymak istedim','ag2',{bag:2}]]],
+   ['ag1','Ödümü kopardın! Uyuyordum ben',[['Uyandırdım mı? Özür dilerim','ag2']]],
+   ['ag2','Ben zaten gece uyanıyorum 😄 Sen niye uyumuyorsun?',[['Kafam biraz dolu','ag3'],['Dizi izliyordum','ag3']]],
+   ['ag3','Ilık süt iç, yat. Sabah ararım seni 💛',[['Tamam anne, iyi geceler','ag4',{mood:2}]]],
+   ['ag4','İyi geceler {c}, Allah rahatlık versin 🌙','son']]),
+ AG103('ozlem',S=>true,[['g','Alo {c}! Sesini duymayalı kaç gün oldu 💛',[['Seni çok özledim anne 🥺','ao1',{bag:3}],['Biraz yoğundum, kusura bakma','ao2']]],
+   ['ao1','Ben de seni {c}, gözüm yollarda',[['Hafta sonu geleceğim','ao3',{bag:3}],['Nasılsın, sağlığın iyi mi?','ao4']]],
+   ['ao2','Olur mu öyle, bir mesaj atsan yeter. Neyse, iyi misin?',[['İyiyim anne, sen?','ao4']]],
+   ['ao3','Gel de börek açayım sana 🥧',[['Ispanaklı olsun 😋','ao5',{mood:3}]]],
+   ['ao4','İyiyim iyiyim, tansiyon biraz oynuyor ama ilacımı içiyorum',[['Kendine dikkat et, gelince doktora gidelim','ao5',{bag:3}]]],
+   ['ao5','Tamam {c}, kendine iyi bak, Allah\'a emanet ol 💛','son']]),
+ AG103('yemek',S=>!S.siparis||S.h<23,[['g','Alo {c}, yemek yedin mi?',[['Daha yemedim anne','ay1'],['Yedim yedim, merak etme','ay2']]],
+   ['ay1','Olur mu öyle! Ne yiyeceksin?',[['Bir şey sipariş ederim','ay3'],['Senin tarifini dene diyorum','ay4']]],
+   ['ay2','Ne yedin bakayım? 🤨',[['Makarna…','ay4'],['Salata, hafif bir şey','ay4']]],
+   ['ay3','Dışarıdan yemek mideni bozar ama… bari çorba olsun',[['Tamam anne, mercimek çorbası söylerim','ay5',{siparis:['🥣 Mercimek çorbası',60]}],['Yok yok, kendim pişiririm','ay4']]],
+   ['ay4','Bak kolay bir tarif: zeytinyağlı taze fasulye. Soğanı kavur, domatesi ekle, kısık ateşte pişir',[['Not aldım anne 📝','ay5',{mood:3}]]],
+   ['ay5','Afiyet olsun {c}, gelince ben pişiririm sana 💛','son']]),
+ AG103('is',S=>S.h>=10,[['g','Alo {c}, işler nasıl gidiyor?',[['İyi gidiyor anne','ai1',{mood:2}],['Biraz zor bu ara','ai2']]],
+   ['ai1','Maşallah, nazar değmesin 🧿 Patron memnun mu?',[['Çok memnun, belki terfi bile var','ai3',{mood:3}]]],
+   ['ai2','Üzme kendini {c}, para her şey değil. Sağlığın önemli',[['Haklısın anne','ai3',{bag:2}]]],
+   ['ai3','Ben her gün dua ediyorum sana 🤲',[['Sağ ol anne, iyi ki varsın','ai4',{bag:3}]]],
+   ['ai4','Hadi kapatayım, faturaya yazmasın 😄 Öptüm','son']])];
+/* hafıza: aynı gün tekrarlanmayan seçimler, tamamlanan ağaçlar */
+let CALL103={f:{}};
+function cmem103(c){const F=CALL103.f[c]||(CALL103.f[c]={});return F}
+function cstate103(c){const F=cmem103(c),bb=BONDS[bkey(c)];return {h:H103(),bag:bb?bb.v:60,r:Math.random(),aksam:F.aksam===HOME.day,siparis:F.siparis===HOME.day,F:F}}
+function ctree103(c){const D=dlg(c);const L=(D&&D.agaclar)||[];const S=cstate103(c);if(S.h>=23||S.h<6){const g=L.find(t=>t.id==='gece');if(g)return g}
+  let cand=L.filter(t=>t.id!=='gece'&&t.kosul(S));const fresh=cand.filter(t=>(S.F.done||{})[t.id]!==HOME.day);if(fresh.length)cand=fresh;if(!cand.length)cand=L.filter(t=>t.id!=='gece');
+  const sor=cand.find(t=>t.id==='sorun'&&S.bag<55);return sor||pick(cand)}
+function cetki103(c,e){if(!e)return;const bb=BONDS[bkey(c)],F=cmem103(c);if(e.bag&&bb)bb.v=clamp(bb.v+e.bag,0,100);if(e.mood)mood=clamp(mood+e.mood,0,100);
+  if(e.gorev==='aksam'||e.gorev==='film'){if(F.aksam!==HOME.day){F.aksam=HOME.day;const id='ara_aksam_'+c+'_'+HOME.day;try{scnTask(id,e.gorev==='film'?'Akşam '+cName(c)+' ile film gecesi 🍿 (20:00)':'Akşam '+cName(c)+' ile buluşma 💙 (20:00)',e.gorev==='film'?'🍿':'💙')}catch(er){}try{memAdd('📞',cName(c)+' ile akşam planı yaptık')}catch(er){}}}
+  if(e.siparis){const [n,p]=e.siparis;if(F.siparis===HOME.day)return;F.siparis=HOME.day;if(!canPay(p)){toast('🛵 Bakiye yetmedi, sipariş verilemedi');return}pay(p);try{txNote67('🛵 '+n,'yemek')}catch(er){}toast('🛵 Sipariş verildi: '+n+' · −'+p+'🪙');
+    setTimeout(()=>{try{hunger=clamp(hunger+35,0,100);mood=clamp(mood+5,0,100);notify('🛵 Kapıda!',n+' geldi · afiyet olsun 😋',[{t:'😋',fn:()=>{}}])}catch(er){}},25000)}}
+/* --- arama: ağaç motoru (seçilen seçeneğin "git" düğümüne ilerler; asla başa dönmez) --- */
+vcall=function(c,inc,node){if(VC||!me)return false;if(!contacts().some(q=>q[0]===c))return false;
+  const b=vcBox(),av=el('div','cav'),img=vcImg(c);if(img){av.style.backgroundImage='url("'+img+'")'}else av.textContent=vcIcon(c);
+  b.appendChild(el('div','vnotch'));b.appendChild(av);b.appendChild(el('div','cnm',pnx(cName(c))));const st=el('div','cst',inc?'📞 arıyor…':'📞 aranıyor…');b.appendChild(st);
+  const log=el('div','vlog'),op=el('div','vop'),bt=el('div','cbt');b.appendChild(bt);
+  const V={c:c,inc:inc,t0:0,tm:null,rt:null,busy:false,n:0,end:null,path:[]};VC=V;
+  const stopRing=()=>{if(V.rt){clearInterval(V.rt);V.rt=null}clearTimeout(V.to);b.classList.remove('ring')};
+  const finish=(why)=>{if(V.end)return;V.end=why;stopRing();if(V.tm)clearInterval(V.tm);if(VC===V)VC=null;vcHide();const dur=V.t0?(performance.now()-V.t0)/1000:0;
+    if(why==='talk'){VCLOG.unshift([c,inc?'in':'out',HOME.day,hhmm(GT),dur]);CHT[c].log.push([inc?'in':'out','📞 Sesli arama · '+vcFmt(dur)]);toast('📞 Görüşme bitti · '+vcFmt(dur));if(V.tree&&V.done){const F=cmem103(c);(F.done||(F.done={}))[V.tree.id]=HOME.day}}
+    else if(why==='miss'){VCLOG.unshift([c,'miss',HOME.day,hhmm(GT),0]);CHT[c].log.push(['in','📵 Cevapsız arama']);const bb=BONDS[bkey(c)];if(bb)bb.v=clamp(bb.v-3,0,100);toast('📵 Cevapsız arama · '+cName(c));notify('📵 Cevapsız arama',cName(c)+' seni aradı · bağınız biraz azaldı',[{t:'📞 Geri ara',fn:()=>vcallOut(c)},{t:'Tamam',fn:()=>{}}])}
+    else if(why==='noans'){VCLOG.unshift([c,'noans',HOME.day,hhmm(GT),0]);toast('📵 '+cName(c)+' şu an açmadı')}if(VCLOG.length>20)VCLOG.length=20};
+  V.finish=finish;
+  const bub=(who,txt)=>{const m=el('div','vb '+who,pnx(fillC(txt)));log.appendChild(m);log.scrollTop=log.scrollHeight;requestAnimationFrame(()=>{log.scrollTop=log.scrollHeight});return m};
+  const them=(txt,cb)=>{V.busy=true;const ty=bub('th ty','• • •');setTimeout(()=>{if(V.end)return;ty.remove();bub('th',txt);try{sfx('blip')}catch(e){}V.busy=false;cb&&cb()},650+Math.min(900,txt.length*16))};
+  const down=()=>requestAnimationFrame(()=>{log.scrollTop=log.scrollHeight});
+  const show=(nd)=>{V.node=nd.id;V.path.push(nd.id);op.innerHTML='';op.scrollTop=0;
+    if(nd.son){V.done=1;const x=el('button','','Görüşürüz 👋');x.onclick=()=>{if(V.busy||V.end)return;op.innerHTML='';bub('me','Görüşürüz 👋');setTimeout(()=>finish('talk'),700)};op.appendChild(x);down();return}
+    let L=nd.secenekler.slice();const S=cstate103(c);const f=L.filter(o=>!((o.etki.gorev==='aksam'||o.etki.gorev==='film')&&S.aksam)&&!(o.etki.siparis&&S.siparis));if(f.length)L=f;
+    L.forEach(o=>{const x=el('button','',pnx(fillC(o.t)));x.onclick=()=>pickO(o);op.appendChild(x)});down()};
+  const pickO=(o)=>{if(V.busy||V.end)return;op.innerHTML='';V.n++;bub('me',o.t);cetki103(c,o.etki);const nx=V.tree.dugumler[o.git];if(!nx){V.done=1;them('Tamam, görüşürüz 👋',()=>show({id:'_son',son:true}));return}them(nx.npc,()=>show(nx))};
+  const start=()=>{stopRing();b.classList.add('talk');st.textContent='🟢 00:00';V.t0=performance.now();V.tm=setInterval(()=>{st.textContent='🟢 '+vcFmt((performance.now()-V.t0)/1000)},500);
+    b.insertBefore(log,bt);b.insertBefore(op,bt);bt.innerHTML='';const x=el('button','no vend','✖');x.title='Kapat';x.onclick=()=>finish('talk');bt.appendChild(x);
+    V.tree=ctree103(c);const nd=V.tree.dugumler[V.tree.bas];if(inc)bub('me','Alo? 📞');them(nd.npc,()=>show(nd))};
+  if(inc){b.classList.add('ring');V.rt=vcRingOn();const ans=el('button','ok','📞 Kabul'),rej=el('button','no','Reddet');bt.appendChild(ans);bt.appendChild(rej);ans.onclick=start;rej.onclick=()=>finish('miss');V.to=setTimeout(()=>{if(!V.t0&&!V.end)finish('miss')},20000)}
+  else{const x=el('button','no','Vazgeç');x.onclick=()=>finish('cancel');bt.appendChild(x);try{sfx('blip')}catch(e){}const bb=BONDS[bkey(c)],okA=(bb?bb.v:60)>15&&!(GT<7*60&&rnd()<.6);V.to=setTimeout(()=>{if(V.end)return;if(okA)start();else finish('noans')},1500+rnd()*1000)}
+  return true};
+{const _sv=save25;save25=function(){const o=_sv.apply(this,arguments);try{o.x103=CALL103}catch(e){}return o}}
+{const _ld=load25;load25=function(x){const r=_ld.apply(this,arguments);try{if(x&&x.x103&&x.x103.f)CALL103=x.x103}catch(e){}return r}}
+window.__call103={get V(){return VC},tree:ctree103,mem:cmem103,get M(){return CALL103},set M(v){CALL103=v}};
 /* ================= v90: bahçe & tarım görsel yenileme — tekrarsız çim, sürülmüş toprak, taş yol, lamba, bank, 3 evreli instanced bitkiler, rüzgâr, hasat animasyonu ================= */
 const U90={t:{value:0}};
 function sway90(col,o,amp){const m=std(col,Object.assign({roughness:.75},o||{}));const A=(amp||.03).toFixed(3);
