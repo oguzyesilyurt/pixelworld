@@ -9504,6 +9504,8 @@ window.__sr={get S(){return srS()},get F(){return FARM77},get inv(){return INV},
 /* ================= v83: Çiço senaryosu · Karşıyaka kafe + 2. şube (SCN.v.kafe) ================= */
 /* şube durumu: ilan → dekor → hazir (1 gün) → acilis (kurdele) → acik */
 const isCico83=()=>!!me&&me.key==='abla',kfS=()=>SCN.v.kafe||null,kfWho=()=>{const S=kfS();return S&&S.who||'abla'},kfOwner=()=>!!me&&!!kfS()&&me.key===kfWho();
+const KF_NM={abla:{bohem:'Çiço Bohem Kafe',modern:'ÇİÇO Coffee Lab',retro:'Çiço Retro Diner'},almira:{bohem:'Almira Bohem Kafe',modern:'ALMİRA Coffee Lab',retro:'Almira Retro Diner'}};
+function kfNm(k){const m=KF_NM[kfWho()];return m&&m[k]||KF_TH[k].nm}
 function kfOwned(S){S=S||kfS();return !!(S&&S.br&&[1,2].some(b=>S.br[b]&&S.br[b].st&&S.br[b].st!=='ilan'))}
 const KF_BR={1:{d:'karsiyaka',x:87,z:3,n:'Karşıyaka',p:300000,fix:560},2:{d:'bostanli',x:86,z:8,n:'Bostanlı',p:450000,fix:680}};
 const KF_TH={bohem:{n:'Bohem',ic:'🪴',d:'Makrome, bitkiler, kilim, sıcak ahşap · tatlılar daha çok satar, müşteri daha sabırlı',nm:'Çiço Bohem Kafe',wall:'#ead7bd',tile:['#c89a6a','#b98b5c'],aw:['#c86a3a','#f4e2c4'],sg:['#5a3a22','#f4e2c4'],acc:0xc86a3a,tab:0x9a6a42,ch:0xd8b07a},
@@ -9516,7 +9518,7 @@ const KF_MENU={turk:{n:'Türk kahvesi',e:'☕',p:45,st:['☕ Kahve','💧 Su','�
 const KF_PAD=['☕ Kahve','☕ Espresso','💧 Su','🥛 Süt','🫧 Köpük','🍫 Çikolata','🔥 Isıt','🍰 Dilim','🍓 Sos','🍫 Brownie','🍨 Dondurma','🍋 Limon','🧊 Buz'];
 LOANT67.isyeri=['🏪 İşyeri kredisi',.011,[104],600000];LOANT67.kosgeb=['🌱 KOSGEB girişimci kredisi',.013,[104],600000];
 function kfInit(){const S=kfS();if(!S)return null;if(!S.br)S.br={};if(S.rep==null)S.rep=60;if(!S.led)S.led={ciro:0,masraf:0};if(S.shifts==null)S.shifts=0;return S}
-const kfName=bid=>{const B=(kfS()||{br:{}}).br[bid];return B&&B.th?KF_TH[B.th].nm+(bid==2?' · Bostanlı':''):'Devren kiralık kafe'};
+const kfName=bid=>{const B=(kfS()||{br:{}}).br[bid];return B&&B.th?kfNm(B.th)+(bid==2?' · Bostanlı':''):'Devren kiralık kafe'};
 /* --- vitrin (dünya) --- */
 function kfDraw(bid){const R=KF_BR[bid],D0=D[R.d];if(!D0)return;const k='kfG'+bid;let G=D0[k];if(!G){G=new T.Group();G.userData.noCull=true;G.userData.dyn64=true;D0.G.add(G);D0[k]=G}
   while(G.children.length){const o=G.children.pop();o.traverse(q=>{if(q.geometry)q.geometry.dispose()})}D0.boxes=D0.boxes.filter(b=>b.kf!==bid);D0.spots=D0.spots.filter(s=>s.kf!==bid);D0.anim=D0.anim.filter(f=>f.kf!==bid);
@@ -9524,7 +9526,7 @@ function kfDraw(bid){const R=KF_BR[bid],D0=D[R.d];if(!D0)return;const k='kfG'+bi
   const pw=W,pc=C;W=G;C=null;const x=R.x,z=R.z,th=B.th?KF_TH[B.th]:null;
   try{building({x:x,z:z,w:9,d:6,floors:1,fh:3.8,wall:th?th.wall:'#d8d0c4',roof:0x6e6a78,seed:900+bid,lit:.9},G);
     if(th)awning(8.4,th.aw[0],th.aw[1],x,3,z+3.9);
-    const sm=new T.MeshBasicMaterial({map:textSign(th?th.nm:'DEVREN KİRALIK',8,1.3,th?th.sg[0]:'#c8222a',th?th.sg[1]:'#ffffff')});signMats.push(sm);const sp=new T.Mesh(new T.PlaneGeometry(8,1.3),sm);sp.position.set(x,4.35,z+3.08);G.add(sp);
+    const sm=new T.MeshBasicMaterial({map:textSign(th?kfNm(B.th):'DEVREN KİRALIK',8,1.3,th?th.sg[0]:'#c8222a',th?th.sg[1]:'#ffffff')});signMats.push(sm);const sp=new T.Mesh(new T.PlaneGeometry(8,1.3),sm);sp.position.set(x,4.35,z+3.08);G.add(sp);
     box(1.3,2.4,.1,mt(th?th.acc:0x5a4a3a),x+2.6,1.2,z+3.06,G);box(.08,.08,.06,mt(0xe8c860),x+3.1,1.2,z+3.13,G);box(4.6,2,.06,mrsGlass(),x-1.4,1.45,z+3.06,G);
     if(B.st==='ilan'){const im=new T.MeshBasicMaterial({map:textSign('DEVREN KİRALIK',3,1,'#ffffff','#c8222a')});const ip=new T.Mesh(new T.PlaneGeometry(3,1),im);ip.position.set(x-1.4,1.6,z+3.11);G.add(ip);
       const lb=labelSprite('🏪 Devren kiralık kafe · '+R.p.toLocaleString('tr-TR')+'🪙');lb.scale.set(4.2,1,1);lb.position.set(x,6,z+3);G.add(lb)}
@@ -9537,7 +9539,7 @@ function kfDraw(bid){const R=KF_BR[bid],D0=D[R.d];if(!D0)return;const k='kfG'+bi
     if(B.st==='acik'&&th){[[-1,5.4],[-3.6,5.4]].forEach(p=>{cyl(.4,.4,.05,12,mt(th.tab),x+p[0],.78,z+p[1],G);cyl(.04,.06,.76,6,mt(0x333333),x+p[0],.38,z+p[1],G);[-.7,.7].forEach(o=>{box(.45,.06,.45,mt(th.ch),x+p[0]+o,.48,z+p[1],G);box(.06,.5,.45,mt(th.ch),x+p[0]+o*1.45,.72,z+p[1],G)})});
       [-4.2,4.2].forEach(o=>{cyl(.35,.28,.6,10,mt(th.acc),x+o,.3,z+3.7,G);mrsBush(G,x+o,z+3.7,.6,0x4a8a3a).position.y=.85});
       box(.7,1.1,.06,mt(0x2a2a2a),x+4.6,.8,z+5,G);const mb=new T.Mesh(new T.PlaneGeometry(.6,.9),new T.MeshBasicMaterial({map:canvasTex(64,96,(g,w,h)=>{g.fillStyle='#2a2a2a';g.fillRect(0,0,w,h);g.fillStyle='#fff';g.font='bold 12px Trebuchet MS';g.fillText('MENÜ',14,16);g.font='10px Trebuchet MS';['Latte 60','Mocha 65','Türk 45','Cheese 70','Limon. 40'].forEach((t,i)=>g.fillText(t,6,34+i*13))})}));mb.position.set(x+4.6,.85,z+5.04);G.add(mb);
-      const lb=labelSprite('☕ '+th.nm);lb.scale.set(3.4,.85,1);lb.position.set(x,6,z+3);G.add(lb)}
+      const lb=labelSprite('☕ '+kfNm(B.th));lb.scale.set(3.4,.85,1);lb.position.set(x,6,z+3);G.add(lb)}
   }catch(e){scnErr(e)}finally{W=pw;C=pc}
   G.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;o.userData.noMerge=true}});
   D0.boxes.push({x:x,z:z,hx:4.7,hz:3.2,kf:bid});D0.spots.push({x:x+2.6,z:z+4.6,r:2.4,kf:bid,get t(){return kfSpotT(bid)},fn:()=>kfSpot(bid)})}
@@ -9554,8 +9556,8 @@ function kfBuy(bid,how){const S=kfInit(),R=KF_BR[bid],B=S.br[bid],P=R.p;if(!conf
   if(how==='pesin'){if(coins<P){toast('Bakiye yetersiz');return}coins-=P;try{txNote67('🏪 Kafe devri · '+R.n,'gider')}catch(e){}}
   else{const down=how==='kredi'?Math.round(P*.1):0;if(coins<down){toast('Peşinat için bakiye yetersiz');return}coins-=down;const o=loanOffer67(how==='kredi'?'isyeri':'kosgeb',P-down,104);loanGrant67(o,'Kafe · '+R.n);try{txNote67(LOANT67[o.type][0]+' · kafe','kredi')}catch(e){}toast('🏦 Kredi onaylandı · haftalık '+o.inst.toLocaleString('tr-TR')+'🪙 × 104')}
   sfx('coin');B.st='dekor';B.buy=HOME.day;scnTaskDone('kf_ilan'+bid);try{memAdd('🏪',R.n+'\'daki kafeyi devraldım!')}catch(e){}mood=clamp(mood+10,0,100);kfDraw(bid);try{saveGame()}catch(e){}setTimeout(()=>kfTheme(bid),600)}
-function kfTheme(bid){scnCards({title:'🎨 Dekorasyon teması · '+KF_BR[bid].n,sub:'Tema kafenin havasını ve müşterilerini belirler. Ustalar 1 günde bitirir.',cards:Object.keys(KF_TH).map(k=>{const t=KF_TH[k];return {img:kfThumb(k),ic:t.ic,t:t.n+' · '+t.nm,d:t.d,price:'dahil',fn:()=>kfThemeSet(bid,k)}}),cancel:'Sonra seçerim'})}
-function kfThemeSet(bid,k){const S=kfS(),B=S.br[bid];B.th=k;B.st='hazir';scnTimer('kfDekor'+bid,1,'🎨 '+KF_TH[k].nm+' dekorasyonu');scnTask('kf_acilis'+bid,'Dekorasyon bitince '+KF_BR[bid].n+'\'daki kafede açılış yap','✂️');kfDraw(bid);try{saveGame()}catch(e){}toast('🎨 '+KF_TH[k].n+' tema seçildi · yarın açılışa hazır')}
+function kfTheme(bid){scnCards({title:'🎨 Dekorasyon teması · '+KF_BR[bid].n,sub:'Tema kafenin havasını ve müşterilerini belirler. Ustalar 1 günde bitirir.',cards:Object.keys(KF_TH).map(k=>{const t=KF_TH[k];return {img:kfThumb(k),ic:t.ic,t:t.n+' · '+kfNm(k),d:t.d,price:'dahil',fn:()=>kfThemeSet(bid,k)}}),cancel:'Sonra seçerim'})}
+function kfThemeSet(bid,k){const S=kfS(),B=S.br[bid];B.th=k;B.st='hazir';scnTimer('kfDekor'+bid,1,'🎨 '+kfNm(k)+' dekorasyonu');scnTask('kf_acilis'+bid,'Dekorasyon bitince '+KF_BR[bid].n+'\'daki kafede açılış yap','✂️');kfDraw(bid);try{saveGame()}catch(e){}toast('🎨 '+KF_TH[k].n+' tema seçildi · yarın açılışa hazır')}
 [1,2].forEach(bid=>scnTimerOn('kfDekor'+bid,()=>{const S=kfS(),B=S&&S.br[bid];if(!B||B.st!=='hazir')return;B.st='acilis';kfDraw(bid);try{saveGame()}catch(e){}
   notify('🎨 Dekorasyon ekibi','Kafeniz hazır Çiço Hanım! '+KF_BR[bid].n+'\'da kurdele, balonlar her şey hazır, açılışı bekliyoruz ✂️🎈',[{t:'Tamam',fn:()=>{}}])}));
 /* tema küçük resmi (kart görseli) */
@@ -9610,7 +9612,7 @@ function kfInt(I,bid){const S=kfInit(),B=S.br[bid]||{},th=KF_TH[B.th||'bohem'],k
     const gl=new T.Mesh(new T.PlaneGeometry(.8,.7),new T.MeshBasicMaterial({color:0xff7ab0}));gl.position.set(-.61,1.2,0);gl.rotation.y=-Math.PI/2;jb.add(gl);I.boxes.push({x:9.2,z:3.2,hx:.5,hz:.7});
     I.spots.push({x:8.2,z:3.2,r:1.2,t:'E: 📻 Pikaptan şarkı seç',fn:()=>{mood=clamp(mood+4,0,100);toast(pick(['🎵 Elvis çalıyor','🎵 Sezen Aksu · Firuze','🎵 Barış Manço · Gülpembe','🎵 Ajda Pekkan · Bambaşka Biri']))}});
     const ns=new T.Mesh(new T.PlaneGeometry(3,.9),new T.MeshBasicMaterial({map:textSign('OPEN · AÇIK',3,.9,'#1a1020','#ff5ab0')}));ns.position.set(-3,2.6,-6.82);W.add(ns)}
-  {const sg=labelSprite('☕ '+th.nm);sg.scale.set(3,.75,1);sg.position.set(0,3.6,-6.4);W.add(sg)}}
+  {const sg=labelSprite('☕ '+kfNm(k));sg.scale.set(3,.75,1);sg.position.set(0,3.6,-6.4);W.add(sg)}}
 function kfLedger(){const S=kfS(),L=S.led,ds=(S.days||[]).slice(-5);const A=[['⭐','Müşteri memnuniyeti: %'+S.rep+(S.rep>=70?' · harika!':S.rep>=50?' · iyi':' · geliştirilmeli'),()=>{}],['💰','Toplam ciro: '+L.ciro.toLocaleString('tr-TR')+'🪙 · masraf: '+L.masraf.toLocaleString('tr-TR')+'🪙',()=>{}],['🧑‍🍳','Vardiya sayısı: '+S.shifts,()=>{}]];
   ds.forEach(d=>A.push(['📅','Gün '+d.d+' · net '+(d.net>=0?'+':'')+d.net.toLocaleString('tr-TR')+'🪙',()=>{}]));
   [1,2].forEach(b=>{const B=S.br[b];if(B&&B.st==='acik')A.push(['🏪',kfName(b)+' · sabit gider '+KF_BR[b].fix+'🪙/gün',()=>{}])});
@@ -9630,7 +9632,7 @@ function kfLedger(){const S=kfS(),L=S.led,ds=(S.days||[]).slice(-5);const A=[['�
 #scnov .kfg .go.r{background:#e0484a}#scnov .kfg .go.g{background:transparent;border:1px solid rgba(255,255,255,.25)}#scnov .kflog{font-size:12px;opacity:.85;max-height:70px;overflow:auto;margin-top:6px;line-height:1.45}`;document.head.appendChild(st)})();
 function kfShift(bid){if(busy||SCN_UI)return;const S=kfS(),B=S.br[bid];if(B.sh===HOME.day){toast('☕ Bugünkü vardiyanı bitirdin · personel akşama kadar idare eder');return}
   const k=B.th||'bohem',th=KF_TH[k],FACES=['👩','👨','👵','👴','🧕','👱‍♀️','🧔','👩‍🦱','🧑‍🎓','👨‍💼','👩‍💻','🧑'];const ov=scnOpen();uiPC=true;const w=el('div','kfg');ov.appendChild(w);
-  w.appendChild(el('h3','','☕ '+th.nm+' · vardiya'));w.appendChild(el('div','sb','Bir müşteriye dokun, siparişindeki adımları SIRAYLA bas. Yanlış adım ürünü bozar (malzeme zayi). Sabır bitmeden servis et!'));
+  w.appendChild(el('h3','','☕ '+kfNm(k)+' · vardiya'));w.appendChild(el('div','sb','Bir müşteriye dokun, siparişindeki adımları SIRAYLA bas. Yanlış adım ürünü bozar (malzeme zayi). Sabır bitmeden servis et!'));
   const q=el('div','kfq'),pp=el('div','kfp'),pad=el('div','kfpad'),sts=el('div','kfs'),go=el('button','go','☕ Vardiyayı başlat (90 sn)'),cl=el('button','go g','Kapat'),log=el('div','kflog');[q,pp,pad,sts,go,cl,log].forEach(x=>w.appendChild(x));
   let open=false,t=90,iv=null,spawnT=0,ciro=0,cost=0,served=0,angry=0,satSum=0,mist=0,tips=0,sel=null,stp=0,nid=0;const cust=[];
   const addLog=s=>{log.insertBefore(el('div','',s),log.firstChild)};
@@ -9659,15 +9661,21 @@ function kfShift(bid){if(busy||SCN_UI)return;const S=kfS(),B=S.br[bid];if(B.sh==
 /* --- gün sonu: personel geliri, sabit giderler, 2. şube fırsatı --- */
 {const _nd=newDay;newDay=function(){const r=_nd.apply(this,arguments);try{kfDaily()}catch(e){scnErr(e)}return r}}
 function kfDaily(){const S=kfS();if(!S||!S.br)return;let lines=[],tot=0;[1,2].forEach(bid=>{const B=S.br[bid];if(!B||B.st!=='acik')return;const R=KF_BR[bid];
-    const rev=Math.round((600+S.rep*10)*(bid==2?1.15:1)*(.9+Math.random()*.2)),ing=Math.round(rev*.3),net=rev-ing-R.fix;coins+=net;S.led.ciro+=rev;S.led.masraf+=ing+R.fix;tot+=net;lines.push(R.n+': ciro '+rev+' · masraf '+(ing+R.fix)+' · '+(net>=0?'+':'')+net+'🪙')});
+    const rev=Math.round((600+S.rep*10)*(bid==2?1.15:1)*(S.nurse==='istifa'?1.15:1)*(.9+Math.random()*.2)),ing=Math.round(rev*.3),net=rev-ing-R.fix;coins+=net;S.led.ciro+=rev;S.led.masraf+=ing+R.fix;tot+=net;lines.push(R.n+': ciro '+rev+' · masraf '+(ing+R.fix)+' · '+(net>=0?'+':'')+net+'🪙')});
   if(lines.length){tot+=(S.today|0);S.days=(S.days||[]).concat([{d:HOME.day-1,net:tot}]).slice(-14);S.today=0;try{txNote67('☕ Kafe gün sonu','gelir')}catch(e){}setTimeout(()=>notify('☕ Kafe · gün sonu',lines.join(' | ')+' · memnuniyet %'+S.rep,[{t:'Tamam',fn:()=>{}}]),8000)}
   if(S.br[1]&&S.br[1].st==='acik'&&!S.br[2]&&S.rep>=70&&S.shifts>=3){S.br[2]={st:'ilan'};kfDraw(2);try{saveGame()}catch(e){}setTimeout(()=>{scnTask('kf_sube2','Bostanlı\'daki 2. şube fırsatını değerlendir','📈');
-    notify('❤️ Gökhan','Aşkım müşteriler bayılıyor, puanın %'+S.rep+'! Bostanlı sahilde, festival alanının ilerisinde devren bir dükkân var. 2. şube? 😍',[{t:'İlana bak',fn:()=>kfIlan(2)},{t:'Sonra',fn:()=>{}}])},12000)}}
+    const X=KF_INTRO[kfWho()]||KF_INTRO._;notify(X.sube[0],X.sube[1].replace('{rep}',S.rep),[{t:'İlana bak',fn:()=>kfIlan(2)},{t:'Sonra',fn:()=>{}}])},12000)}}
 /* --- kafe hikâyesi: genel başlatıcı (kim = karakter anahtarı). v93: Çiço'dan kaldırıldı, Almira'ya bağlanacak --- */
 const KF_INTRO={abla:{mail:['📧 Ege Holding · İK','Terfi sonuçları açıklandı: Satış Müdürlüğü\'ne Selin Aydın atanmıştır. Katkılarınız için teşekkür ederiz.'],say:'Yine mi ben değilim?! 😞',mood:12,
     call:{from:'Gökhan ❤️',ic:'👨🏻',msg:['Gökhan: Aşkım? Sesin bir tuhaf geliyor…','Çiço: Terfiyi yine Selin aldı. Yıllardır o şirkete emek veriyorum Gökhan… 😞','Gökhan: Boş ver onları. Hep "bir gün kendi kafemi açacağım" demiyor muydun?','Çiço: Diyordum ama… para, risk… ya batarsa?','Gökhan: Karşıyaka çarşıda, Arena\'nın yanında devren kiralık bir kafe ilanı gördüm. Peşin olmazsa banka ya da KOSGEB kredisi var. Bir bak bence, ben hep arkandayım ❤️','Çiço: Tamam… bakacağım! ☕']},
-    rej:'Aşkım telefonu açmadın 🙁 Terfiyi duydum, üzülme. Karşıyaka çarşıda devren kiralık bir kafe var, Arena\'nın yanında. Kendi işini kur, ben arkandayım ❤️'},
-  _:{say:'Kendi kafemi açsam mı? ☕',mood:0,call:{from:'Emlakçı Kemal',ic:'🏪',msg:['Kemal: Merhaba! Kafe arıyordunuz değil mi?','Kemal: Karşıyaka çarşıda, Arena\'nın yanında devren kiralık bir kafe var. Peşin olmazsa banka ya da KOSGEB kredisi de olur.','Kemal: Bir uğrayın, beğenirsiniz ☕']},rej:'Karşıyaka çarşıda, Arena\'nın yanında devren kiralık bir kafe var. Uğrarsanız gösteririm ☕'}};
+    rej:'Aşkım telefonu açmadın 🙁 Terfiyi duydum, üzülme. Karşıyaka çarşıda devren kiralık bir kafe var, Arena\'nın yanında. Kendi işini kur, ben arkandayım ❤️',
+    sube:['❤️ Gökhan','Aşkım müşteriler bayılıyor, puanın %{rep}! Bostanlı sahilde, festival alanının ilerisinde devren bir dükkân var. 2. şube? 😍']},
+  almira:{mail:['🏥 Kocaeli Şehir Hastanesi · Nöbet listesi','Bu hafta 6 nöbet + 2 ek gece nöbeti yazılmıştır. Personel eksikliği nedeniyle izinler iptal edilmiştir.'],say:'Yine mi ek nöbet?! Ayakta uyuyorum 😩',mood:12,
+    call:{from:'Berke 💜',ic:'👨🏻‍🦲',msg:['Berke: Aşkım, sesin çok yorgun geliyor… iyi misin?','Almira: İki ek gece nöbeti daha yazdılar Berke. Bittim artık 😩','Berke: Hep "bir gün kendi kafemi açacağım, içerisi tarçınlı kahve kokacak" demiyor muydun?','Almira: Diyordum ama… hemşireliği bırakmak? Ya batarsa?','Berke: İzmir\'e her gidişimizde Karşıyaka çarşıya bayılıyorsun. Arena\'nın yanında devren kiralık bir kafe ilanı gördüm. Peşin olmazsa banka kredisi var. Hemşireliği hemen bırakmak zorunda da değilsin.','Almira: Bir bakayım o zaman… ☕💜']},
+    rej:'Aşkım açmadın, nöbettesin herhalde 💜 Karşıyaka çarşıda Arena\'nın yanında devren kiralık bir kafe var. Hayalindeki kafe olabilir, bir bak! Ben arkandayım',
+    sube:['💜 Berke','Aşkım kafe çok tuttu, puanın %{rep}! Bostanlı sahilde, festival alanının ilerisinde devren bir dükkân var. 2. şube açalım mı? 😍']},
+
+  _:{say:'Kendi kafemi açsam mı? ☕',mood:0,call:{from:'Emlakçı Kemal',ic:'🏪',msg:['Kemal: Merhaba! Kafe arıyordunuz değil mi?','Kemal: Karşıyaka çarşıda, Arena\'nın yanında devren kiralık bir kafe var. Peşin olmazsa banka ya da KOSGEB kredisi de olur.','Kemal: Bir uğrayın, beğenirsiniz ☕']},rej:'Karşıyaka çarşıda, Arena\'nın yanında devren kiralık bir kafe var. Uğrarsanız gösteririm ☕',sube:['🏪 Emlakçı Kemal','Kafeniz çok tuttu, puanınız %{rep}! Bostanlı sahilde, festival alanının ilerisinde devren bir dükkân var. 2. şube? 😍']}};
 function kafeStart(kim){kim=kim||(me&&me.key);SCN.v.kafe={st:'call',d:HOME.day,who:kim};kfInit();const X=KF_INTRO[kim]||KF_INTRO._;
   const go=()=>{const S=kfS();S.st='ilan';S.br[1]={st:'ilan'};scnTask('kf_ilan1','Karşıyaka çarşıdaki devren kiralık kafeye bak (Arena\'nın yanı)','🏪');kfDraw(1);try{saveGame()}catch(e){}};
   if(X.mail)notify(X.mail[0],X.mail[1],[{t:'…',fn:()=>{}}]);try{say(player,X.say,3)}catch(e){}mood=clamp(mood-(X.mood||0),0,100);
@@ -9681,6 +9689,29 @@ function kfMigrate(){const S=kfS();if(S&&!S.who){if(kfOwned(S))S.who='abla';else
   if(S){kfInit();if(S.st==='call'){S.st='ilan';S.br[1]=S.br[1]||{st:'ilan'};if(!SCN.tasks.find(q=>q.id==='kf_ilan1'))SCN.tasks.push({id:'kf_ilan1',t:"Karşıyaka çarşıdaki devren kiralık kafeye bak (Arena'nın yanı)",ic:'🏪',done:false,day:HOME.day})}
   [1,2].forEach(b=>{const B=S.br[b];if(B&&B.st==='hazir'&&!SCN.timers['kfDekor'+b])B.st='acilis'})}}catch(e){}return r}}
 window.__kf={start:kafeStart,owned:kfOwned,mig:kfMigrate,get S(){return kfS()},draw:kfDraw,ilan:kfIlan,buy:kfBuy,theme:kfThemeSet,ribbon:kfRibbon,shift:kfShift,daily:kfDaily,menu:KF_MENU};
+/* ================= v94: Almira senaryosu · hayalindeki kafe (SCN.v.kafe, who='almira') + hemşirelik kararı ================= */
+const KF_SAL0=Object.assign({},SAL),KF_NURSE_D=[2,5];/* yarı zamanlı: Salı + Cuma */
+const isAlmiraKf=()=>!!me&&me.key==='almira'&&!!kfS()&&kfWho()==='almira';
+function kfNurseSal(){const S=kfS();if(!isAlmiraKf()||!S.nurse)return;if(S.salBase==null)S.salBase=KF_SAL0.almira||2300;SAL.almira=S.nurse==='yari'?Math.round(S.salBase*.4/10)*10:0}
+function kfNurseAsk(){const S=kfS();if(!isAlmiraKf()||S.nurse)return;const b=KF_SAL0.almira||2300,y=Math.round(b*.4/10)*10;scnTask('kf_hemsire','Hemşirelik kararı: yarı zamanlı mı, istifa mı?','🩺');
+  scnCards({title:'🩺 Hemşirelik ne olacak?',sub:'Kafe açıldı! Kocaeli Şehir Hastanesi\'ndeki işin için karar verme zamanı. Şu anki maaşın '+b.toLocaleString('tr-TR')+'🪙 / 10 gün.',cancel:false,
+    cards:[{ic:'🩺',t:'Yarı zamanlı devam et',d:'Haftada 2 nöbet (Salı + Cuma, 08:00 – 16:00) · maaşın %40\'ı · güvence kalsın',price:y.toLocaleString('tr-TR')+' 🪙/10 gün',fn:()=>kfNurseSet('yari')},
+      {ic:'☕',t:'İstifa et',d:'Tüm zamanını kafeye ver · maaş yok ama kafe cirosu +%15 · nöbet stresi biter',price:'0 🪙 maaş',fn:()=>kfNurseSet('istifa')}]})}
+function kfNurseSet(k){const S=kfS();if(!S)return;S.nurse=k;S.nurseD=HOME.day;kfNurseSal();scnTaskDone('kf_hemsire');try{saveGame()}catch(e){}
+  if(k==='yari'){memAdd('🩺','Hemşireliğe yarı zamanlı devam ediyorum');notify('🏥 Başhemşire','Seni kaybetmediğimize çok sevindik Almira 💜 Bundan sonra nöbetlerin Salı ve Cuma.',[{t:'💜',fn:()=>{}}])}
+  else{mood=clamp(mood+10,0,100);memAdd('☕','Hastaneden istifa ettim · artık tam zamanlı kafeciyim');notify('🏥 Başhemşire','Seni çok özleyeceğiz Almira 🥹 Yolun açık olsun, kafene ilk biz geleceğiz ☕',[{t:'💜',fn:()=>{}}]);
+    setTimeout(()=>{try{addMsg('ogus','in','Aşkım gurur duyuyorum! Artık senin kafen, senin kuralların ☕💜');toast('💬 Berke: Aşkım gurur duyuyorum! ☕💜')}catch(e){}},5000)}}
+/* nöbet kısıtları */
+{const _nd=nurseDesk;nurseDesk=function(I){const S=kfS();if(isAlmiraKf()&&S.nurse==='istifa'){toast('🩺 Hastaneden istifa ettin · artık tam zamanlı kafecisin ☕');return}
+  if(isAlmiraKf()&&S.nurse==='yari'&&KF_NURSE_D.indexOf(wday())<0){toast('🩺 Yarı zamanlı nöbetlerin Salı ve Cuma 08:00 – 16:00 · bugün kafe günü ☕');return}return _nd.apply(this,arguments)}}
+{const _pd=payday;payday=function(){const S=kfS();if(isAlmiraKf()&&S.nurse==='istifa')return;return _pd.apply(this,arguments)}}
+/* açılış kurdelesinden sonra karar */
+let kfNurseT=0;setInterval(()=>{try{const S=kfS();if(!isAlmiraKf()||S.nurse||!S.br||!S.br[1]||S.br[1].st!=='acik'||!scnFree()){kfNurseT=0;return}if(++kfNurseT>=3){kfNurseT=0;kfNurseAsk()}}catch(e){}},1000);
+scnAdd('kafeAlmira',{after:3,cond:()=>!!me&&me.key==='almira'&&!kfS(),fire:()=>kafeStart('almira')});
+
+{const _ld=load25;load25=function(x){const r=_ld.apply(this,arguments);try{if(me&&me.key==='almira'||(x&&x.x80&&x.x80.scn&&x.x80.scn.v&&x.x80.scn.v.kafe&&x.x80.scn.v.kafe.who==='almira')){const S=kfS();if(S&&S.who==='almira'){if(S.nurse){if(S.salBase==null)S.salBase=KF_SAL0.almira||2300;SAL.almira=S.nurse==='yari'?Math.round(S.salBase*.4/10)*10:0}}}}catch(e){}return r}}
+scnResetHook.push(()=>{try{if(me&&me.key==='almira')SAL.almira=KF_SAL0.almira}catch(e){}});
+window.__alm={get S(){return kfS()},ask:kfNurseAsk,set:kfNurseSet,get sal(){return SAL.almira},desk:I=>nurseDesk(I),nm:kfNm};
 /* ================= v93: Çiço senaryosu · terfi (SCN.v.terfi) ================= */
 /* durum: call → karar → sinav (sunum|mülakat) → retry? → done · seçim: a = aynı firmada müdür, b = headhunter · bölge direktörü */
 const tcS=()=>SCN.v.terfi||null;
