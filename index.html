@@ -1761,7 +1761,7 @@ function estateSign(L){const g=new T.Group();g.position.set(L.at[0],0,L.at[1]);W
   const mine=isMine(L.id),txt=mine?'EVİN 🔑':(L.deal==='kira'?'KİRALIK':'SATILIK'),bg=mine?'#3a8a4a':(L.deal==='kira'?'#c8322a':'#2a6fb0');
   const sm=new T.MeshBasicMaterial({map:textSign(txt,1.8,.7,bg,'#ffffff'),side:T.DoubleSide});signMats.push(sm);const sg=new T.Mesh(new T.PlaneGeometry(1.8,.7),sm);sg.position.set(0,2.5,0);sg.rotation.y=-Math.PI/4;g.add(sg);
   const lb=labelSprite(L.deal==='kira'?L.rent+'🪙/hafta':Math.round(L.price/1000)+'B 🪙');lb.scale.set(2.2,.55,1);lb.position.set(0,3.3,0);g.add(lb);L.sign={m:sm};
-  C.boxes.push({x:L.at[0],z:L.at[1],hx:.2,hz:.2});C.spots.push({x:L.at[0],z:L.at[1]+1.2,r:2.6,get t(){return isMine(L.id)?'E: Evine gir 🔑':'E: İlanı incele · '+L.n+' 🏠'},fn:()=>isMine(L.id)?enter('ev_p_'+L.id):estateOpen(L.id)})}
+  C.boxes.push({x:L.at[0],z:L.at[1],hx:.2,hz:.2});C.spots.push({x:L.at[0],z:L.at[1]+1.2,r:2.6,get t(){return !isMine(L.id)?'E: İlanı incele · '+L.n+' 🏠':leased95(L.id)?'👤 '+L.n+' · kirada (kiracın oturuyor)':'E: 🏠 '+trDat(L.n)+' gir'+(HOME.cur==='ev_p_'+L.id?' · evin':'')},fn:()=>!isMine(L.id)?estateOpen(L.id):leaseBlock95('ev_p_'+L.id)?0:enter('ev_p_'+L.id)})}
 function estateMarkers(){if(!C||!C.name)return;LIST.filter(L=>L.d===C.name).forEach(L=>{try{estateSign(L)}catch(e){console.error("estate",L.id,e.message)}})}
 function refreshSigns(){LIST.forEach(L=>{if(!L.sign)return;const mine=isMine(L.id);L.sign.m.map=textSign(mine?'EVİN 🔑':(L.deal==='kira'?'KİRALIK':'SATILIK'),1.8,.7,mine?'#3a8a4a':(L.deal==='kira'?'#c8322a':'#2a6fb0'),'#ffffff');L.sign.m.needsUpdate=true})}
 function modernVilla(x,z){ground(x,z+1,16,15,repeatMat(grassTex,2,2,1),.05);const wh=mt(0xf4f2ee),wd=mt(0x9a6a42),gl=new T.MeshStandardMaterial({color:0x5a7a98,roughness:.1,metalness:.3});
@@ -3253,12 +3253,12 @@ function initMenu(){const box=$('pkchars');box.innerHTML='';CHORDER.forEach(c=>{
 function save25(){return {x51:{kart:KART,kamp:KAMP},x49:{hotel:HOTEL},x44:{disc:DISC},x39:{tcat:TCAT,lnk:LNK,gky:GKY,use:USE39,cmv:CARMV39},x38:{lease:LEASE,lstat:LSTAT,lego:LEGO,dn:DN,dream:DREAM,g:G38},reno:RENO,trip:TRIP,tats:TATS,know:KNOW,staff:STAFF,sec:SEC,grow:GROW,genre:GENRE,ill:ILL,pill:PILL,nb:Object.fromEntries(Object.keys(NB).map(k=>[k,NB[k].v])),nbhelp:NBHELP,broken:BROKEN,jobs:JOBS.map(j=>({k:j.k,eta:j.eta,st:j.st})),stats:STATS,mem:MEM,ach:ACHV,trips:TRIPS,inclast:INC.last,card:CARD,cars:OWNCARS,carKey:me&&me.carKey,ch:me&&me.key,tk:TICKETS,name:me&&me.n,need:NEED,gt:GT,sk:SK,depo:DEPO,inv:INV,goals:GOALS,cur:HOME.cur,home:me&&me.home,og:OG.where==='comp'?'home':OG.where,
   ord:ORD.filter(o=>o.st!=='alindi').map(o=>({id:o.id,k:o.k,i:o.i,n:o.n,e:o.e,items:o.items,two:o.two,addr:o.addr,t0:o.t0,eta:o.eta,st:o.st}))}}
 function load25(x){try{if(x.x51){if(x.x51.kart)Object.assign(KART,x.x51.kart);if(x.x51.kamp)Object.assign(KAMP,x.x51.kamp)}if(x.x49&&x.x49.hotel)HOTEL=x.x49.hotel;if(x.x44&&x.x44.disc)DISC=x.x44.disc;if(x.x39){const q=x.x39;if(q.tcat)TCAT=q.tcat;if(q.lnk)LNK=q.lnk;if(q.gky)Object.assign(GKY,q.gky);if(q.use)USE39=q.use;if(q.cmv)CARMV39=q.cmv}if(x.x38){const q=x.x38;if(q.lease)LEASE=q.lease;if(q.lstat)LSTAT=q.lstat;if(q.lego)LEGO=q.lego;if(q.dn)Object.assign(DN,q.dn);if(q.dream)DREAM=q.dream;if(q.g)Object.assign(G38,q.g)}if(x.reno)RENO=x.reno;if(x.trip!==undefined)TRIP=x.trip;if(x.tats){TATS=x.tats;TATP=null}if(x.know)KNOW.push(...x.know);if(x.staff)STAFF=x.staff;if(x.sec!==undefined)SEC=x.sec;if(x.grow)GROW=x.grow;if(x.ill!==undefined)ILL=x.ill;if(x.pill!==undefined)PILL=x.pill;if(x.nb)Object.keys(x.nb).forEach(k=>{if(NB[k])NB[k].v=x.nb[k]});if(x.nbhelp)NBHELP=x.nbhelp;if(x.broken)BROKEN=x.broken;if(x.jobs)JOBS=x.jobs;if(x.stats)Object.assign(STATS,x.stats);if(x.mem)MEM.push(...x.mem);if(x.ach)Object.assign(ACHV,x.ach);if(x.trips)TRIPS=x.trips;if(x.inclast!=null)INC.last=x.inclast;if(x.card)R25.card=x.card;if(x.cars)R25.cars=x.cars;if(x.carKey)R25.carKey=x.carKey;if(x.tk)Object.assign(TICKETS,x.tk);if(x.name)PNAME=x.name;if(x.need)Object.assign(NEED,x.need);if(typeof x.gt==='number')GT=x.gt;if(x.sk)Object.assign(SK,x.sk);if(x.depo)DEPO=x.depo.filter(k=>FURN[k]);if(x.inv)INV=x.inv;if(x.goals)GOALS=x.goals;
-  if(x.cur&&(x.cur==='ev_cigli'||x.cur==='ev_karabaglar'||x.cur==='ev_koc_ust'||(x.cur.indexOf('ev_p_')===0&&isMine(x.cur.slice(5)))))HOME.cur=x.cur;if(x.home)R25.home=x.home;if(x.ord)ORD=x.ord}catch(e){}}
-function homeSpawn(){if(HOME.cur==='ev_cigli'||HOME.cur==='ev_karabaglar'||HOME.cur==='ev_koc_ust'||!activeD)return D[me.home].spawn;const P=resInfo(HOME.cur);return [P.door[0]+1.2,P.door[1]+1.6]}
+  if(x.cur&&homeValid(x.cur))HOME.cur=x.cur;if(x.home)R25.home=x.home;if(x.ord)ORD=x.ord}catch(e){}}
+function homeSpawn(){if(isBaseHome(HOME.cur)||!activeD)return D[me.home].spawn;const P=resInfo(HOME.cur);return [P.door[0]+1.2,P.door[1]+1.6]}
 
 /* ---------- oyun başlangıcı ve kare döngüsü kancası ---------- */
 function start25(){ogInit();if(!GOALS||GOALS.day!==HOME.day)goalsNewDay();$('pname').textContent=me.n;applyAudio();applyQ();showCtrl();setTime(SET.sky==='clock'?skyFor():SET.sky);
-  if(HOME.cur!=='ev_cigli'&&me.home!==resInfo(HOME.cur).d)me.home=resInfo(HOME.cur).d;
+  try{homeFix95()}catch(e){}
   start27();setTimeout(()=>{if(me&&isCouple()&&!SET.mute)notify('💙 Oğuz',pick(['Evdeyim aşkım, gelirken haber ver 🏠','Akşam film izleyelim mi? 🍿','Seni özledim, eve gel 🥺']),[{t:'Cevapla',fn:()=>{chatWho='ogus';phoneApp('chat')}},{t:'Sonra',fn:()=>{}}])},9000)}
 function onEnterI(I){if(!I)return;ensureDrops(I);
   if(I.family&&I.name!==HOME.cur){const f=I.fam;if(HOME.visitDay!==HOME.day){HOME.visitDay=HOME.day;setTimeout(()=>{say(f.abla.p,'Hoş geldin canım! 🤗',3);f.yegen.lock=6;agentGo(f.yegen,clamp(pl.x+.9,-I.bx+.5,I.bx-.5),pl.z+1.1,()=>{faceEach(f.yegen);f.yegen.anim={k:'wave',t:1.6};say(f.yegen.p,pick(['Ablam! Ablam! 🥰','Ablaaa! Geldin mi? 🤗','Abla bak ne yaptım! 🧱']),3)})},700);emitSafe('visit');
@@ -8970,7 +8970,7 @@ let LASTF=0;function frame(now){if(now){const cap=fpsCap();if(cap&&now-LASTF<100
 
 /* ---------- başlangıç ---------- */
 function startGame(key){if(me)return;
-  me=CH[key];me.key=key;if(SAVE&&SAVE.lookv===2&&SAVE.looks&&SAVE.looks[key])me.look=Object.assign({},me.look,SAVE.looks[key]);me.n=CH[key].n;if(!SAVE)coins=5000;if(R25.carKey)me.carKey=R25.carKey;if(R25.cars)OWNCARS=R25.cars;if(R25.card)Object.assign(CARD,R25.card);cardInit();social=key!=='yegen';SET.lastChar=key;saveSet();if(['ev_cigli','ev_karabaglar','ev_koc_ust'].indexOf(HOME.cur)>=0)HOME.cur=homeOf(key);if(R25.home&&(R25.home==='cigli'||HOME.cur!=='ev_cigli'))me.home=R25.home;
+  me=CH[key];me.key=key;if(SAVE&&SAVE.lookv===2&&SAVE.looks&&SAVE.looks[key])me.look=Object.assign({},me.look,SAVE.looks[key]);me.n=CH[key].n;if(!SAVE)coins=5000;if(R25.carKey)me.carKey=R25.carKey;if(R25.cars)OWNCARS=R25.cars;if(R25.card)Object.assign(CARD,R25.card);cardInit();social=key!=='yegen';SET.lastChar=key;saveSet();if(isBaseHome(HOME.cur))HOME.cur=homeOf(key);me.home=distOf(HOME.cur);try{homeFix95()}catch(e){}
   if(!SAVE&&key==='kiz'){['top:zip','shirt:'+0x1b1b21,'pants:'+0x3c3d44,'shoes:'+0xf2f2f2,'neck:true','headSun:true','phone:true','lip:'+0xc98a80].forEach(x=>OWN.add(x))}
   player=person(Object.assign({label:'▼ '+me.n},me.look));dog=makePoodle();myCar=carSprite(curCarKey(),scene,myPI());
   $('pick').style.display='none';document.body.classList.remove('pick');$('b1').style.display=$('b2').style.display=social?'flex':'none';BONDS.ogus.n=PN();$('b1').querySelector('em').textContent=PN();$('avatar').style.setProperty('--hc',hex(me.look.hair||0x2b2118));$('phoneb').style.display='grid';$('goalb').style.display='grid';
@@ -10294,6 +10294,92 @@ estateView=function(root,only){if(!root)return;estCss();root.innerHTML='';const 
   if(L)esDetail(w,L,root,only);else{ES.sel=null;esList(w,root,only)}const key=(L?L.id:'list');if(ES._last!==key){ES._last=key;try{root.scrollTop=0}catch(e){}}try{pnxDom(root)}catch(e){}};
 {const _eo=estateOpen;estateOpen=function(only){ES.sel=only||null;return _eo.apply(this,arguments)}}
 window.__es={ES:ES,info:esInfo,shot:esShot,get Q(){return ESQ.length}};
+/* ================= v95: ev sahipliği · tek kaynak HOME.cur, ev başına kapı, Evlerim uygulaması, ev başına kiraya verme ================= */
+const BASE_HOMES=['ev_cigli','ev_karabaglar','ev_koc_ust'];
+function isBaseHome(k){return BASE_HOMES.indexOf(k)>=0}
+function homeValid(k){if(!k)return false;if(isBaseHome(k))return true;if(k.indexOf('ev_p_')!==0)return false;const id=k.slice(5);return !!lById(id)&&isMine(id)}
+function homeName(k){if(k==='ev_cigli')return 'Çiğli · Yeşiltepe Evleri';if(k==='ev_karabaglar')return 'Karabağlar · aile evi';if(k==='ev_koc_ust')return 'Kocaeli · Almira & Berke\'nin evi';const L=lById(String(k).slice(5));return L?(DNAME[L.d]||L.d)+' · '+L.n:'Ev'}
+/* Türkçe yönelme eki: "Deniz Evi" → "Deniz Evi'ne" */
+function trDat(n){const s=String(n).trim(),v=(s.toLowerCase().match(/[aeıioöuü](?=[^aeıioöuü]*$)/)||['e'])[0],back='aıou'.indexOf(v)>=0,vEnd=/[aeıioöuü]$/i.test(s);return s+"'"+(vEnd?'y':'')+(back?'a':'e')}
+function leased95(id){const Q=LEASE[id];return !!(Q&&Q.st==='active')}
+/* tek kaynak: HOME.cur değişince bölge, tabelalar ve HUD birlikte güncellenir */
+function homeSet(k){if(!homeValid(k))k=homeOf(me.key);HOME.cur=k;me.home=distOf(k);try{refreshSigns()}catch(e){}try{homeHud95()}catch(e){}}
+function homeFix95(){if(!me)return;if(!homeValid(HOME.cur)){const old=HOME.cur;HOME.cur=homeOf(me.key);console.warn('ev95: geçersiz HOME.cur düzeltildi',old,'→',HOME.cur)}
+  /* nakliyat başlamış/tamamlanmış ama cur güncellenmemiş kayıt */
+  const M=MOVE74&&MOVE74.last;if(M&&M.to&&!M.done&&!CUT&&MOVE74.unpack>0&&HOME.cur===M.from&&homeValid(M.to)&&!leased95(M.to.slice(5))){HOME.cur=M.to;M.done=1}
+  Object.keys(HOME.own||{}).forEach(id=>{if(!lById(id))delete HOME.own[id]});if(HOME.rent&&!lById(HOME.rent))HOME.rent=null;
+  Object.keys(LEASE).forEach(id=>{if(!HOME.own[id]||'ev_p_'+id===HOME.cur)delete LEASE[id]});
+  const d=distOf(HOME.cur);if(d&&me.home!==d)me.home=d}
+/* HUD: oyuncu kartında ev etiketi */
+function homeHud95(){if(!me)return;let e=$('hud95');if(!e){const p=$('pname');if(!p||!p.parentNode)return;e=el('div','');e.id='hud95';e.style.cssText='font-size:11px;opacity:.8;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:190px;cursor:pointer';e.onclick=()=>phoneApp('evlerim');p.parentNode.insertBefore(e,p.nextSibling)}
+  const t='🏠 '+homeName(HOME.cur);if(e.textContent!==t)e.textContent=t}
+setInterval(()=>{try{if(!me)return;if(CUT){if(CUT.to&&CUT.to.kind)EV95.pend=CUT.to.kind;return}if(EV95.pend){if(HOME.cur===EV95.pend){homeSet(HOME.cur);if(MOVE74.last)MOVE74.last.done=1}EV95.pend=null}homeFix95();homeHud95()}catch(e){}},500);
+{const _sg=startGame;startGame=function(k){const r=_sg.apply(this,arguments);try{homeFix95();homeHud95()}catch(e){}return r}}
+/* kiradaki eve girilemez */
+function leaseBlock95(kind){if(typeof kind==='string'&&kind.indexOf('ev_p_')===0&&leased95(kind.slice(5))){toast('👤 Bu evde kiracın oturuyor · sözleşme bitmeden giremezsin');return true}return false}
+{const _e=enter;enter=function(kind){if(leaseBlock95(kind))return;return _e.apply(this,arguments)}}
+{const _j=jumpInto;jumpInto=function(kind){if(leaseBlock95(kind))return;return _j.apply(this,arguments)}}
+{const _mo=moveOffer;moveOffer=function(L){if(L&&leased95(L.id)){toast('👤 Evde kiracın var · önce sözleşmeyi bitir');return}return _mo.apply(this,arguments)}}
+/* "Bugün taşın" seçilince nakliye hemen gelsin (eskiden ertesi güne kalıyordu → HOME.cur eski evde kalıyordu) */
+{const _mo2=moveOffer;moveOffer=function(L){const r=_mo2.apply(this,arguments);let n=0;const iv=setInterval(()=>{n++;const P=MOVE74.plan;if(P&&P.L===L.id&&P.day<=HOME.day&&!P.asked){P.asked=1;clearInterval(iv);setTimeout(()=>notify('🚚 Nakliye yolda!',P.firm[0].slice(2)+' bugün geliyor. Hazırsan taşınmaya başlayalım.',[{t:'Başlayalım',fn:()=>startMove74()},{t:'Biraz sonra',fn:()=>toast('📱 Evlerim → "🚚 Taşınmayı başlat" ile istediğin an')}]),600)}else if(n>240||(P&&P.day>HOME.day))clearInterval(iv)},250);return r}}
+/* --- Evlerim uygulaması --- */
+const EV95={form:{},ask:{},desc:{},ttl:{}};
+function ev95Css(){if($('ev95css'))return;const s=document.createElement('style');s.id='ev95css';s.textContent=`
+.ev95{font-family:Trebuchet MS,sans-serif;color:#1f2430}.ev95 .top{background:linear-gradient(135deg,#2a6fb0,#3a8a4a);color:#fff;border-radius:16px;padding:12px 14px;margin:0 0 10px}.ev95 .top b{display:block;font-size:17px}.ev95 .top small{opacity:.85;font-size:12px}
+.ev95 .hc{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 3px 12px rgba(0,0,0,.16);margin:0 0 12px}
+.ev95 .im{height:150px;background:#dfe6ee center/cover no-repeat;position:relative;display:grid;place-items:center;font-size:54px}.ev95 .im.ld{background-image:linear-gradient(90deg,#e6ebf1,#f4f6f9,#e6ebf1)!important}
+.ev95 .st{position:absolute;left:8px;top:8px;border-radius:999px;padding:4px 10px;font:bold 12px Trebuchet MS;color:#fff;background:#6a7385}.ev95 .st.on{background:#13843a}.ev95 .st.ki{background:#8a4ad0}.ev95 .st.il{background:#e07a1a}.ev95 .st.bo{background:#6a7385}.ev95 .st.mv{background:#2a6fb0}
+.ev95 .bx{padding:10px 12px}.ev95 .nm{font-weight:700;font-size:15px}.ev95 .ad{font-size:12px;color:#5a6375;margin-top:2px}.ev95 .inf{font-size:12.5px;margin-top:6px;color:#2a3140}
+.ev95 .bt{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:9px}.ev95 .bt button{border:0;border-radius:11px;padding:9px 6px;font:bold 12.5px Trebuchet MS;color:#fff;background:#3a3f4f;cursor:pointer}.ev95 .bt .pri{background:#13843a}.ev95 .bt .blu{background:#2a6fb0}.ev95 .bt .red{background:#c0392b}.ev95 .bt .w{grid-column:1/-1}
+.ev95 .fm{border-top:1px dashed #d4d9e2;margin-top:10px;padding-top:10px}.ev95 .fm h4{margin:0 0 6px;font-size:14px}.ev95 .fm label{display:block;font-size:12px;color:#5a6375;margin:8px 0 3px}
+.ev95 .fm input[type=text],.ev95 .fm textarea{width:100%;box-sizing:border-box;border:1px solid #cfd6e0;border-radius:10px;padding:8px;font:13px Trebuchet MS;color:#1f2430;background:#f7f9fb}.ev95 .fm textarea{min-height:58px;resize:vertical}
+.ev95 .fm input[type=range]{width:100%}.ev95 .fm .pr{font:bold 20px Trebuchet MS;color:#13843a}.ev95 .fm .hn{font-size:12px;margin-top:2px}.ev95 .em{font-size:13px;color:#5a6375;padding:10px 2px}`;document.head.appendChild(s)}
+function ev95Status(L){const id=L.id,Q=LEASE[id],P=MOVE74&&MOVE74.plan;if(HOME.cur==='ev_p_'+id)return ['on','🟢 Oturuyorsun'];if(Q&&Q.st==='active')return ['ki','👤 Kirada'];if(Q&&Q.st==='offer')return ['il','📨 Teklif var'];if(Q&&Q.st==='search')return ['il','📢 İlanda'];
+  if(P&&P.L===id)return ['mv','🚚 Taşınma · Gün '+P.day];if(HOME.rent===id)return ['bo','🔑 Kiracısın · boş'];return ['bo','⚪ Boş']}
+function ev95Go(L){if(mode==='drive'){toast('Zaten yoldasın 🚗');return}if(mode!=='world'){toast('🧭 Navigasyon için önce dışarı çık');return}if(activeD&&activeD.name===L.d){toast('📍 Zaten '+(DNAME[L.d]||L.d)+'\'desin · "EVİN 🔑" tabelasına yürü');return}
+  $('phone').classList.remove('on');try{nvGo(D2P[L.d]||L.d)}catch(e){try{startDrive(D2P[L.d]||L.d)}catch(e2){toast('Navigasyon açılamadı')}}}
+function ev95In(kind){$('phone').classList.remove('on');try{estateClose()}catch(e){}if(mode==='drive'){toast('Önce arabayı park et 🚗');return}if(mode==='int'&&curI&&curI.name===kind){toast('Zaten buradasın 🏠');return}setTimeout(()=>jumpInto(kind),60)}
+function ev95Sell(L){const id=L.id;if(HOME.cur==='ev_p_'+id){toast('Oturduğun evi satamazsın · önce başka bir eve taşın');return false}if(leased95(id)){toast('Kiracı oturuyor · önce sözleşmeyi bitir');return false}if(!HOME.own[id]){toast('Bu ev senin değil');return false}
+  const p=Math.round(L.price*.9);if(!confirm(L.n+' · %90 bedelle ('+p.toLocaleString('tr-TR')+'🪙) satılsın mı?'))return false;delete HOME.own[id];delete LEASE[id];if(MOVE74.plan&&MOVE74.plan.L===id)MOVE74.plan=null;delete EV95.form[id];coins+=p;try{txNote67('🏠 Ev satışı · '+L.n,'gelir')}catch(e){}refreshSigns();toast('🏠 '+L.n+' satıldı · +'+p.toLocaleString('tr-TR')+'🪙');memAdd('🏠',L.n+' evini sattım');try{saveGame()}catch(e){}return true}
+function ev95Publish(L){const id=L.id,mr=mktRent(L),ask=Math.round(EV95.ask[id]||mr);if(HOME.cur==='ev_p_'+id)return toast('Oturduğun evi kiraya veremezsin');LEASE[id]={st:'search',ask:ask,days:0,cond:100,dep:ask*2,late:0,owe:0,ttl:(EV95.ttl[id]||L.n+' · kiralık').slice(0,60),desc:(EV95.desc[id]||'').slice(0,240),maxD:HOME.day+2+((rnd()*3)|0)};
+  delete EV95.form[id];sfx('bell');toast('📢 '+L.n+' ilana çıktı · '+ask+'🪙/hafta · birkaç gün içinde kiracı bulunur');memAdd('📢',L.n+' kiralık ilana çıktı');try{saveGame()}catch(e){}}
+function ev95Form(c,L,root){const id=L.id,mr=mktRent(L);if(EV95.ask[id]==null)EV95.ask[id]=mr;const fm=el('div','fm');fm.appendChild(el('h4','','📢 Kiralık ilanı · '+L.n));
+  fm.appendChild(el('label','','Başlık'));const ti=document.createElement('input');ti.type='text';ti.maxLength=60;ti.value=EV95.ttl[id]||(L.n+' · kiralık');ti.oninput=()=>{EV95.ttl[id]=ti.value};fm.appendChild(ti);
+  fm.appendChild(el('label','','Haftalık kira (piyasa ≈ '+mr+'🪙)'));const pv=el('div','pr'),hn=el('div','hn');const rg=document.createElement('input');rg.type='range';rg.min=Math.round(mr*.7/10)*10;rg.max=Math.round(mr*1.5/10)*10;rg.step=10;rg.value=EV95.ask[id];
+  const upd=()=>{const a=+rg.value;EV95.ask[id]=a;pv.textContent=a.toLocaleString('tr-TR')+' 🪙 / hafta';const r=a/mr;hn.textContent=r>1.15?'⚠️ Piyasanın üstünde · kiracı bulmak uzun sürebilir':r<.9?'💨 Ucuz · hemen kiralanır':'👍 Piyasaya uygun';hn.style.color=r>1.15?'#c0392b':r<.9?'#2a6fb0':'#13843a'};rg.oninput=upd;fm.appendChild(pv);fm.appendChild(rg);fm.appendChild(hn);upd();
+  fm.appendChild(el('label','','Açıklama'));const ta=document.createElement('textarea');ta.maxLength=240;ta.placeholder='Örn. Eşyasız, metroya 5 dk, evcil hayvan kabul edilir…';ta.value=EV95.desc[id]||'';ta.oninput=()=>{EV95.desc[id]=ta.value};fm.appendChild(ta);
+  [ti,ta].forEach(x=>['keydown','keyup','keypress'].forEach(t=>x.addEventListener(t,e=>e.stopPropagation())));
+  const bt=el('div','bt');const y=el('button','pri','📢 Yayınla');y.onclick=()=>{ev95Publish(L);evView(root)};const v=el('button','','Vazgeç');v.onclick=()=>{delete EV95.form[id];evView(root)};bt.appendChild(y);bt.appendChild(v);fm.appendChild(bt);c.appendChild(fm)}
+function ev95Card(root,L){const id=L.id,kind='ev_p_'+id,Q=LEASE[id],own=!!HOME.own[id],cur=HOME.cur===kind,st=ev95Status(L),c=el('div','hc');c.dataset.id=id;const im=el('div','im');c.appendChild(im);try{esImg(im,L,'on',480,240)}catch(e){im.textContent=L.villa?'🏡':'🏢'}im.appendChild(el('span','st '+st[0],st[1]));
+  const bx=el('div','bx');c.appendChild(bx);bx.appendChild(el('div','nm',(L.villa?'🏡 ':'🏢 ')+L.n));bx.appendChild(el('div','ad','📍 '+(DNAME[L.d]||L.d)+' · '+(own?'Tapu senin':'Kiracısın · '+L.rent+'🪙/hafta')));
+  const inf=t=>bx.appendChild(el('div','inf',t));if(Q&&Q.st==='search')inf('📢 "'+(Q.ttl||L.n)+'" · '+Q.ask+'🪙/hafta · '+Q.days+' gündür ilanda');if(Q&&Q.st==='offer')inf('📨 '+Q.t.n+' ('+Q.t.job+') · '+Q.t.offer+'🪙/hafta teklif etti');
+  if(Q&&Q.st==='active')inf('👤 '+Q.t.n+' ('+Q.t.job+') · '+Q.ask+'🪙/hafta · net ≈ '+Math.round(Q.ask*.9-40)+'🪙 her 7 günde'+(Q.owe?' · alacak '+Q.owe+'🪙':''));
+  const bt=el('div','bt');bx.appendChild(bt);const add=(t,cls,fn)=>{const b=el('button',cls||'',t);b.onclick=()=>{const r=fn();if(r!==false)evView(root)};bt.appendChild(b);return b};
+  if(!leased95(id))add(cur?'🚪 Evine gir':'🚪 İçeri gir','blu',()=>{ev95In(kind);return false});add('🧭 Git','',()=>{ev95Go(L);return false});
+  const P=MOVE74&&MOVE74.plan;if(!cur&&!Q){if(P&&P.L===id)add(P.day<=HOME.day?'🚚 Taşınmayı başlat':'🚚 Taşınma Gün '+P.day,'pri w',()=>{if(P.day<=HOME.day){$('phone').classList.remove('on');startMove74()}else toast('📅 Nakliye Gün '+P.day+'\'de gelecek');return false});else add('🚚 Buraya taşın','pri',()=>{$('phone').classList.remove('on');moveOffer(L);return false})}
+  if(own&&!cur){if(!Q)add(EV95.form[id]?'🔽 Formu kapat':'🔑 Kiraya ver','',()=>{EV95.form[id]=!EV95.form[id]});
+    if(Q&&(Q.st==='search'||Q.st==='offer'))add('❌ İlanı kaldır','red',()=>{delete LEASE[id];toast('İlan kaldırıldı · '+L.n)});
+    if(Q&&Q.st==='offer'){add('✅ Teklifi kabul et','pri',()=>leaseAccept(id));add('🙅 Reddet','',()=>{Q.st='search';Q.t=null})}
+    if(Q&&Q.st==='active')add('📄 Sözleşmeyi bitir','red',()=>{if(confirm(Q.t.n+' ile sözleşme bitirilsin mi? (depozito iade edilir)'))leaseEnd(id,'bitir')});
+    if(!leased95(id))add('💰 Sat (%90)','red',()=>ev95Sell(L))}
+  if(!own&&HOME.rent===id&&!cur)add('📄 Kirayı bitir','red',()=>{HOME.rent=null;refreshSigns();toast('Kira sözleşmesi bitti 📄')});
+  if(EV95.form[id]&&own&&!cur&&!Q)ev95Form(bx,L,root);root.appendChild(c)}
+function evView(root){if(!root)return;ev95Css();const keep=root.scrollTop;root.innerHTML='';const w=el('div','ev95');root.appendChild(w);try{homeFix95()}catch(e){}
+  const top=el('div','top');top.appendChild(el('b','','🏠 Evlerim'));top.appendChild(el('small','','Oturduğun: '+homeName(HOME.cur)+' · toplanan kira '+LSTAT.paid+' · net '+(LSTAT.net||0).toLocaleString('tr-TR')+'🪙'));w.appendChild(top);
+  if(!/^ev_p_/.test(HOME.cur)){const c=el('div','hc');const im=el('div','im','🏢');im.appendChild(el('span','st on','🟢 Oturuyorsun'));c.appendChild(im);const bx=el('div','bx');bx.appendChild(el('div','nm',homeName(HOME.cur)));bx.appendChild(el('div','ad','Aile / başlangıç evin'));const bt=el('div','bt');const b=el('button','blu w','🚪 Evine gir');b.onclick=()=>ev95In(HOME.cur);bt.appendChild(b);bx.appendChild(bt);c.appendChild(bx);w.appendChild(c)}
+  const L=ownedList().slice();if(HOME.rent){const R=lById(HOME.rent);if(R&&L.indexOf(R)<0)L.push(R)}
+  if(!L.length)w.appendChild(el('div','em','Henüz tapulu ya da kiralık evin yok. 📱 Ege Emlak\'tan ilanlara bak.'));
+  L.forEach(x=>ev95Card(w,x));const e=el('div','bt');const b=el('button','blu w','🏠 Ege Emlak ilanları');b.onclick=()=>{$('phone').classList.remove('on');estateOpen()};e.appendChild(b);w.appendChild(e);try{pnxDom(root)}catch(e){}root.scrollTop=keep}
+APPS.push(['evlerim','🏠','Evlerim','#2a6fb0,#3a8a4a']);
+{const _pa=phoneApp;phoneApp=function(id){if(id!=='evlerim')return _pa(id);$('phone').classList.add('on');$('phdot').style.display='none';const b=$('phbody');b.innerHTML='';$('phback').style.visibility='visible';$('phtitle').textContent='🏠 Evlerim';evView(b)}}
+/* emlak listesindeki eski (bozuk) "Evlerim · kiraya ver" bölümü yerine Evlerim kısayolu */
+{const _el=esList;esList=function(w,root,only){const r=_el.apply(this,arguments);try{const o=w.querySelector('.own');if(o){o.innerHTML='';const n=ownedList().length;o.appendChild(el('h3','','🔑 Evlerim ('+n+')'));o.appendChild(el('div','sub','Oturduğun ev, boştaki evler, kiraya verme ve satış artık 📱 Evlerim uygulamasında.'));const b=el('button','','🏠 Evlerim\'i aç');b.style.cssText='border:0;border-radius:12px;padding:10px 14px;background:#13843a;color:#fff;font:bold 13px Trebuchet MS;cursor:pointer;margin-top:6px';b.onclick=()=>{try{estateClose()}catch(e){}phoneApp('evlerim')};o.appendChild(b)}}catch(e){}return r}}
+/* birkaç gün içinde kiracı mutlaka bulunur */
+{const _nd=newDay;newDay=function(){const r=_nd.apply(this,arguments);try{Object.keys(LEASE).forEach(id=>{const Q=LEASE[id],L=lById(id);if(!L||Q.st!=='search'||!Q.maxD||HOME.day<Q.maxD)return;const mr=mktRent(L),i=(rnd()*TENN.length)|0;
+  Q.t={n:TENN[i],job:TJOB[(i+HOME.day)%TJOB.length],rel:clamp(.85-(Q.ask/mr-1)*.6,.35,.97),offer:Q.ask<=mr*1.1?Q.ask:Math.round(Q.ask*.93)};Q.st='offer';Q.od=HOME.day;
+  notify('🏠 Ege Emlak','📨 '+L.n+' için kiracı bulundu: '+Q.t.n+' ('+Q.t.job+') · '+Q.t.offer+'🪙/hafta',[{t:'Evlerim',fn:()=>phoneApp('evlerim')},{t:'Sonra',fn:()=>{}}])})}catch(e){showErrOnce(e)}return r}}
+window.__home={open:()=>phoneApp("evlerim"),get H(){return HOME},get LEASE(){return LEASE},get MOVE(){return MOVE74},get L(){return LIST},get me(){return me},get I(){return curI},valid:homeValid,fix:homeFix95,set:homeSet,view:evView,sell:ev95Sell,publish:ev95Publish,ask:EV95,dat:trDat,
+  esDone:(id)=>{const L=lById(id);HOME.own[id]=true;refreshSigns()},move:id=>{const L=lById(id);return startMove74&&(MOVE74.plan={L:id,day:HOME.day,firm:MOVERS74[0],boxes:0},startMove74())},get CUT(){return CUT},skip:()=>{if(CUT)CUT.skip=true}};
 /* ================= v90: bahçe & tarım görsel yenileme — tekrarsız çim, sürülmüş toprak, taş yol, lamba, bank, 3 evreli instanced bitkiler, rüzgâr, hasat animasyonu ================= */
 const U90={t:{value:0}};
 function sway90(col,o,amp){const m=std(col,Object.assign({roughness:.75},o||{}));const A=(amp||.03).toFixed(3);
