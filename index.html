@@ -9218,6 +9218,265 @@ scnAdd('mirasDenel',{after:2,cond:()=>me&&me.key==='kiz',fire:()=>{SCN.v.mrs={st
     onAnswer:()=>{say(player,'Büyükannem… 🥹',2.6);go()},onReject:()=>{go();setTimeout(()=>notify('⚖️ Bornova 2. Noterliği','Size ulaşamadık. Büyükannenizin vasiyeti hakkında: Bornova\'daki evi ve arsası size kaldı. Lütfen gidip görün 🏚️',[{t:'Tamam',fn:()=>{}}]),800)}})}});
 scnResetHook.push(()=>{const L=lById('mrs_ev');if(L){delete HOME.own.mrs_ev;if(HOME.cur==='ev_p_mrs_ev'){HOME.cur=homeOf(me.key);me.home=distOf(HOME.cur)}const i=LIST.indexOf(L);if(i>=0)LIST.splice(i,1)}mrsDraw()});
 {const _ld=load25;load25=function(x){const r=_ld.apply(this,arguments);try{const S=mrsS();if(S&&S.st==='call'){S.st='gor';if(!SCN.tasks.find(q=>q.id==='mrs_gor'))SCN.tasks.push({id:'mrs_gor',t:"Bornova'ya git, büyükannenin evini gör",ic:'🏚️',done:false,day:HOME.day})}mrsListing()}catch(e){}return r}}
+/* ================= v82: Oğuz senaryosu · Menemen serası ve çiftliği (SCN.v.sera) ================= */
+/* durum: gor (çiftliği gör) → karar → islet | kira | sold */
+const SR_ID='sera_oguz',srS=()=>SCN.v.sera||null,isOguz81=()=>!!me&&me.key==='sen';
+const SEASON81=[['İlkbahar','🌸'],['Yaz','☀️'],['Sonbahar','🍂'],['Kış','❄️']];
+function season81(){const t=seasonT64();return t<1?0:t<2?1:t<3?2:3}
+const seasonTxt81=()=>{const s=SEASON81[season81()];return s[1]+' '+s[0]};
+CROPS77.patlican={n:'Patlıcan',e:'🍆',c:0x4a2a6a,h:7,m:3,sp:14,sell:11};
+try{MKT64.push(['🌱 Bahçe','Patlıcan tohumu (5 adet)','🍆',14,null,()=>({farm77:{s:'patlican',n:5}})])}catch(e){}
+/* çiftlik ürünleri (sera dışı) */
+const PR81={yumurta:{n:'Köy yumurtası',e:'🥚',h:6,m:2,sell:4},kiraz:{n:'Kiraz',e:'🍒',h:5,m:6,sell:14},seftali:{n:'Şeftali',e:'🍑',h:7,m:5,sell:12},elma:{n:'Elma',e:'🍎',h:7,m:4,sell:9},
+  armut:{n:'Armut',e:'🍐',h:7,m:4,sell:10},mandalina:{n:'Mandalina',e:'🍊',h:6,m:5,sell:11},limon:{n:'Limon',e:'🍋',h:1,m:2,sell:8}};
+/* meyve ağaçları: hangi mevsimlerde meyve verir */
+const TREES81=[{k:'kiraz',s:[0],c:0x8a0a1a,x:44,z:-12},{k:'seftali',s:[1],c:0xf0985a,x:51,z:-12},{k:'elma',s:[2],c:0xd8282a,x:58,z:-12},
+  {k:'armut',s:[1,2],c:0xc8c040,x:44,z:-20},{k:'mandalina',s:[3],c:0xf08a10,x:51,z:-20},{k:'limon',s:[3,0],c:0xf2e040,x:58,z:-20}];
+const SR_RENT={mehmet:{n:'Seracı Mehmet Bey',ic:'👨‍🌾',p:160,d:'20 yıllık seracı · her gün düzenli öder'},koop:{n:'Menemen Kadın Kooperatifi',ic:'👩‍🌾',p:125,d:'Az kira ama haftada bir kasa ürün getirir'},genc:{n:'Genç girişimci Efe',ic:'🧑‍💻',p:195,d:'En yüksek kira · bazen ödemeyi geciktirir'}};
+function srInit(){const S=srS();if(!S)return null;if(!S.led)S.led={sat:0,kira:0,isit:0,sula:0,yem:0,ucret:0};if(S.heat==null)S.heat=true;if(S.drip==null)S.drip=true;if(!S.tr)S.tr={};
+  if(!FARM77.g[SR_ID]||FARM77.g[SR_ID].p.length!==18)FARM77.g[SR_ID]={p:Array.from({length:18},()=>({s:'e'})),mow:HOME.day,fl:[]};return S}
+const srCold=()=>meanTemp64()<14;
+const srHeatCost=()=>srCold()?Math.round(clamp(16-meanTemp64(),2,22)*4):0;
+const srCosts=()=>{const S=srS()||{};return {isit:S.heat?srHeatCost():0,sula:S.drip?12:0,yem:8}};
+/* --- günlük: giderler, kira, sera iklimi (farmDay77 her newDay'de bir kez, gün arttıktan sonra çalışır) --- */
+{const _fd=farmDay77;farmDay77=function(){const S=srS(),G=FARM77.g[SR_ID];let snap=null,frost=false,msg=[];
+  try{if(S&&S.st==='islet'&&G){srInit();const c=srCosts();
+      [['isit','heat','🔥 Isıtma'],['sula','drip','💧 Damla sulama']].forEach(q=>{const v=c[q[0]];if(!v)return;if(coins>=v){coins-=v;S.led[q[0]]+=v}else{S[q[1]]=false;msg.push(q[2]+' parasızlıktan kapandı')}});
+      if(coins>=c.yem){coins-=c.yem;S.led.yem+=c.yem;S.fed=HOME.day}else msg.push('🐔 Tavuklara yem alınamadı · yumurta az olacak');
+      const cold=srCold(),warm=!cold||S.heat;S.warm=warm;
+      if(!warm){snap=G.p.map(p=>p.st|0);frost=meanTemp64()<7}
+      if(S.drip)G.p.forEach(p=>{if(p.s==='s')p.w=Math.max(p.w|0,HOME.day-1)})}
+    if(S&&S.st==='kira'&&S.ten){const R=SR_RENT[S.ten];let p=R.p;if(S.ten==='genc'&&Math.random()<.2){p=0;S.late=(S.late|0)+R.p;msg.push('🧑‍💻 Efe bugünkü kirayı geciktirdi')}else if(S.late&&S.ten==='genc'&&Math.random()<.5){p+=S.late;S.late=0}
+      coins+=p;S.led.kira+=p;S.wk=(S.wk|0)+p;if(S.ten==='koop'&&HOME.day%7===0){const L=['domates','biber','salatalik'];for(let i=0;i<6;i++){const c=CROPS77[L[i%3]];INV.push({n:c.n,e:c.e,u:'gida',h:c.h,m:c.m,farm77:L[i%3]})}msg.push('👩‍🌾 Kooperatiften 1 kasa ürün geldi (çantanda)')}
+      if(HOME.day%7===1&&S.wk){const w=S.wk;S.wk=0;setTimeout(()=>notify('🌿 Menemen çiftliği','Bu haftaki kira geliri: '+w.toLocaleString('tr-TR')+' 🪙 · '+R.n,[{t:'Tamam',fn:()=>{}}]),5000)}}}catch(e){scnErr(e)}
+  const r=_fd.apply(this,arguments);
+  try{if(snap&&G){G.p.forEach((p,k)=>{if(p.s!=='s')return;if(frost)G.p[k]={s:'x',c:p.c};else p.st=Math.min(p.st|0,snap[k])});msg.push(frost?'🥶 Sera dondu! Isıtma kapalıyken fideler öldü':'🌡️ Sera soğuk kaldı · bitkiler büyümedi (ısıtmayı aç)')}
+    if(S&&S.st==='islet'&&S.drip&&G)G.p.forEach(p=>{if(p.s==='s')p.w=HOME.day});if(S&&S.st==='islet'){const c=srCosts();S.lastCost=c.isit+c.sula+c.yem}fbump77()}catch(e){scnErr(e)}
+  if(msg.length)setTimeout(()=>notify('🌿 Menemen çiftliği',msg.join(' · '),[{t:'Tamam',fn:()=>{}}]),7000);return r}}
+/* --- Menemen semti --- */
+DNAME.menemen='Menemen';PLACES.menemen={n:'Menemen · Dedemin çiftliği',icon:'🌿',d:'menemen',km:33,m:4200};D2P.menemen='menemen';TRAVEL_LBL.menemen='Menemen 🌿';try{KM72.menemen=33}catch(e){}
+{const _bh=buildHome;buildHome=function(n){if(n==='menemen')return buildMenemen();return _bh(n)}}
+{const _ni=navItems;navItems=function(){const L=_ni();if(srS()&&activeD&&activeD.name!=='menemen'&&L.indexOf('menemen')<0)L.push('menemen');return L}}
+const SR_GH={x:2,z:-17,w:18,d:10},SR_COOP={x:24,z:-14},SR_HOUSE={x:-24,z:-16},SR_MKT={x:-46,z:12};
+function srGlassMat(){return std(0xcfe8f2,{transparent:true,opacity:.28,roughness:.05,metalness:.2,depthWrite:false})}
+function srHen(g,x,z,brown){const h=new T.Group();h.position.set(x,0,z);g.add(h);const bc=mt(brown?0x9a5a2a:0xf4f0e8);const b=new T.Mesh(new T.SphereGeometry(.26,8,6),bc);b.scale.set(1,.8,1.3);b.position.y=.32;b.castShadow=true;h.add(b);
+  const tl=new T.Mesh(new T.ConeGeometry(.14,.3,5),bc);tl.position.set(0,.48,-.3);tl.rotation.x=-.8;h.add(tl);const hd=new T.Group();hd.position.set(0,.56,.26);h.add(hd);
+  const he=new T.Mesh(new T.SphereGeometry(.12,8,6),bc);hd.add(he);box(.04,.1,.12,mt(0xd8282a),0,.12,0,hd);const bk=new T.Mesh(new T.ConeGeometry(.04,.1,4),mt(0xf0b030));bk.rotation.x=Math.PI/2;bk.position.set(0,-.02,.14);hd.add(bk);
+  [-.08,.08].forEach(o=>cyl(.015,.015,.2,4,mt(0xf0b030),o,.1,0,h));h.userData.dyn64=true;h.userData.hd=hd;return h}
+function buildMenemen(){newD('menemen',5720,0);C.noEdge=true;C.noSea=true;C.bounds=[-110,130,-60,60];
+  const gm=new T.Mesh(new T.PlaneGeometry(900,700),repeatMat(grassTex,90,70,1));gm.material.color.setHex(0xc4cf8e);gm.rotation.x=-Math.PI/2;gm.position.y=-.01;W.add(gm);
+  const rs=buildRoads([{ctrl:[[-104,2],[-50,2],[0,2],[50,2],[110,2],[200,2],[330,2]],width:6}]);
+  ground(10,-2.6,232,1.6,repeatMat(paverTex,232/5,1.6/5,.9),.04);
+  /* uzak dağlar (Yamanlar) */for(let i=0;i<16;i++){const a=i/16*6.283,m=new T.Mesh(new T.ConeGeometry(70+((i*37)%40),40+((i*53)%30),7),std(0x7a8a5a,{flatShading:true}));m.position.set(10+Math.cos(a)*300,10,Math.sin(a)*240);W.add(m)}
+  /* çiftlik zemini + toprak yollar */ground(14,-17,96,22,repeatMat(grassTex,12,3,1),.03);ground(14,-6.4,96,1.4,std(0xb89a6a),.05);
+  [SR_HOUSE.x,SR_GH.x,SR_COOP.x,51].forEach(x=>ground(x,-4.2,2.2,3.6,std(0xb89a6a),.05));
+  /* ahşap çit (çiftlik sınırı, yol tarafı) */const fw=mt(0x9a6a3a);for(let x=-34;x<=62;x+=2.4){if([SR_HOUSE.x,SR_GH.x,SR_COOP.x,51].some(g=>Math.abs(x-g)<1.6))continue;box(.14,1.1,.14,fw,x,.55,-5.6);box(2.4,.1,.08,fw,x+1.2,.8,-5.6);box(2.4,.1,.08,fw,x+1.2,.4,-5.6)}
+  /* tabela */{const sg=labelSprite('🌿 Dedemin Çiftliği · Menemen');sg.scale.set(4.6,1.15,1);sg.position.set(-8,3.4,-5.2);W.add(sg);box(.16,2.6,.16,fw,-10,1.3,-5.4);box(.16,2.6,.16,fw,-6,1.3,-5.4)}
+  /* tarla şeritleri (arka plan) */for(let i=0;i<9;i++){const c=[0x6a8a3a,0x8a7a4a,0x5a9a3a][i%3];ground(-20+i*10,-42,8.6,22,std(c),.03);for(let j=0;j<6;j++)box(8,.18,.4,mt(i%3===1?0x7a5a3a:0x4a8a2a),-20+i*10,.1,-51+j*3.6)}
+  C.srG=new T.Group();W.add(C.srG);C.srG.userData.dyn64=true;C.srG.userData.noCull=true;srDraw();
+  /* köy pazarı tezgâhı (yolun güneyi) */{const x=SR_MKT.x,z=SR_MKT.z;ground(x,z,16,8,repeatMat(paverTex,3,1.6,.9),.04);
+    [[-4,0xd8322c],[0,0x2a8ad8],[4,0xf0b030]].forEach((q,i)=>{const sx=x+q[0];box(3,.9,1.2,mt(0x9a6a42),sx,.45,z-.6);[[-1.4,-1.1],[1.4,-1.1],[-1.4,.4],[1.4,.4]].forEach(p=>cyl(.05,.05,2.4,5,mt(0xdddddd),sx+p[0],1.2,z+p[1]));box(3.4,.08,2,mt(q[1]),sx,2.45,z-.4);
+      if(i!==1)for(let k=0;k<6;k++){const f=new T.Mesh(new T.SphereGeometry(.13,7,5),mt([0xd8322c,0x3aa03a,0xf08a10,0x8ac850][(k+i)%4]));f.position.set(sx-1.1+k*.44,.98,z-.6);W.add(f)}});
+    C.boxes.push({x:x,z:z-.6,hx:6,hz:.7});const sg=labelSprite('🧺 Menemen Köy Pazarı');sg.scale.set(3.6,.9,1);sg.position.set(x,3.6,z-.6);W.add(sg);
+    C.spots.push({x:x,z:z+1.6,r:2.8,get t(){return isOguz81()&&srS()?'E: 🧺 Kendi tezgâhını aç · çiftlik ürünlerini sat':'E: 🧺 Köy pazarı · bugün sakin'},fn:()=>{if(!isOguz81()||!srS()){toast('🧺 Pazarcılar sabah erkenden toplanmış…');return}srStall('koy')}});
+    try{addNpc(Object.assign({},LOOK38[3]),[[x-6,z+3],[x+6,z+3],[x+6,z+5],[x-6,z+5]],.9,.2)}catch(e){}}
+  /* güney: zeytinlik ve çitler */for(let x=-100;x<=120;x+=4.2)if(Math.abs(x-SR_MKT.x)>9){const h=new T.Mesh(new T.SphereGeometry(.7,8,6),mt(0x5a8a3a));h.position.set(x,.5,9.6);h.scale.y=.7;W.add(h)}
+  const r=mulberry(5720);for(let k=0;k<320;k++){const x=-108+r()*236,z=-58+r()*116;if(z>-30&&z<26)continue;if(z<-30&&z>-56&&x>-26&&x<66)continue;tree(r()<.55?'olive':(r()<.5?'cypress':'pine'),x,z,.9+r()*.6)}
+  for(let k=0;k<50;k++){const x=-100+r()*220,z=26+r()*24;tree('olive',x,z,.8+r()*.4)}
+  try{lampsAlong(rs[0],22,-1)}catch(e){}
+  try{addNpc(Object.assign({},LOOK38[1]),[[-80,6.6],[0,6.6],[90,6.6]],1.0,.4)}catch(e){}
+  C.carSpot={x:-40,z:4.6,a:0};C.spawn=[-34,7.4];C.label='Menemen · Dedemin çiftliği 🌿';endD();try{discAdd('menemen','🌿 Menemen')}catch(e){}}
+/* --- çiftliği duruma göre çiz --- */
+function srDraw(){const D0=D.menemen;if(!D0||!D0.srG)return;const G=D0.srG,pw=W;while(G.children.length){const o=G.children.pop();o.traverse(q=>{if(q.geometry)q.geometry.dispose()})}
+  D0.boxes=D0.boxes.filter(b=>!b.sr);D0.spots=D0.spots.filter(s=>!s.sr);D0.anim=D0.anim.filter(f=>!f.sr);W=G;const S=srS(),st=S?S.st:'',bx=[],sp=[];
+  try{
+  /* dedenin taş çiftlik evi */{const x=SR_HOUSE.x,z=SR_HOUSE.z,g=new T.Group();g.position.set(x,0,z);G.add(g);const wc=0xd8c8a6;box(9,3.2,7,mt(wc),0,1.6,0,g);const rr=mulberry(81);
+    for(let i=0;i<40;i++)box(.4+rr()*.4,.22+rr()*.16,.06,mt([0xb8a888,0xc8b898,0xa89878][i%3]),-4.2+rr()*8.4,.3+rr()*2.6,3.52,g);
+    mrsGable(g,9,7,2.1,0xb5532f,wc,0,3.2,0);mrsWinZ(g,-2.6,1.8,3.5,1.2,1.2,0x6a4a2a);mrsWinZ(g,2.6,1.8,3.5,1.2,1.2,0x6a4a2a);mrsWinX(g,-4.5,1.8,0,1.2,1.2,0x6a4a2a);mrsDoor(g,0,3.5,0x5a7a4a);
+    box(.8,1.4,.8,mt(0x9a8a74),2.4,4.4,-1,g);box(4.6,.15,2.2,mt(0x8a5a32),0,2.6,4.6,g);[-2,2].forEach(o=>cyl(.08,.08,2.6,6,mt(0x6a4a2a),o,1.3,5.6,g));
+    for(let i=0;i<10;i++){const m=mrsBush(g,2.2+Math.sin(i)*.2,5.62,.22,i%3?0x6a2a8a:0x3d7a3a);m.position.y=.4+i*.22}
+    box(1.4,.5,.7,mt(0x8a6a44),-3,.25,4.6,g);bx.push({x:x,z:z,hx:4.6,hz:3.6});
+    sp.push({x:x,z:z+5.6,r:2.6,get t(){return srHouseT()},fn:()=>srHouse()})}
+  /* traktör */{const g=new T.Group();g.position.set(-15,0,-10);g.rotation.y=-.5;G.add(g);box(2.4,1,1.2,mt(0xc8282a),0,1,0,g);box(1.1,1.2,1.1,mt(0xc8282a),-.8,2,0,g);box(1,1,1.04,mt(0x9ad0ea,{roughness:.1}),-.8,2.1,0,g);
+    [[-.9,.8,.6],[.9,.45,.4]].forEach(w=>[-1,1].forEach(s=>{const c=cyl(w[1],w[1],w[2]*.8,14,mt(0x222222),w[0],w[1],s*(.6+w[2]*.4),g);c.rotation.x=Math.PI/2}));cyl(.06,.06,1,5,mt(0x333333),.8,2,.3,g);bx.push({x:-15,z:-10,hx:1.6,hz:1.4})}
+  /* cam sera */{const H=SR_GH,g=new T.Group();g.position.set(H.x,0,H.z);G.add(g);const fr=mt(0xf4f4f0),gl=srGlassMat(),w=H.w,d=H.d;box(w+.2,.5,d+.2,mt(0xc8c0b0),0,.25,0,g);
+    const wall=(W0,H0,x,y,z,rx)=>{const m=new T.Mesh(new T.BoxGeometry(W0,H0,.05),gl);m.position.set(x,y,z);if(rx)m.rotation.y=rx;m.userData.noMerge=true;g.add(m)};
+    wall(w,2.4,0,1.7,d/2);wall(w,2.4,0,1.7,-d/2);wall(d,2.4,-w/2,1.7,0,Math.PI/2);wall(d,2.4,w/2,1.7,0,Math.PI/2);
+    for(let x=-w/2;x<=w/2+.01;x+=w/8){box(.1,2.5,.1,fr,x,1.7,d/2,g);box(.1,2.5,.1,fr,x,1.7,-d/2,g)}for(let z=-d/2;z<=d/2+.01;z+=d/4){box(.1,2.5,.1,fr,-w/2,1.7,z,g);box(.1,2.5,.1,fr,w/2,1.7,z,g)}
+    [d/2,-d/2].forEach(z=>box(w,.1,.1,fr,0,2.9,z,g));[-w/2,w/2].forEach(x=>box(.1,.1,d,fr,x,2.9,0,g));
+    const rh=2.2,L=Math.hypot(d/2,rh),a=Math.atan2(rh,d/2);[1,-1].forEach(sd=>{const m=new T.Mesh(new T.BoxGeometry(w,.05,L),gl);m.position.set(0,2.9+rh/2,sd*d/4);m.rotation.x=sd*a;m.userData.noMerge=true;g.add(m);
+      for(let x=-w/2;x<=w/2+.01;x+=w/8){const b=box(.08,.08,L,fr,x,2.9+rh/2,sd*d/4,g);b.rotation.x=sd*a}});box(w,.12,.12,fr,0,2.9+rh,0,g);
+    [-1,1].forEach(s=>{const sh=new T.Shape();sh.moveTo(-d/2,0);sh.lineTo(d/2,0);sh.lineTo(0,rh);sh.closePath();const ge=new T.ShapeGeometry(sh);const m=new T.Mesh(ge,gl);m.rotation.y=Math.PI/2;m.position.set(s*w/2,2.9,0);m.userData.noMerge=true;g.add(m)});
+    /* içerideki sıralar (dekor) */const on=st==='islet'||st==='kira'||st==='gor'||st==='karar';for(let r=0;r<3;r++){box(w-3,.3,1.4,mt(0x5a3a22),.5,.65,-3+r*3,g);if(on)for(let i=0;i<14;i++){const p=new T.Mesh(new T.SphereGeometry(.32,7,5),mt([0x3f8a3a,0x4a9a3a][i%2]));p.position.set(-6.8+i*1.05,1.05,-3+r*3);p.scale.y=.8;g.add(p);if(i%2===0){const f=new T.Mesh(new T.SphereGeometry(.09,6,4),mt([0xd8322c,0xf0c040,0x4a2a6a][r]));f.position.set(-6.8+i*1.05+.2,1.2,-3+r*3+.25);g.add(f)}}}
+    /* ısıtma kazanı + baca */box(1.4,1.6,1.2,mt(0x6a6a70),w/2+1.2,.8,-2,g);cyl(.18,.18,3.6,8,mt(0x8a8a90),w/2+1.2,3,-2,g);if(st==='islet'&&srS().heat&&srCold()){const sm=new T.Mesh(new T.SphereGeometry(.4,8,6),new T.MeshBasicMaterial({color:0xdddddd,transparent:true,opacity:.5,depthWrite:false}));sm.position.set(w/2+1.2,5,-2);g.add(sm);const f0=t=>{sm.position.y=5+((t*.6)%1.6);sm.material.opacity=.5*(1-((t*.6)%1.6)/1.6)};f0.sr=1;D0.anim.push(f0)}
+    /* su deposu */cyl(.9,.9,2.2,12,mt(0x2a6ab0),w/2+1.4,1.1,2.4,g);
+    mrsDoor(g,0,d/2,0xf4f4f0,2.3);bx.push({x:H.x,z:H.z,hx:w/2+.2,hz:d/2+.2},{x:H.x+w/2+1.3,z:H.z,hx:1.1,hz:3.6});
+    sp.push({x:H.x,z:H.z+d/2+1.6,r:2.6,get t(){return srGhT()},fn:()=>srGhEnter()})}
+  /* kümes + tavuklar */{const x=SR_COOP.x,z=SR_COOP.z,g=new T.Group();g.position.set(x,0,z);G.add(g);const wd=mt(0xa0703a);box(4,2.2,3,wd,0,1.5,-3,g);for(let i=0;i<5;i++)box(.06,2.2,3.02,mt(0x8a5a2a),-1.8+i*.9,1.5,-3,g);
+    [-1,1].forEach(s=>cyl(.1,.1,.4,5,mt(0x6a4a2a),s*1.8,.2,-3,g));mrsGable(g,4,3,1.2,0xb5332f,0xa0703a,0,2.6,-3,{ov:.25});box(.8,1,.06,mt(0x3a2a1a),.6,1.2,-1.48,g);const rp=box(.5,.06,1.4,mt(0x8a6a44),.6,.45,-.9,g);rp.rotation.x=.55;
+    const wire=mt(0xbcbcbc);[[-3.4,-1.5],[3.4,-1.5],[-3.4,3.4],[3.4,3.4],[0,3.4]].forEach(p=>box(.1,1.3,.1,mt(0x8a6a44),p[0],.65,p[1],g));[.4,.8,1.2].forEach(y=>{box(6.8,.03,.03,wire,0,y,3.4,g);[-3.4,3.4].forEach(xx=>box(.03,.03,4.9,wire,xx,y,.95,g))});
+    for(let i=0;i<12;i++)box(.05,.08,.05,mt(0xd8c870),-2.6+((i*37)%52)/10,.04,-.4+((i*53)%34)/10,g);box(.8,.25,.4,mt(0x8a8a90),-2.4,.12,2.6,g);
+    const hens=[];if(st!=='sold'){for(let i=0;i<8;i++){const h=srHen(g,-2.6+(i%4)*1.6,0+Math.floor(i/4)*1.8,i%3===0);h.userData.p=[h.position.x,h.position.z];h.userData.ph=i*1.3;hens.push(h)}
+      const fa=t=>{hens.forEach((h,i)=>{const u=h.userData,ph=t*.35+u.ph;const tx=clamp(u.p[0]+Math.sin(ph)*1.2,-3,3),tz=clamp(u.p[1]+Math.cos(ph*.8)*1,-.6,3);const dx=tx-h.position.x,dz=tz-h.position.z;h.position.x+=dx*.03;h.position.z+=dz*.03;if(Math.abs(dx)+Math.abs(dz)>.01)h.rotation.y=Math.atan2(dx,dz);
+        u.hd.rotation.x=Math.max(0,Math.sin(t*3+u.ph*2))*.9})};fa.sr=1;D0.anim.push(fa)}
+    if(st==='islet'&&srS().egg!==HOME.day)for(let i=0;i<4;i++){const e=new T.Mesh(new T.SphereGeometry(.09,7,5),mt(0xf2e8d4));e.scale.y=1.3;e.position.set(-1.2+i*.3,.73,-1.42);g.add(e)}
+    bx.push({x:x,z:z-3,hx:2.2,hz:1.7},{x:x,z:z+3.4,hx:3.5,hz:.1},{x:x-3.4,z:z+1,hx:.1,hz:2.5},{x:x+3.4,z:z+1,hx:.1,hz:2.5});
+    sp.push({x:x,z:z+4.6,r:2.4,get t(){return srCoopT()},fn:()=>srEggs()})}
+  /* meyve bahçesi */TREES81.forEach((T0,i)=>{const g=new T.Group();g.position.set(T0.x,0,T0.z);G.add(g);const s=1.05;cyl(.16*s,.24*s,1.8*s,7,mt(0x6a4a2a),0,.9*s,0,g);const lc=T0.k==='kiraz'&&season81()===0?0xf4d0dc:T0.k==='elma'&&season81()===3?0x8a7a4a:[0x4f8f3a,0x3f7f2a][i%2];
+    const cn=new T.Mesh(new T.SphereGeometry(1.5*s,12,9),mt(lc));cn.position.y=2.6*s;cn.scale.y=.85;cn.castShadow=true;g.add(cn);const ripe=srTreeRipe(i);
+    if(ripe&&st==='islet'||ripe&&st==='gor'||ripe&&st==='karar')for(let k=0;k<14;k++){const a=k*2.4,yy=2.1+((k*37)%18)/10,rr=Math.sqrt(Math.max(0,1-Math.pow((yy-2.6)/1.3,2)))*1.45;const f=new T.Mesh(new T.SphereGeometry(T0.k==='kiraz'?.08:.14,7,5),mt(T0.c));f.position.set(Math.cos(a)*rr,yy,Math.sin(a)*rr);g.add(f)}
+    bx.push({x:T0.x,z:T0.z,hx:.35,hz:.35});sp.push({x:T0.x,z:T0.z+2,r:1.9,get t(){return srTreeT(i)},fn:()=>srTree(i)})});
+  {const sg=labelSprite('🍎 Meyve bahçesi');sg.scale.set(2.6,.65,1);sg.position.set(51,5.4,-16);G.add(sg)}
+  /* durum tabelası */if(st==='kira'||st==='sold'){const sg=labelSprite(st==='kira'?'🔑 Kirada · '+SR_RENT[S.ten].n:'🔑 SATILDI · yeni sahipleri yakında');sg.scale.set(4.2,1,1);sg.position.set(SR_GH.x,6.4,SR_GH.z+5);G.add(sg);
+    if(st==='kira'){const f=fig64(null,{shirt:0x4a6a3a,pants:0x3a3a3a},SR_GH.x+4,SR_GH.z+6.4,0);f.userData.noMerge=true}}
+  }catch(e){scnErr(e)}finally{W=pw}
+  G.traverse(o=>{if(o.isMesh){o.castShadow=o.castShadow||!o.material.transparent;o.receiveShadow=true;o.userData.noMerge=true}});
+  bx.forEach(b=>{b.sr=1;D0.boxes.push(b)});sp.forEach(s=>{s.sr=1;D0.spots.push(s)})}
+/* fruit draw is state-dependent → yeniden çizim tetikleyici */
+let SR_DV='';setInterval(()=>{try{if(!D.menemen||activeD!==D.menemen||mode!=='world')return;const S=srS(),k=(S?S.st+'|'+S.egg+'|'+S.heat+'|'+JSON.stringify(S.tr):'-')+'|'+season81()+'|'+HOME.day;if(k!==SR_DV){SR_DV=k;srDraw()}}catch(e){}},700);
+/* --- etkileşimler --- */
+function srOwnerOk(){const S=srS();if(!S||!isOguz81()){toast('🔒 Özel mülk · çiftliğin sahibi yok gibi, kapılar kilitli');return null}return srInit()}
+function srHouseT(){const S=srS();if(!S||!isOguz81())return 'E: 🏡 Eski bir çiftlik evi';return ({gor:'E: 🏡 Dedemin çiftlik evi · içeri bak',karar:'E: 🏡 Dedemin çiftliği · karar ver',islet:'E: 📒 Çiftlik defteri · yönetim',kira:'E: 🔑 Kirada · '+(SR_RENT[S.ten]||{}).n,sold:'E: 🔑 Sattığım çiftlik'})[S.st]||'E: 🏡 Dedemin çiftlik evi'}
+function srFirstLook(){const S=srS();S.st='karar';scnTaskDone('sr_gor');try{memAdd('🌿','Dedemin Menemen\'deki serasını ve çiftliğini gördüm')}catch(e){}say(player,'Dedemle burada domates toplardık… 🥹',3.2);mood=clamp(mood+4,0,100);try{saveGame()}catch(e){}
+  setTimeout(()=>{say(player,'Sera sağlam, tavuklar da yerinde. Ne yapsam?',3.2);scnTask('sr_karar','Menemen çiftliği: işlet, kirala ya da sat','🌿');setTimeout(srDecide,1400)},2600)}
+function srHouse(){const S=srOwnerOk();if(!S)return;if(S.st==='gor')return srFirstLook();if(S.st==='karar')return srDecide();if(S.st==='islet')return srManage();if(S.st==='kira')return srRentMenu();toast('🔑 Çiftlik artık yeni sahiplerinin · '+(S.sold?S.sold.n:''))}
+function srDecide(){const S=srS();scnCards({title:'🌿 Dedemin çiftliği · Menemen',sub:'Cam sera (18 parsel), kümes (8 tavuk), 6 meyve ağacı ve taş ev artık senin. Ne yapmak istersin?',cards:[
+  {ic:'👨‍🌾',t:'İşlet',d:'Serada her mevsim ürün yetiştir, yumurta ve meyve topla, pazarda tezgâh aç · ısıtma/sulama/yem giderleri var',fn:srStartIslet},
+  {ic:'🔑',t:'Kirala',d:'Pasif gelir · kiracı seç, her gün kira hesabına yatsın',fn:srRentPick},
+  {ic:'💰',t:'Sat',d:'Emlakçıyla pazarlık · 3 alıcı · 650B–1M🪙',fn:srSell}],cancel:'Biraz düşüneyim'})}
+function srStartIslet(){const S=srInit();const first=!S.started;S.st='islet';S.started=1;delete S.ten;scnTaskDone('sr_karar');
+  if(first){farmAdd77({s:'domates',n:6});farmAdd77({s:'salatalik',n:6});farmAdd77({s:'patlican',n:6});['capa','kova'].forEach(t=>{if(!FARM77.tool[t])farmAdd77({t:t})});scnTask('sr_ilk','Serada ilk hasadı yap ve pazarda tezgâh aç','🧺')}
+  try{memAdd('👨‍🌾','Dedemin çiftliğini işletmeye karar verdim')}catch(e){}mood=clamp(mood+8,0,100);srDraw();try{saveGame()}catch(e){}
+  setTimeout(()=>notify('👴 Hüsnü Amca','Aferin evladım, deden de böyle isterdi! Seraya dedenin tohumlarını bıraktım. Kışın kazanı yakmayı, tavuklara yem vermeyi unutma; ürünleri köy pazarında satarsın 🧺',[{t:'Tamam',fn:()=>{}}]),900)}
+function srManage(){const S=srInit(),c=srCosts(),L=S.led,tot=c.isit+c.sula+c.yem,G=FARM77.g[SR_ID],grow=G.p.filter(p=>p.s==='s').length;
+  actionMenu('📒 Çiftlik defteri · '+seasonTxt81()+' · '+tempNow64()+'°C',[
+    ['📊','Günlük gider: '+tot+'🪙 (🔥'+c.isit+' · 💧'+c.sula+' · 🐔'+c.yem+') · serada '+grow+'/18 parsel',()=>setTimeout(srManage,50)],
+    ['💰','Toplam: satış +'+L.sat.toLocaleString('tr-TR')+' · gider −'+(L.isit+L.sula+L.yem+L.ucret).toLocaleString('tr-TR')+'🪙',()=>setTimeout(srManage,50)],
+    ['🔥','Isıtma: '+(S.heat?'AÇIK':'KAPALI')+(srCold()?' · hava soğuk, şart!':' · hava ılık, gerek yok'),()=>{S.heat=!S.heat;toast(S.heat?'🔥 Kazan yakıldı':'🔥 Isıtma kapatıldı');setTimeout(srManage,50)}],
+    ['💧','Damla sulama: '+(S.drip?'AÇIK · sera kendini sular':'KAPALI · kovayla elle sula'),()=>{S.drip=!S.drip;if(S.drip)G.p.forEach(p=>{if(p.s==='s')p.w=HOME.day});fbump77();toast(S.drip?'💧 Damla sulama açıldı':'💧 Damla sulama kapatıldı');setTimeout(srManage,50)}],
+    ['🔑','Çiftliği kiraya ver',srRentPick],['💰','Çiftliği sat',srSell]])}
+/* --- sera kapısı + iç mekân --- */
+function srGhT(){const S=srS();if(!S||!isOguz81())return 'E: 🪟 Cam sera · kapı kilitli';if(S.st==='kira')return 'E: 🔑 Sera kirada · '+(SR_RENT[S.ten]||{}).n+' çalışıyor';if(S.st==='sold')return 'E: 🔑 Sera artık başkasının';
+  if(S.st!=='islet')return 'E: 🪟 Dedemin serası · içeri bak';const G=FARM77.g[SR_ID],rp=G?G.p.filter(p=>p.s==='s'&&p.st>=2).length:0;return 'E: 🪟 Seraya gir'+(rp?' · '+rp+' parsel hasada hazır 🧺':'')}
+function srGhEnter(){const S=srOwnerOk();if(!S)return;if(S.st==='gor')return srFirstLook();if(S.st==='karar')return srDecide();if(S.st==='kira'){say(player,'Mehmet Bey… pardon, kiracı işinde. Rahatsız etmeyeyim.',2.6);return}if(S.st==='sold'){toast('🔑 Sera artık yeni sahiplerinin');return}enter('rest_sr_oguz')}
+{const _ri=restInt;restInt=function(I,key){if(key==='sr_oguz')return srInt(I);return _ri.apply(this,arguments)}}
+function srInt(I){srInit();I.G=W;I.title='🪟 Dedemin serası · Menemen';I.zoom=isTouch?7:9;I.farm=SR_ID;I.fv=-1;I.beds=[];I.lawn={visible:false};
+  const w=22,d=13;I.w=w;I.d=d;I.bx=w/2-.6;I.bz=d/2-.6;
+  const gr=new T.Mesh(new T.BoxGeometry(w+40,.3,d+40),[std(0x5a4a3a),std(0x5a4a3a),repeatMat(grassTex,(w+40)/5,(d+40)/5,1),std(0x5a4a3a),std(0x5a4a3a),std(0x5a4a3a)]);gr.position.y=-.16;gr.receiveShadow=true;W.add(gr);
+  const fl=new T.Mesh(new T.BoxGeometry(w,.04,d),std(0xb8b0a0));fl.position.y=.01;fl.receiveShadow=true;W.add(fl);
+  const gl=srGlassMat(),fr=mt(0xf4f4f0),H=3.2;
+  /* arka (−z) ve sağ (+x) cam duvar tam boy; ön (+z) ve sol (−x) alçak (kamerayı kapatmasın) */
+  const gw=(W0,H0,x,y,z,ry)=>{const m=new T.Mesh(new T.BoxGeometry(W0,H0,.05),gl);m.position.set(x,y,z);m.rotation.y=ry||0;W.add(m)};
+  gw(w,H,0,H/2,-d/2);gw(d,H,w/2,H/2,0,Math.PI/2);box(w,.6,.12,mt(0xc8c0b0),0,.3,d/2);box(.12,.6,d,mt(0xc8c0b0),-w/2,.3,0);
+  for(let x=-w/2;x<=w/2+.01;x+=w/8)box(.1,H,.1,fr,x,H/2,-d/2);for(let z=-d/2;z<=d/2+.01;z+=d/4)box(.1,H,.1,fr,w/2,H/2,z);box(w,.1,.1,fr,0,H,-d/2);box(.1,.1,d,fr,w/2,H,0);
+  for(let x=-w/2;x<=w/2+.01;x+=w/8)box(.1,.1,d,fr,x,H+.05,0);
+  I.boxes.push({x:0,z:-d/2,hx:w/2,hz:.2},{x:w/2,z:0,hx:.2,hz:d/2},{x:0,z:d/2,hx:w/2,hz:.15},{x:-w/2,z:0,hx:.15,hz:d/2});
+  /* dışarıda tarla + ağaç (cam arkasından görünür) */for(let i=0;i<7;i++)box(w+10,.22,.5,mt(0x4a8a2a),0,.1,-d/2-3-i*1.6);[[-6,-d/2-12],[4,-d/2-14],[w/2+6,-2],[w/2+8,5]].forEach(p=>mrsTree(W,p[0],p[1],1.1,0x4f8f3a));
+  /* damla sulama boruları + sisleme */I.plots=[];const PX=[-5.4,-3,-.6,1.8,4.2,6.6],PZ=[-3.6,-1,1.6];
+  PZ.forEach((z,r)=>{cyl(.025,.025,14,5,mt(0x2a4a2a),.6,.06,z-.82,W).rotation.z=Math.PI/2;PX.forEach((x,c)=>{const k=r*6+c,g=new T.Group();g.position.set(x,0,z);W.add(g);const frm=mt(0x8a5a32);
+    box(1.5,.2,.1,frm,0,.1,-.7,g);box(1.5,.2,.1,frm,0,.1,.7,g);box(.1,.2,1.5,frm,-.7,.1,0,g);box(.1,.2,1.5,frm,.7,.1,0,g);
+    const soil=new T.Mesh(new T.BoxGeometry(1.3,.12,1.3),std(0x8a6a48));soil.position.y=.06;soil.receiveShadow=true;g.add(soil);const cg=new T.Group();cg.userData.dyn64=true;g.add(cg);
+    I.plots.push({g:g,soil:soil,cg:cg,x:x,z:z});I.spots.push({x:x,z:z+.95,r:.8,get t(){return plotLabel77(SR_ID,k)},fn:()=>plotAct77(I,SR_ID,k)})})});
+  /* kazan, sulama paneli, termometre, sandık, musluk */
+  box(1.2,1.5,1,mt(0x6a6a70),-9.6,.75,-4.8);box(.5,.3,.06,mt(0xd8322c),-9.6,1.1,-4.27);cyl(.12,.12,2,8,mt(0x8a8a90),-9.6,2.4,-4.8);const fl0=new T.Mesh(new T.SphereGeometry(.12,8,6),new T.MeshBasicMaterial({color:0xff8a2a}));fl0.position.set(-9.6,.5,-4.27);fl0.userData.dyn64=true;W.add(fl0);I.boxes.push({x:-9.6,z:-4.8,hx:.6,hz:.5});
+  I.spots.push({x:-9.6,z:-3.6,r:1.4,get t(){const S=srS();return 'E: 🔥 Kazan · ısıtma '+(S.heat?'AÇIK':'KAPALI')+' · '+tempNow64()+'°C dışarı'+(srCold()?' · ❄️ soğuk':'')},fn:()=>{const S=srS();S.heat=!S.heat;toast(S.heat?'🔥 Kazanı yaktın · günlük '+srHeatCost()+'🪙':'🔥 Kazanı söndürdün'+(srCold()?' · dikkat, bitkiler üşüyebilir!':''))}});
+  box(.8,1.2,.3,mt(0x2a6ab0),-9.6,.9,-1.4);I.boxes.push({x:-9.6,z:-1.4,hx:.4,hz:.2});I.spots.push({x:-9,z:-1.4,r:1.2,get t(){return 'E: 💧 Damla sulama '+(srS().drip?'AÇIK · 12🪙/gün':'KAPALI')},fn:()=>{const S=srS(),G=FARM77.g[SR_ID];S.drip=!S.drip;if(S.drip)G.p.forEach(p=>{if(p.s==='s')p.w=HOME.day});fbump77();toast(S.drip?'💧 Damla sulama açıldı · bugün de sulandı':'💧 Damla sulama kapatıldı · kovayla sula')}});
+  box(1.2,.7,.7,mt(0x7a5232),9.6,.35,-5.2);I.boxes.push({x:9.6,z:-5.2,hx:.6,hz:.35});I.spots.push({x:9.6,z:-4.2,r:1.3,t:'E: 🧰 Alet sandığı · tohumlarım',fn:()=>chest77()});
+  cyl(.06,.06,1,6,mt(0x8a8e96),9.8,.5,4);cyl(.32,.28,.35,12,mt(0x6a7a8a),9.5,.18,4.6);I.spots.push({x:9,z:4.4,r:1.3,t:'E: 💧 Musluk · tüm parselleri kovayla sula',fn:()=>waterAll77(I,SR_ID)});
+  [[8.4,5.4],[7.4,5.6]].forEach(p=>box(.8,.5,.6,mt(0xb08a5a),p[0],.25,p[1]));I.spots.push({x:7.9,z:4.6,r:1.1,get t(){return 'E: 📦 Kasalar · '+seasonTxt81()+' · serada her mevsim ürün'},fn:()=>toast('🪟 Cam sera kışın da üretir · ısıtma açıkken bitkiler mevsim dinlemez 🍅')});
+  {const sg=labelSprite('🪟 Dedemin serası');sg.scale.set(3,.75,1);sg.position.set(0,H+.8,-d/2+.2);W.add(sg)}
+  I.spawn=[-8,4.6];farmDraw77(I)}
+/* --- kümes --- */
+function srCoopT(){const S=srS();if(!S||!isOguz81())return 'E: 🐔 Kümes';if(S.st!=='islet')return S.st==='kira'||S.st==='sold'?'E: 🐔 Kümes · artık benim değil':'E: 🐔 Dedemin tavukları · önce karar ver';return S.egg===HOME.day?'E: 🐔 Bugün yumurtaları topladın · yarın yine gel':'E: 🥚 Yumurtaları topla'}
+function srEggs(){const S=srOwnerOk();if(!S)return;if(S.st==='gor'||S.st==='karar')return srHouse();if(S.st!=='islet'){toast('🐔 Kümes artık benim değil');return}if(S.egg===HOME.day){toast('🥚 Bugünkü yumurtaları topladın');return}
+  faceTo2({x:SR_COOP.x,z:SR_COOP.z});startAct({name:'Kümeste yumurta topluyorsun',ic:'🥚',dur:3,tm:1,tick:(dt,t)=>{const A=player.userData.arms;A[0].rotation.x=-.9+Math.sin(t*5)*.3;A[1].rotation.x=-.9+Math.sin(t*5+1.5)*.3},end:()=>{
+    const fed=S.fed>=HOME.day-1,n=fed?5+((Math.random()*4)|0):1+((Math.random()*2)|0),P=PR81.yumurta;for(let i=0;i<n;i++)INV.push({n:P.n,e:P.e,u:'gida',h:P.h,m:P.m,farm81:'yumurta'});S.egg=HOME.day;mood=clamp(mood+4,0,100);
+    try{memAdd('🥚','Kümesten '+n+' yumurta topladım')}catch(e){}toast('🥚 '+n+' köy yumurtası çantana girdi'+(fed?'':' · tavuklar aç, yem parası yetmemiş 🐔'));try{saveGame()}catch(e){}}})}
+/* --- meyve ağaçları (mevsimlik; serada değil) --- */
+function srTreeRipe(i){const T0=TREES81[i],S=srS();if(T0.s.indexOf(season81())<0)return false;const l=S&&S.tr?S.tr[i]:null;return l==null||HOME.day-l>=3}
+function srTreeT(i){const T0=TREES81[i],P=PR81[T0.k],S=srS(),own=S&&isOguz81()&&S.st==='islet';const ss=T0.s.map(k=>SEASON81[k][0]).join('/');
+  if(T0.s.indexOf(season81())<0)return 'E: 🌳 '+P.n+' ağacı · mevsimi '+ss;if(!own)return 'E: '+P.e+' '+P.n+' ağacı'+(srTreeRipe(i)?' · dalları dolu':'');
+  return srTreeRipe(i)?'E: 🧺 '+P.e+' '+P.n+' topla':'E: 🌳 '+P.n+' · '+(3-(HOME.day-S.tr[i]))+' gün sonra yine olgunlaşır'}
+function srTree(i){const T0=TREES81[i],P=PR81[T0.k];if(T0.s.indexOf(season81())<0){toast('🌳 '+P.n+' mevsimi: '+T0.s.map(k=>SEASON81[k][1]+' '+SEASON81[k][0]).join(', ')+' · şimdi '+seasonTxt81());return}
+  const S=srOwnerOk();if(!S)return;if(S.st==='gor'||S.st==='karar')return srHouse();if(S.st!=='islet'){toast('🌳 Bu ağaçlar artık benim değil');return}if(!srTreeRipe(i)){toast('🌳 '+P.n+' henüz olgunlaşmadı · '+(3-(HOME.day-S.tr[i]))+' gün');return}
+  faceTo2({x:T0.x,z:T0.z});startAct({name:P.n+' topluyorsun',ic:P.e,dur:3,tm:1,tick:(dt,t)=>{const A=player.userData.arms;A[0].rotation.x=-2.6+Math.sin(t*4)*.3;A[1].rotation.x=-2.6+Math.sin(t*4+1.5)*.3},end:()=>{
+    const n=4+((Math.random()*3)|0);for(let k=0;k<n;k++)INV.push({n:P.n,e:P.e,u:'gida',h:P.h,m:P.m,farm81:T0.k});S.tr[i]=HOME.day;mood=clamp(mood+5,0,100);try{memAdd(P.e,'Dedemin ağacından '+n+' '+P.n.toLowerCase()+' topladım')}catch(e){}toast('🧺 '+n+' '+P.e+' '+P.n+' çantana girdi');try{saveGame()}catch(e){}}})}
+/* --- pazar tezgâhı: mini satış ekranı --- */
+(function(){const st=document.createElement('style');st.textContent=`
+#scnov .stl{width:min(560px,96vw);max-height:92vh;overflow:auto;border-radius:24px;padding:16px;background:linear-gradient(180deg,#3a2a18,#1f160e);border:1px solid rgba(255,220,160,.25);box-sizing:border-box}
+#scnov .stl h3{margin:0 0 2px;font-size:19px}#scnov .stl .sb{opacity:.8;font-size:13px;margin-bottom:10px}
+#scnov .stw{height:78px;border-radius:14px;background:linear-gradient(180deg,#9ad0ec,#e8f4d8 70%,#c8a46a 70%);position:relative;overflow:hidden;margin-bottom:10px}
+#scnov .stw .aw{position:absolute;left:0;right:0;top:0;height:16px;background:repeating-linear-gradient(90deg,#d8322c 0 22px,#fff 22px 44px)}
+#scnov .stw .cu{position:absolute;bottom:14px;font-size:30px;transition:left 1.2s linear;filter:drop-shadow(0 2px 2px rgba(0,0,0,.3))}
+#scnov .stw .bb{position:absolute;bottom:52px;font-size:12px;background:#fff;color:#222;border-radius:10px;padding:2px 7px;white-space:nowrap;transform:translateX(-30%)}
+#scnov .stp{display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center;padding:7px 10px;border-radius:12px;background:rgba(255,255,255,.07);margin-bottom:6px;font-size:14px}
+#scnov .stp .pr{display:flex;gap:6px;align-items:center}#scnov .stp button{border:0;border-radius:9px;width:30px;height:30px;font:inherit;font-weight:700;cursor:pointer;background:#6b4a2a;color:#fff}
+#scnov .stp b{min-width:48px;text-align:center;color:#ffd27a}#scnov .stp small{opacity:.7}
+#scnov .sts{display:flex;justify-content:space-between;font-size:14px;margin:8px 2px}#scnov .stl .go{width:100%;border:0;border-radius:14px;padding:12px;font:inherit;font-weight:700;cursor:pointer;background:#2fb35a;color:#fff;margin-top:6px}
+#scnov .stl .go.r{background:#e0484a}#scnov .stl .hg{display:flex;gap:8px;margin-top:6px}#scnov .stl .hg button{flex:1;border:0;border-radius:12px;padding:10px;font:inherit;font-weight:700;cursor:pointer;color:#fff}
+#scnov .stlog{font-size:12px;opacity:.85;max-height:84px;overflow:auto;margin-top:6px;line-height:1.45}`;document.head.appendChild(st)})();
+const GH_CROPS81=['domates','biber','salatalik','cilek','patlican'];
+function srStock(){const M={};INV.forEach(x=>{let k=null,P=null;if(x.farm81&&PR81[x.farm81]){k='p:'+x.farm81;P=PR81[x.farm81]}else if(x.farm77&&CROPS77[x.farm77]){k='c:'+x.farm77;P=CROPS77[x.farm77]}if(!k)return;(M[k]=M[k]||{k:k,n:P.n,e:P.e,base:P.sell,q:0}).q++});
+  const w=season81()===3;Object.values(M).forEach(m=>{m.off=w&&GH_CROPS81.indexOf(m.k.slice(2))>=0&&m.k[0]==='c';m.pr=Math.round(m.base*(m.off?2:1.5))});return Object.values(M)}
+function srStall(where){if(busy||SCN_UI)return;const S=srS();if(!S||!isOguz81())return;const stock=srStock();if(!stock.length){toast('🧺 Satacak ürünün yok · serada hasat yap, yumurta ve meyve topla');return}
+  const fee=where==='koy'?20:35,CUST=['👵','👴','👩','👨','🧕','👩‍🦳','🧔','👱‍♀️','👨‍🍳','🧑'];
+  const ov=scnOpen(),w=el('div','stl');ov.appendChild(w);uiPC=true;
+  w.appendChild(el('h3','','🧺 '+me.n+'\'un tezgâhı · '+(where==='koy'?'Menemen Köy Pazarı':'semt pazarı')));w.appendChild(el('div','sb','Fiyatları ayarla, tezgâhı aç. Ucuz satarsan hızlı biter, pahalıya müşteri kaçar. Tezgâh ücreti '+fee+'🪙'+(season81()===3?' · ❄️ Kışın sera sebzesi kıymetli!':'')));
+  const sw=el('div','stw');sw.appendChild(el('div','aw'));w.appendChild(sw);const list=el('div');w.appendChild(list);const sts=el('div','sts');w.appendChild(sts);const hg=el('div','hg');w.appendChild(hg);const go=el('button','go','🧺 Tezgâhı aç · '+fee+'🪙');w.appendChild(go);const log=el('div','stlog');w.appendChild(log);
+  let open=false,earn=0,served=0,lost=0,tleft=50,iv=null,wait=null;const sold={};
+  const draw=()=>{list.innerHTML='';stock.forEach(m=>{const r=el('div','stp'),a=el('div','',m.e+' '+m.n+' ');a.appendChild(el('small','','×'+m.q+(m.off?' · kış fiyatı':'')+' · piyasa '+m.base+'🪙'));r.appendChild(a);const p=el('div','pr'),mi=el('button','','−'),v=el('b','',m.pr+'🪙'),pl0=el('button','','+');
+    mi.onclick=()=>{m.pr=Math.max(1,m.pr-1);draw()};pl0.onclick=()=>{m.pr=m.pr+1;draw()};p.appendChild(mi);p.appendChild(v);p.appendChild(pl0);r.appendChild(p);list.appendChild(r)});
+    sts.innerHTML='';sts.appendChild(el('span','',open?'⏱️ '+tleft+' sn':'⏱️ 50 sn'));sts.appendChild(el('span','','👥 '+served+' müşteri · 😕 '+lost));sts.appendChild(el('b','','💰 +'+earn+'🪙'))};
+  const addLog=t=>{const d=el('div','',t);log.insertBefore(d,log.firstChild)};
+  const bub=(c,t)=>{const b=el('div','bb',t);b.style.left=c.style.left;sw.appendChild(b);setTimeout(()=>b.remove(),1500)};
+  const sell=(m,n,p,c)=>{n=Math.min(n,m.q);m.q-=n;earn+=n*p;served++;sold[m.k]=(sold[m.k]||0)+n;try{sfx('coin')}catch(e){}bub(c,pick(['Ver bakalım '+n+' tane 😊','Mis gibi! '+n+' alayım','Dedenin bahçesinden mi? Ver '+n]));addLog('✅ '+m.e+' '+m.n+' ×'+n+' · +'+(n*p)+'🪙');draw()};
+  const leaveC=c=>{c.style.left='110%';setTimeout(()=>c.remove(),1300)};
+  const cust=()=>{if(wait)return;const av=stock.filter(m=>m.q>0);if(!av.length){finish();return}const m=pick(av),c=el('div','cu',pick(CUST));c.style.left='-12%';sw.appendChild(c);setTimeout(()=>{c.style.left=(30+Math.random()*30)+'%'},30);
+    setTimeout(()=>{if(!open){c.remove();return}const will=m.base*(m.off?2:1.4)*(.85+Math.random()*.7),n=1+((Math.random()*3)|0);
+      if(m.pr<=will){sell(m,n,m.pr,c);leaveC(c);return}
+      if(m.pr<=will*1.3){const off=Math.max(1,Math.round(will));bub(c,m.e+' '+off+'🪙 olur mu?');wait=1;hg.innerHTML='';const y=el('button','','🤝 '+off+'🪙 olur'),no=el('button','','🙅 Olmaz');y.style.background='#2fb35a';no.style.background='#8a5a3a';hg.appendChild(y);hg.appendChild(no);
+        const done=ok=>{hg.innerHTML='';wait=null;clearTimeout(to);if(ok)sell(m,n,off,c);else{lost++;bub(c,'Peki, başka tezgâha bakarım');addLog('😕 '+m.n+' için pazarlık olmadı');draw()}leaveC(c)};y.onclick=()=>done(true);no.onclick=()=>done(false);const to=setTimeout(()=>done(false),4500);return}
+      lost++;bub(c,pick(['Çok pahalı! 😮','Bu fiyata mı? Yok','Hal fiyatı bunun yarısı 😅']));addLog('❌ '+m.e+' '+m.n+' '+m.pr+'🪙 pahalı bulundu');draw();leaveC(c)},1300)};
+  const finish=()=>{if(!open)return;open=false;clearInterval(iv);hg.innerHTML='';
+    Object.keys(sold).forEach(k=>{let n=sold[k];const t=k.slice(2),f=k[0]==='p'?'farm81':'farm77';for(let i=INV.length-1;i>=0&&n>0;i--)if(INV[i][f]===t){INV.splice(i,1);n--}});
+    coins+=earn;try{txNote67('🧺 Pazar tezgâhı','gelir')}catch(e){}S.led.sat+=earn;S.led.ucret+=fee;S.mk=(S.mk|0)+1;GT=Math.min(GT+120,23*60);mood=clamp(mood+(earn>0?8:0),0,100);NEED.soc=clamp(NEED.soc+10,0,100);
+    if(earn>0)scnTaskDone('sr_ilk');try{memAdd('🧺','Pazarda tezgâh açtım · '+served+' müşteri · +'+earn+'🪙')}catch(e){}try{saveGame()}catch(e){}
+    go.textContent='Tezgâhı topla · kazanç +'+earn+'🪙 (ücret −'+fee+')';go.className='go';go.onclick=()=>{scnClose();uiPC=false;toast('🧺 Pazar bitti · '+served+' müşteri · +'+earn+'🪙')};addLog('🏁 Pazar dağıldı · net '+(earn-fee)+'🪙')};
+  go.onclick=()=>{if(open){finish();return}if(coins<fee){toast('Tezgâh ücreti için '+fee+'🪙 lazım');return}coins-=fee;open=true;go.textContent='⏹️ Erken topla';go.className='go r';draw();addLog('🧺 Tezgâh açıldı · "Taze domateees, köy yumurtasııı!"');
+    cust();iv=setInterval(()=>{tleft--;if(tleft<=0){finish();return}if(tleft%3===0||Math.random()<.18)cust();draw()},1000)};
+  const cl=el('button','go r','Vazgeç');cl.style.background='transparent';cl.style.border='1px solid rgba(255,255,255,.25)';w.appendChild(cl);cl.onclick=()=>{if(open)finish();scnClose();uiPC=false;clearInterval(iv)};draw();
+  w.__test={get stock(){return stock},get earn(){return earn},get open(){return open},get served(){return served},finish:finish}}
+/* semt pazarında da tezgâh aç */
+{const _sm=stallMenu;stallMenu=function(st){const _am=actionMenu;if(isOguz81()&&srS()&&srS().st==='islet')actionMenu=function(t,acts){return _am.call(this,t,acts.concat([['🧺','Kendi tezgâhımı aç (çiftlik ürünleri)',()=>setTimeout(()=>srStall('semt'),60)]]))};try{return _sm.apply(this,arguments)}finally{actionMenu=_am}}}
+/* çiftlik ürünlerini de "Bahçe ürünlerimi sat" ile hızlı sat */
+{const _fs=farmSellMenu77;farmSellMenu77=function(){const has=INV.some(x=>x.farm81);if(!has)return _fs.apply(this,arguments);const C={};INV.forEach(x=>{if(x.farm81)C[x.farm81]=(C[x.farm81]||0)+1});
+  actionMenu('💰 Çiftlik ürünlerini sat',Object.keys(C).map(k=>{const P=PR81[k];return [P.e,P.n+' ×'+C[k]+' · '+C[k]*P.sell+'🪙',()=>{let n=0;for(let i=INV.length-1;i>=0;i--)if(INV[i].farm81===k){INV.splice(i,1);n++}coins+=n*P.sell;sfx('coin');const S=srS();if(S&&S.led)S.led.sat+=n*P.sell;toast('💰 '+n+' '+P.n.toLowerCase()+' · +'+n*P.sell+'🪙')}]}).concat(INV.some(x=>x.farm77)?[['🌱','Bahçe ürünleri',()=>setTimeout(()=>_fs(),60)]]:[]))}}
+/* --- kiralama --- */
+function srRentPick(){scnCards({title:'🔑 Çiftliği kiraya ver',sub:'Kiracı serayı, kümesi ve ağaçları işletir; sen her gün kiranı alırsın. İstediğin zaman geri alabilirsin.',cards:Object.keys(SR_RENT).map(k=>{const R=SR_RENT[k];return {ic:R.ic,t:R.n,d:R.d,price:R.p+'🪙 / gün',fn:()=>srRentDo(k)}}),cancel:'Geri',onCancel:()=>{const S=srS();if(S&&S.st==='karar')setTimeout(srDecide,50)}})}
+function srRentDo(k){const S=srInit(),R=SR_RENT[k];if(!confirm(R.n+' · günlük '+R.p+'🪙 · kira sözleşmesi imzalansın mı?'))return srRentPick();S.st='kira';S.ten=k;S.rd=HOME.day;S.wk=0;FARM77.g[SR_ID].p=FARM77.g[SR_ID].p.map(()=>({s:'e'}));scnTaskDone('sr_karar');scnTaskDel('sr_ilk');
+  sfx('coin');try{memAdd('🔑','Dedemin çiftliğini '+R.n+'\'e kiraya verdim')}catch(e){}srDraw();try{saveGame()}catch(e){}toast('🔑 Sözleşme imzalandı · her gün +'+R.p+'🪙 kira')}
+function srRentMenu(){const S=srS(),R=SR_RENT[S.ten];actionMenu('🔑 Kirada · '+R.n,[['💰','Günlük kira '+R.p+'🪙 · toplam kira geliri '+S.led.kira.toLocaleString('tr-TR')+'🪙'+(S.late?' · geciken '+S.late:''),()=>setTimeout(srRentMenu,50)],
+  ['👨‍🌾','Kiracıyı çıkar, çiftliği kendim işleteyim',()=>{if(!confirm('Sözleşme feshedilsin mi? Çiftliği yeniden sen işleteceksin.'))return;srStartIslet()}],['💰','Çiftliği sat',srSell]])}
+/* --- satış --- */
+function srSell(){const S=srInit();if(!S.offers){const r=Math.random,rd=v=>Math.round(v/5000)*5000;S.neg=2;
+    S.offers=[{n:'Tarım şirketi Ege Agro',ic:'🏭',d:'Peşin öder · seraları büyütecek',p:rd(650000+r()*120000)},{n:'Emekli öğretmen çift',ic:'👵',d:'Köyde huzur arıyorlar · kredili',p:rd(720000+r()*120000)},{n:'Organik tarım girişimcisi',ic:'🌱',d:'Sera ve kümesi aynen sürdürecek',p:rd(800000+r()*120000)}];try{saveGame()}catch(e){}}
+  const cards=S.offers.map(o=>({ic:o.ic,t:o.n,d:o.d+' · kabul et',price:o.p,fn:()=>srSold(o)}));
+  cards.push({ic:'🤝',t:'Pazarlık et',d:S.neg>0?'Fiyatları yukarı çek · risk: bir alıcı vazgeçebilir · kalan hak '+S.neg:'Emlakçı: "Menemen için bu fiyat çok iyi" 😅',dis:S.neg<=0,fn:srNegotiate});
+  scnCards({title:'🌿 Emlakçı Nuri Bey · teklifler',sub:'"Sera, kümes, meyve bahçesi… Oğuz Bey bu çiftlik kapış kapış gider." · tutarlar 🪙',cards:cards,cancel:'Satmaktan vazgeç',onCancel:()=>toast('İstediğin zaman çiftlik evine gidip tekrar karar verebilirsin 🏡')})}
+function srNegotiate(){const S=srS();if(S.neg<=0)return srSell();S.neg--;let gone=null;S.offers.forEach(o=>{o.p=Math.min(1000000,Math.round(o.p*(1.04+Math.random()*.07)/5000)*5000)});
+  if(S.offers.length>1&&Math.random()<.3){const i=Math.floor(Math.random()*S.offers.length);gone=S.offers.splice(i,1)[0]}try{saveGame()}catch(e){}sfx('blip');toast(gone?'😬 '+gone.n+' pazarlıktan çekildi! Diğerleri tekliflerini yükseltti':'🤝 Pazarlık işe yaradı · teklifler yükseldi');setTimeout(srSell,350)}
+function srSold(o){const S=srS();if(!confirm(o.n+' · '+o.p.toLocaleString('tr-TR')+' 🪙 · satış kesinleşsin mi?'))return srSell();
+  coins+=o.p;try{txNote67('🌿 Menemen çiftliği satışı','gelir')}catch(e){}S.st='sold';S.sold={n:o.n,p:o.p,d:HOME.day};delete S.offers;delete S.ten;scnTaskDone('sr_karar');scnTaskDel('sr_ilk');delete FARM77.g[SR_ID];sfx('coin');mood=clamp(mood+12,0,100);
+  try{memAdd('💰','Dedemin çiftliğini sattım · '+o.p.toLocaleString('tr-TR')+'🪙')}catch(e){}srDraw();try{saveGame()}catch(e){}
+  setTimeout(()=>notify('🌿 Emlakçı Nuri Bey','Tapu devredildi, '+o.p.toLocaleString('tr-TR')+' 🪙 hesabında! Dedeniz rahat uyusun 🙏',[{t:'Tamam',fn:()=>{}}]),900)}
+/* --- senaryo kaydı: sadece Oğuz --- */
+scnAdd('seraOguz',{after:2,cond:()=>isOguz81(),fire:()=>{SCN.v.sera={st:'call',d:HOME.day};
+  const go=()=>{SCN.v.sera.st='gor';srInit();scnTask('sr_gor','Menemen\'e git, dedenin serasını ve çiftliğini gör','🌿');srDraw();try{saveGame()}catch(e){}};
+  scnCall({from:'Hüsnü Amca · Menemen',ic:'👴',msg:['Alo, Oğuz oğlum? Ben Hüsnü, Menemen\'den… dedenin komşusu.','Başın sağ olsun evladım… Deden vasiyetinde serasını, kümesini, meyve bahçesini ve taş evini sana bırakmış. Noter tapuyu senin üstüne geçirdi.','Tavuklara ben bakıyorum şimdilik. Gel bir gör; navigasyonda "Menemen" var. İşletirsin, kiraya verirsin ya da satarsın, sen bilirsin.'],
+    onAnswer:()=>{say(player,'Dedem… 🥹',2.6);go()},onReject:()=>{go();setTimeout(()=>notify('👴 Hüsnü Amca','Oğlum telefonu açmadın. Deden Menemen\'deki serasını ve çiftliğini sana bıraktı. Gel bir gör 🌿',[{t:'Tamam',fn:()=>{}}]),800)}})}});
+scnResetHook.push(()=>{delete FARM77.g[SR_ID];srDraw()});
+{const _ld=load25;load25=function(x){const r=_ld.apply(this,arguments);try{const S=srS();if(S&&S.st==='call'){S.st='gor';if(!SCN.tasks.find(q=>q.id==='sr_gor'))SCN.tasks.push({id:'sr_gor',t:"Menemen'e git, dedenin serasını ve çiftliğini gör",ic:'🌿',done:false,day:HOME.day})}if(S)srInit()}catch(e){}return r}}
+window.__sr={get S(){return srS()},get F(){return FARM77},get inv(){return INV},get I(){return curI},stall:srStall,draw:srDraw,decide:srDecide,islet:srStartIslet,rent:srRentDo,sell:srSell,eggs:srEggs,tree:srTree,season:season81,stock:srStock};
 function saveGame(){if(!me)return;try{const furn=Object.assign({},SAVE&&SAVE.furn||{});
   Object.keys(INT).forEach(k=>{const I=INT[k];if(k.indexOf('ev_')!==0||!I.furn)return;furn[k]=I.furn.filter(f=>f.key).map(f=>({key:f.key,x:+f.g.position.x.toFixed(3),z:+f.g.position.z.toFixed(3),q:f.q|0,sold:!!f.sold}))});
   const looks=Object.assign({},SAVE&&SAVE.looks||{});looks[me.key]=curLook();const bonds={};Object.keys(BONDS).forEach(k=>bonds[k]=BONDS[k].v);
