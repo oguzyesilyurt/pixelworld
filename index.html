@@ -9477,6 +9477,177 @@ scnAdd('seraOguz',{after:2,cond:()=>isOguz81(),fire:()=>{SCN.v.sera={st:'call',d
 scnResetHook.push(()=>{delete FARM77.g[SR_ID];srDraw()});
 {const _ld=load25;load25=function(x){const r=_ld.apply(this,arguments);try{const S=srS();if(S&&S.st==='call'){S.st='gor';if(!SCN.tasks.find(q=>q.id==='sr_gor'))SCN.tasks.push({id:'sr_gor',t:"Menemen'e git, dedenin serasını ve çiftliğini gör",ic:'🌿',done:false,day:HOME.day})}if(S)srInit()}catch(e){}return r}}
 window.__sr={get S(){return srS()},get F(){return FARM77},get inv(){return INV},get I(){return curI},stall:srStall,draw:srDraw,decide:srDecide,islet:srStartIslet,rent:srRentDo,sell:srSell,eggs:srEggs,tree:srTree,season:season81,stock:srStock};
+/* ================= v83: Çiço senaryosu · Karşıyaka kafe + 2. şube (SCN.v.kafe) ================= */
+/* şube durumu: ilan → dekor → hazir (1 gün) → acilis (kurdele) → acik */
+const isCico83=()=>!!me&&me.key==='abla',kfS=()=>SCN.v.kafe||null;
+const KF_BR={1:{d:'karsiyaka',x:87,z:3,n:'Karşıyaka',p:300000,fix:560},2:{d:'bostanli',x:86,z:8,n:'Bostanlı',p:450000,fix:680}};
+const KF_TH={bohem:{n:'Bohem',ic:'🪴',d:'Makrome, bitkiler, kilim, sıcak ahşap · tatlılar daha çok satar, müşteri daha sabırlı',nm:'Çiço Bohem Kafe',wall:'#ead7bd',tile:['#c89a6a','#b98b5c'],aw:['#c86a3a','#f4e2c4'],sg:['#5a3a22','#f4e2c4'],acc:0xc86a3a,tab:0x9a6a42,ch:0xd8b07a},
+  modern:{n:'Modern',ic:'🤍',d:'Beton, cam, minimal çizgiler · kahveler %15 daha pahalı',nm:'ÇİÇO Coffee Lab',wall:'#efefed',tile:['#d6d6d4','#c6c6c4'],aw:['#2a2a2e','#ffffff'],sg:['#1a1a1e','#ffffff'],acc:0x2a2a2e,tab:0xf4f4f2,ch:0x2a2a2e},
+  retro:{n:'Retro',ic:'📻',d:'Damalı zemin, kırmızı sedirler, pikap · bahşişler bol',nm:'Çiço Retro Diner',wall:'#f4e8c8',tile:['#f4f0e8','#2a2a2a'],aw:['#d8322c','#ffffff'],sg:['#d8322c','#fff4d0'],acc:0xd8322c,tab:0xf4f4f0,ch:0xd8322c}};
+const KF_MENU={turk:{n:'Türk kahvesi',e:'☕',p:45,st:['☕ Kahve','💧 Su','🔥 Isıt'],k:'kahve'},latte:{n:'Latte',e:'🥛',p:60,st:['☕ Espresso','🥛 Süt','🫧 Köpük'],k:'kahve'},
+  amer:{n:'Americano',e:'☕',p:50,st:['☕ Espresso','💧 Su'],k:'kahve'},mocha:{n:'Mocha',e:'🍫',p:65,st:['☕ Espresso','🍫 Çikolata','🥛 Süt','🫧 Köpük'],k:'kahve'},
+  cake:{n:'Cheesecake',e:'🍰',p:70,st:['🍰 Dilim','🍓 Sos'],k:'tatli'},brow:{n:'Brownie',e:'🟫',p:60,st:['🍫 Brownie','🔥 Isıt','🍨 Dondurma'],k:'tatli'},
+  sans:{n:'San Sebastian',e:'🧁',p:80,st:['🍰 Dilim','🍫 Çikolata'],k:'tatli'},lim:{n:'Limonata',e:'🍋',p:40,st:['🍋 Limon','🧊 Buz','💧 Su'],k:'soguk'}};
+const KF_PAD=['☕ Kahve','☕ Espresso','💧 Su','🥛 Süt','🫧 Köpük','🍫 Çikolata','🔥 Isıt','🍰 Dilim','🍓 Sos','🍫 Brownie','🍨 Dondurma','🍋 Limon','🧊 Buz'];
+LOANT67.isyeri=['🏪 İşyeri kredisi',.011,[104],600000];LOANT67.kosgeb=['🌱 KOSGEB girişimci kredisi',.013,[104],600000];
+function kfInit(){const S=kfS();if(!S)return null;if(!S.br)S.br={};if(S.rep==null)S.rep=60;if(!S.led)S.led={ciro:0,masraf:0};if(S.shifts==null)S.shifts=0;return S}
+const kfName=bid=>{const B=(kfS()||{br:{}}).br[bid];return B&&B.th?KF_TH[B.th].nm+(bid==2?' · Bostanlı':''):'Devren kiralık kafe'};
+/* --- vitrin (dünya) --- */
+function kfDraw(bid){const R=KF_BR[bid],D0=D[R.d];if(!D0)return;const k='kfG'+bid;let G=D0[k];if(!G){G=new T.Group();G.userData.noCull=true;G.userData.dyn64=true;D0.G.add(G);D0[k]=G}
+  while(G.children.length){const o=G.children.pop();o.traverse(q=>{if(q.geometry)q.geometry.dispose()})}D0.boxes=D0.boxes.filter(b=>b.kf!==bid);D0.spots=D0.spots.filter(s=>s.kf!==bid);D0.anim=D0.anim.filter(f=>f.kf!==bid);
+  const S=kfS(),B=S&&S.br&&S.br[bid];if(!B||!isCico83())return;if(bid==2)D0.camX60=Math.max(D0.camX60||62,104);
+  const pw=W,pc=C;W=G;C=null;const x=R.x,z=R.z,th=B.th?KF_TH[B.th]:null;
+  try{building({x:x,z:z,w:9,d:6,floors:1,fh:3.8,wall:th?th.wall:'#d8d0c4',roof:0x6e6a78,seed:900+bid,lit:.9},G);
+    if(th)awning(8.4,th.aw[0],th.aw[1],x,3,z+3.9);
+    const sm=new T.MeshBasicMaterial({map:textSign(th?th.nm:'DEVREN KİRALIK',8,1.3,th?th.sg[0]:'#c8222a',th?th.sg[1]:'#ffffff')});signMats.push(sm);const sp=new T.Mesh(new T.PlaneGeometry(8,1.3),sm);sp.position.set(x,4.35,z+3.08);G.add(sp);
+    box(1.3,2.4,.1,mt(th?th.acc:0x5a4a3a),x+2.6,1.2,z+3.06,G);box(.08,.08,.06,mt(0xe8c860),x+3.1,1.2,z+3.13,G);box(4.6,2,.06,mrsGlass(),x-1.4,1.45,z+3.06,G);
+    if(B.st==='ilan'){const im=new T.MeshBasicMaterial({map:textSign('DEVREN KİRALIK',3,1,'#ffffff','#c8222a')});const ip=new T.Mesh(new T.PlaneGeometry(3,1),im);ip.position.set(x-1.4,1.6,z+3.11);G.add(ip);
+      const lb=labelSprite('🏪 Devren kiralık kafe · '+R.p.toLocaleString('tr-TR')+'🪙');lb.scale.set(4.2,1,1);lb.position.set(x,6,z+3);G.add(lb)}
+    if(B.st==='dekor'||B.st==='hazir'){[[-4.4,0],[4.4,0]].forEach(p=>{box(.1,3.4,.1,mt(0x9a9aa0),x+p[0],1.7,z+3.6,G)});box(8.8,.1,.1,mt(0x9a9aa0),x,3.3,z+3.6,G);const lb=labelSprite('🎨 Dekorasyon sürüyor');lb.scale.set(3.4,.85,1);lb.position.set(x,6,z+3);G.add(lb)}
+    if(B.st==='acilis'){const rb=new T.Group();rb.position.set(x+2.6,0,z+4.4);G.add(rb);G.userData.rib=rb;[-1.5,1.5].forEach(o=>{cyl(.06,.08,1.3,8,mt(0xd8c060),o,.65,0,rb);cyl(.14,.14,.05,10,mt(0xd8c060),o,.03,0,rb)});
+      const L=new T.Group(),Rr=new T.Group();L.position.set(-1.5,1.1,0);Rr.position.set(1.5,1.1,0);rb.add(L);rb.add(Rr);box(1.5,.12,.03,mt(0xd8222a),.75,0,0,L);box(1.5,.12,.03,mt(0xd8222a),-.75,0,0,Rr);
+      const bow=new T.Mesh(new T.SphereGeometry(.16,8,6),mt(0xd8222a));bow.scale.set(1.6,1,.5);bow.position.set(-.02,0,0);Rr.add(bow);rb.userData={L:L,R:Rr};
+      [0xf4c542,0xe8508a,0x5ab0e8,0x8ad05a].forEach((c,i)=>{const bl=new T.Mesh(new T.SphereGeometry(.28,10,8),mt(c));bl.position.set(x+(i<2?-4.2:3.8)+(i%2)*.4,3.2+(i%2)*.4,z+3.4);G.add(bl);cyl(.008,.008,2.2,3,mt(0xffffff),bl.position.x,2,z+3.4,G)});
+      const lb=labelSprite('✂️ Açılış günü! Kurdeleyi kes');lb.scale.set(3.8,.95,1);lb.position.set(x,6,z+3);G.add(lb)}
+    if(B.st==='acik'&&th){[[-1,5.4],[-3.6,5.4]].forEach(p=>{cyl(.4,.4,.05,12,mt(th.tab),x+p[0],.78,z+p[1],G);cyl(.04,.06,.76,6,mt(0x333333),x+p[0],.38,z+p[1],G);[-.7,.7].forEach(o=>{box(.45,.06,.45,mt(th.ch),x+p[0]+o,.48,z+p[1],G);box(.06,.5,.45,mt(th.ch),x+p[0]+o*1.45,.72,z+p[1],G)})});
+      [-4.2,4.2].forEach(o=>{cyl(.35,.28,.6,10,mt(th.acc),x+o,.3,z+3.7,G);mrsBush(G,x+o,z+3.7,.6,0x4a8a3a).position.y=.85});
+      box(.7,1.1,.06,mt(0x2a2a2a),x+4.6,.8,z+5,G);const mb=new T.Mesh(new T.PlaneGeometry(.6,.9),new T.MeshBasicMaterial({map:canvasTex(64,96,(g,w,h)=>{g.fillStyle='#2a2a2a';g.fillRect(0,0,w,h);g.fillStyle='#fff';g.font='bold 12px Trebuchet MS';g.fillText('MENÜ',14,16);g.font='10px Trebuchet MS';['Latte 60','Mocha 65','Türk 45','Cheese 70','Limon. 40'].forEach((t,i)=>g.fillText(t,6,34+i*13))})}));mb.position.set(x+4.6,.85,z+5.04);G.add(mb);
+      const lb=labelSprite('☕ '+th.nm);lb.scale.set(3.4,.85,1);lb.position.set(x,6,z+3);G.add(lb)}
+  }catch(e){scnErr(e)}finally{W=pw;C=pc}
+  G.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;o.userData.noMerge=true}});
+  D0.boxes.push({x:x,z:z,hx:4.7,hz:3.2,kf:bid});D0.spots.push({x:x+2.6,z:z+4.6,r:2.4,kf:bid,get t(){return kfSpotT(bid)},fn:()=>kfSpot(bid)})}
+{const _bh=buildHome;buildHome=function(n){const r=_bh.apply(this,arguments);try{[1,2].forEach(b=>{if(KF_BR[b].d===n)kfDraw(b)})}catch(e){scnErr(e)}return r}}
+function kfSpotT(bid){const S=kfS(),B=S&&S.br[bid];if(!B)return 'E: 🏪 Kafe';return ({ilan:'E: 🏪 Devren kiralık kafe · ilana bak',dekor:'E: 🎨 Dekorasyon temasını seç',hazir:'E: 🎨 Dekorasyon · '+scnTimerTxt('kfDekor'+bid),acilis:'E: ✂️ Açılış · kurdeleyi kes',acik:'E: ☕ '+kfName(bid)+' · içeri gir'})[B.st]||'E: ☕ Kafe'}
+function kfSpot(bid){const S=kfS(),B=S&&S.br[bid];if(!B||!isCico83())return;if(B.st==='ilan')return kfIlan(bid);if(B.st==='dekor')return kfTheme(bid);if(B.st==='hazir'){toast('🎨 Ustalar çalışıyor · '+scnTimerTxt('kfDekor'+bid));return}if(B.st==='acilis')return kfRibbon(bid);enter('rest_cf_'+bid)}
+/* --- ilan + devralma --- */
+function kfIlan(bid){const S=kfInit(),R=KF_BR[bid],P=R.p,down=Math.round(P*.1),o1=loanOffer67('isyeri',P-down,104),o2=loanOffer67('kosgeb',P,104);
+  scnCards({title:'🏪 Devren kiralık kafe · '+R.n,sub:(bid==1?'Çarşıda, Arena\'nın yanında · 6 masa · espresso makinesi ve vitrin dahil':'Bostanlı sahil, festival alanının ilerisi · 8 masa · köşe dükkân')+' · günlük sabit gider ~'+R.fix+'🪙 (kira, personel, faturalar) · 🪙 '+coins.toLocaleString('tr-TR'),cards:[
+    {ic:'💰',t:'Peşin devral',d:'Borçsuz başla',price:P,dis:coins<P,fn:()=>kfBuy(bid,'pesin')},
+    {ic:'🏦',t:'Banka kredisi',d:'%10 peşinat ('+down.toLocaleString('tr-TR')+'🪙) · 104 hafta · haftalık '+o1.inst.toLocaleString('tr-TR')+'🪙',price:down,dis:coins<down,fn:()=>kfBuy(bid,'kredi')},
+    {ic:'🌱',t:'KOSGEB girişimci kredisi',d:'Peşinatsız · 104 hafta · haftalık '+o2.inst.toLocaleString('tr-TR')+'🪙 · kredi notu 600+',price:'0 🪙 peşin',dis:BANK67.score<600,fn:()=>kfBuy(bid,'kosgeb')}],cancel:'Biraz düşüneyim'})}
+function kfBuy(bid,how){const S=kfInit(),R=KF_BR[bid],B=S.br[bid],P=R.p;if(!confirm(kfName(bid)+' · '+R.n+' · '+P.toLocaleString('tr-TR')+' 🪙 · devir sözleşmesi imzalansın mı?'))return kfIlan(bid);
+  if(how==='pesin'){if(coins<P){toast('Bakiye yetersiz');return}coins-=P;try{txNote67('🏪 Kafe devri · '+R.n,'gider')}catch(e){}}
+  else{const down=how==='kredi'?Math.round(P*.1):0;if(coins<down){toast('Peşinat için bakiye yetersiz');return}coins-=down;const o=loanOffer67(how==='kredi'?'isyeri':'kosgeb',P-down,104);loanGrant67(o,'Kafe · '+R.n);try{txNote67(LOANT67[o.type][0]+' · kafe','kredi')}catch(e){}toast('🏦 Kredi onaylandı · haftalık '+o.inst.toLocaleString('tr-TR')+'🪙 × 104')}
+  sfx('coin');B.st='dekor';B.buy=HOME.day;scnTaskDone('kf_ilan'+bid);try{memAdd('🏪',R.n+'\'daki kafeyi devraldım!')}catch(e){}mood=clamp(mood+10,0,100);kfDraw(bid);try{saveGame()}catch(e){}setTimeout(()=>kfTheme(bid),600)}
+function kfTheme(bid){scnCards({title:'🎨 Dekorasyon teması · '+KF_BR[bid].n,sub:'Tema kafenin havasını ve müşterilerini belirler. Ustalar 1 günde bitirir.',cards:Object.keys(KF_TH).map(k=>{const t=KF_TH[k];return {img:kfThumb(k),ic:t.ic,t:t.n+' · '+t.nm,d:t.d,price:'dahil',fn:()=>kfThemeSet(bid,k)}}),cancel:'Sonra seçerim'})}
+function kfThemeSet(bid,k){const S=kfS(),B=S.br[bid];B.th=k;B.st='hazir';scnTimer('kfDekor'+bid,1,'🎨 '+KF_TH[k].nm+' dekorasyonu');scnTask('kf_acilis'+bid,'Dekorasyon bitince '+KF_BR[bid].n+'\'daki kafede açılış yap','✂️');kfDraw(bid);try{saveGame()}catch(e){}toast('🎨 '+KF_TH[k].n+' tema seçildi · yarın açılışa hazır')}
+[1,2].forEach(bid=>scnTimerOn('kfDekor'+bid,()=>{const S=kfS(),B=S&&S.br[bid];if(!B||B.st!=='hazir')return;B.st='acilis';kfDraw(bid);try{saveGame()}catch(e){}
+  notify('🎨 Dekorasyon ekibi','Kafeniz hazır Çiço Hanım! '+KF_BR[bid].n+'\'da kurdele, balonlar her şey hazır, açılışı bekliyoruz ✂️🎈',[{t:'Tamam',fn:()=>{}}])}));
+/* tema küçük resmi (kart görseli) */
+const KF_IMG={};function kfThumb(k){if(KF_IMG[k])return KF_IMG[k];const t=KF_TH[k];const c=document.createElement('canvas');c.width=240;c.height=140;const g=c.getContext('2d');g.fillStyle=t.wall;g.fillRect(0,0,240,140);
+  const fl=t.tile;for(let y=90;y<140;y+=10)for(let x=0;x<240;x+=10){g.fillStyle=fl[((x+y)/10)%2];g.fillRect(x,y,10,10)}g.fillStyle=t.aw[0];for(let x=0;x<240;x+=24)g.fillRect(x,0,12,16);g.fillStyle=t.aw[1];for(let x=12;x<240;x+=24)g.fillRect(x,0,12,16);
+  const hx=n=>'#'+n.toString(16).padStart(6,'0');g.fillStyle=hx(t.tab);[[50,84],[150,84]].forEach(p=>{g.fillRect(p[0]-22,p[1],44,6);g.fillRect(p[0]-3,p[1],6,26)});g.fillStyle=hx(t.ch);[[20,92],[80,92],[120,92],[180,92]].forEach(p=>g.fillRect(p[0],p[1],16,20));
+  g.font='30px serif';g.fillText(t.ic,190,60);g.fillText(k==='bohem'?'🪴':k==='modern'?'💡':'🎵',20,60);g.fillStyle=t.sg[0];g.fillRect(70,28,100,24);g.fillStyle=t.sg[1];g.font='bold 12px Trebuchet MS';g.textAlign='center';g.fillText(t.n.toUpperCase(),120,45);return KF_IMG[k]=c.toDataURL()}
+/* --- açılış: kurdele kesme animasyonu --- */
+function kfRibbon(bid){const S=kfS(),B=S.br[bid],R=KF_BR[bid],D0=D[R.d];const fin=()=>{B.st='acik';B.open=HOME.day;scnTaskDone('kf_acilis'+bid);if(bid==2)scnTaskDone('kf_sube2');mood=clamp(mood+20,0,100);try{memAdd('✂️',kfName(bid)+' açıldı! 🎉')}catch(e){}if(bid==1)scnTask('kf_vardiya','Kafede ilk vardiyanı aç (tezgâha geç)','☕');kfDraw(bid);try{saveGame()}catch(e){}
+    setTimeout(()=>notify('❤️ Gökhan','Aşkım gurur duyuyorum! 🎉 Hayırlı olsun. Tezgâha geçip ilk vardiyanı aç, müşteriler kapıda ☕',[{t:'Tamam',fn:()=>{}}]),1200)};
+  const G=D0&&(bid==2?D0.kfG2:D0.kfG1);const rb=G&&G.userData.rib;if(!rb||activeD!==D0||mode!=='world'){fin();return}
+  busy=true;pl.x=R.x+2.6;pl.z=R.z+5.6;pl.face=Math.PI;player.rotation.y=Math.PI;try{snapCam()}catch(e){}
+  const crowd=[];[[-2.2,7.6],[-1,8.2],[0.4,8],[1.8,7.6],[-3.6,7.2],[3,7.2]].forEach((p,i)=>{const f=fig64(null,{shirt:[0x4a6aa8,0xd8504a,0x5a9a5a,0xe8c050,0x8a5ac8,0x3a3a3a][i],pants:0x2a2a38},R.x+2.6+p[0],R.z+p[1]-1.6,Math.PI);f.userData.noMerge=true;G.add(f);crowd.push(f)});
+  try{const gk=fig64(null,FAMLOOK&&FAMLOOK.eniste||{shirt:0x303030},R.x-1.2,R.z+6.4,Math.PI);G.add(gk);crowd.push(gk)}catch(e){}
+  const sc=new T.Group();box(.05,.02,.5,mt(0xc8c8d0,{metalness:.7,roughness:.2}),.06,0,0,sc);box(.05,.02,.5,mt(0xc8c8d0,{metalness:.7,roughness:.2}),-.06,0,0,sc);[-.1,.1].forEach(o=>{const r=new T.Mesh(new T.TorusGeometry(.07,.02,6,10),mt(0xd8222a));r.position.set(o,0,.32);r.rotation.x=Math.PI/2;sc.add(r)});sc.visible=false;G.add(sc);
+  const conf=[],cg=new T.PlaneGeometry(.1,.06);const puff=()=>{for(let i=0;i<90;i++){const m=new T.Mesh(cg,new T.MeshBasicMaterial({color:[0xf4c542,0xe8508a,0x5ab0e8,0x8ad05a,0xffffff,0xd8222a][i%6],side:T.DoubleSide}));m.position.set(R.x+2.6+(Math.random()-.5)*1.2,1.4,R.z+4.4);G.add(m);conf.push({m:m,vx:(Math.random()-.5)*5,vy:3+Math.random()*4,vz:(Math.random()-.2)*3,rx:Math.random()*8,rz:Math.random()*8})}};
+  say(player,'Bugün hayalim gerçek oluyor… ✂️',2.6);const T0=performance.now();let last=T0,cut=false,ended=false;
+  const step=()=>{const now=performance.now(),t=(now-T0)/1000,dt=Math.min(.05,(now-last)/1000);last=now;const A=player.userData.arms;
+    if(t>1.2&&t<2.6){sc.visible=true;sc.position.set(R.x+2.6+.25,1.12,R.z+4.4+.45-Math.min(1,(t-1.2)/.8)*.4);sc.rotation.y=Math.sin(t*20)*.25;A[1].rotation.x=-1.3}
+    if(t>=2.3&&!cut){cut=true;sc.visible=false;A[1].rotation.x=-.2;puff();try{sfx('bell')}catch(e){}try{navigator.vibrate&&navigator.vibrate([80,60,80])}catch(e){}crowd.forEach((c,i)=>{if(i%2===0)try{say(c,pick(['👏👏 Hayırlı olsun!','🎉 Bravo Çiço!','Yaşasın! ☕']),2.4)}catch(e){}})}
+    if(cut){const u=Math.min(1,(t-2.3)/1.2);rb.userData.L.rotation.z=-u*1.45;rb.userData.R.rotation.z=u*1.45;
+      conf.forEach(c=>{c.vy-=6*dt;c.m.position.x+=c.vx*dt;c.m.position.y=Math.max(.03,c.m.position.y+c.vy*dt);c.m.position.z+=c.vz*dt;if(c.m.position.y>.03){c.m.rotation.x+=c.rx*dt;c.m.rotation.z+=c.rz*dt}else{c.vx*=.9;c.vz*=.9}});
+      crowd.forEach((c,i)=>{c.position.y=Math.abs(Math.sin(t*7+i))*.18})}
+    if(t<6.4){requestAnimationFrame(step);return}if(ended)return;ended=true;conf.forEach(c=>{c.m.material.dispose()});busy=false;toast('🎉 '+kfName(bid)+' açıldı!');fin()};requestAnimationFrame(step)}
+/* --- iç mekân --- */
+{const _ri=restInt;restInt=function(I,key){const m=/^cf_([12])$/.exec(key);if(m)return kfInt(I,+m[1]);return _ri.apply(this,arguments)}}
+function kfInt(I,bid){const S=kfInit(),B=S.br[bid]||{},th=KF_TH[B.th||'bohem'],k=B.th||'bohem';I.G=W;I.title='☕ '+kfName(bid);I.zoom=isTouch?6.5:8.5;I.kf=bid;
+  room(I,20,14,{wall:th.wall,tile:th.tile});exitDoor(I,-7);I.spawn=[-7,-4.5];
+  /* tezgâh + espresso + vitrin + menü panosu */const ct=k==='modern'?0x3a3a3e:k==='retro'?0xd8322c:0x8a5a32;box(7.4,1,1,mt(ct),5.4,.5,-5.6);box(7.6,.1,1.15,mt(k==='modern'?0xe8e8e8:k==='retro'?0xf4f4f4:0xd8b07a),5.4,1.05,-5.6);
+  box(1.2,.8,.6,mt(0xb8bcc6,{metalness:.6,roughness:.3}),8,1.5,-5.75);[-.3,.3].forEach(o=>{cyl(.04,.04,.18,6,mt(0x222222),8+o,1.12,-5.45);cyl(.08,.06,.12,10,mt(0xffffff),8+o,1.16,-5.4)});
+  box(2.6,.7,.8,new T.MeshStandardMaterial({color:0xcfe9f5,transparent:true,opacity:.3,roughness:.1}),3.6,1.45,-5.6);[[0xf4e2c4,0xe0304a],[0x5a3a22,0x5a3a22],[0xf2d07a,0x8a5a32]].forEach((c,i)=>{cyl(.28,.28,.22,12,mt(c[0]),2.8+i*.8,1.22,-5.6);cyl(.29,.29,.05,12,mt(c[1]),2.8+i*.8,1.35,-5.6)});
+  const mbt=canvasTex(256,128,(g,w,h)=>{g.fillStyle=k==='retro'?'#d8322c':'#2a2a2a';g.fillRect(0,0,w,h);g.fillStyle='#fff';g.font='bold 18px Trebuchet MS';g.fillText('☕ MENÜ',10,22);g.font='13px Trebuchet MS';Object.keys(KF_MENU).forEach((q,i)=>{const M=KF_MENU[q];g.fillText(M.n+' '+M.p,10+(i>=4?124:0),46+(i%4)*20)})});
+  const mb=new T.Mesh(new T.PlaneGeometry(4,2),new T.MeshBasicMaterial({map:mbt}));mb.position.set(5.4,2.8,-6.82);W.add(mb);I.boxes.push({x:5.4,z:-5.6,hx:3.8,hz:.65});
+  I.spots.push({x:5.4,z:-4.3,r:1.8,get t(){const B=kfS().br[bid];return B.sh===HOME.day?'E: ☕ Bugünkü vardiyanı bitirdin · personel idare ediyor':'E: ☕ Tezgâha geç · vardiyayı başlat'},fn:()=>kfShift(bid)});
+  box(.9,.06,.6,mt(0xf4f0e6),9.2,.9,-2.4);box(.1,.9,.1,mt(0x5a4a3a),9.2,.45,-2.4);I.spots.push({x:8.4,z:-2.4,r:1.3,t:'E: 📒 Kafe defteri · ciro & memnuniyet',fn:()=>kfLedger()});
+  /* masalar + müşteriler */const tabs=[[-4,-1.2],[0,-1.2],[-4,3],[0,3],[4,3],[-8,2.4]],seated=Math.min(tabs.length,1+Math.round((S.rep||50)/22));
+  tabs.forEach((p,i)=>{const x=p[0],z=p[1];if(k==='modern'){box(1.2,.06,1.2,mt(th.tab),x,.78,z);cyl(.05,.05,.75,6,mt(0x2a2a2e),x,.38,z)}else{cyl(.6,.6,.06,16,mt(th.tab),x,.78,z);cyl(.06,.1,.76,8,mt(k==='retro'?0xc8c8d0:0x5a3a22),x,.38,z)}
+    [-1,1].forEach(s=>{const cx=x+s*.95;box(.5,.08,.5,mt(th.ch),cx,.48,z);box(.08,.6,.5,mt(th.ch),cx+s*.25,.78,z);[[-1,-1],[1,-1],[-1,1],[1,1]].forEach(q=>box(.05,.46,.05,mt(0x333333),cx+q[0]*.2,.23,z+q[1]*.2))});
+    cyl(.07,.05,.1,8,mt(0xffffff),x+.15,.86,z);I.boxes.push({x:x,z:z,hx:1.3,hz:.6});if(i<seated){try{const f=fig64(null,{shirt:[0x4a6aa8,0xd8504a,0x5a9a5a,0xe8c050,0x8a5ac8,0x3a7a8a][i],pants:0x2a2a38},x-.9,z,Math.PI/2,'sit');f.position.y=.05}catch(e){}}});
+  /* tema dekoru */
+  if(k==='bohem'){box(5,.03,3,mt(0xc86a3a),-2,.02,.9);box(4.6,.035,2.6,mt(0xe8b070),-2,.025,.9);
+    for(let i=0;i<6;i++){const g=new T.Group();g.position.set(-9+i*.9,0,-6.6);W.add(g);for(let j=0;j<5;j++)box(.03,1.2-j*.12,.03,mt(0xf4e8d0),-.2+j*.1,2.4-(1.2-j*.12)/2,0,g)}
+    for(let x=-9.5;x<=9.5;x+=.7){const b=new T.Mesh(new T.SphereGeometry(.06,6,4),new T.MeshBasicMaterial({color:0xffd27a}));b.position.set(x,3.3-Math.abs(Math.sin(x*.9))*.25,-6.7);W.add(b)}
+    [[-9,-5.6],[9,4.8],[-9,5.4],[2,5.6]].forEach(p=>{const g=new T.Group();g.position.set(p[0],0,p[1]);W.add(g);try{plantKind(g,(p[0]>0?1:2),1.3)}catch(e){cyl(.3,.25,.5,10,mt(0xc86a3a),0,.25,0,g);mrsBush(g,0,0,.8,0x4a8a3a).position.y=.9}I.boxes.push({x:p[0],z:p[1],hx:.4,hz:.4})});
+    [[-6,5.4],[-4.8,5.6]].forEach(p=>{const m=cyl(.35,.35,.4,12,mt(0xd8a050),p[0],.2,p[1]);I.boxes.push({x:p[0],z:p[1],hx:.35,hz:.35})})}
+  if(k==='modern'){[[-4,-1.2],[0,-1.2],[-4,3],[0,3],[4,3]].forEach(p=>{cyl(.01,.01,1.2,3,mt(0x111111),p[0],3.2,p[1]);const s=new T.Mesh(new T.ConeGeometry(.3,.3,12,1,true),mt(0x111111,{side:T.DoubleSide}));s.position.set(p[0],2.5,p[1]);W.add(s);const b=new T.Mesh(new T.SphereGeometry(.09,8,6),new T.MeshBasicMaterial({color:0xfff2c8}));b.position.set(p[0],2.38,p[1]);W.add(b)});
+    [[-8,-6.82,0x2a2a2e],[-5.6,-6.82,0xd8c8a8]].forEach(a=>{box(1.8,1.2,.05,mt(a[2]),a[0],2.2,a[1])});box(1,.04,1,mt(0xffffff),-8,2.2,-6.79);
+    [[9,4.8],[-9,5.4]].forEach(p=>{box(.8,.8,.8,mt(0x9a9a98),p[0],.4,p[1]);mrsBush(W,p[0],p[1],.7,0x3a7a3a).position.y=1.1;I.boxes.push({x:p[0],z:p[1],hx:.45,hz:.45})});
+    for(let i=0;i<4;i++){cyl(.2,.2,.06,10,mt(0x2a2a2e),3+i*1.3,.85,-4.6);cyl(.03,.03,.85,5,mt(0x9a9aa0),3+i*1.3,.42,-4.6)}}
+  if(k==='retro'){[[-9.2,-3.4],[-9.2,.2]].forEach(p=>{box(.8,1.1,2.4,mt(0xd8322c),p[0]+.1,.55,p[1]);box(1.6,.5,2.4,mt(0xd8322c),p[0]+.9,.25,p[1]);box(1.2,.06,1.4,mt(0xf4f4f0),p[0]+2.2,.8,p[1]);I.boxes.push({x:p[0]+1,z:p[1],hx:1.4,hz:1.2})});
+    const jb=new T.Group();jb.position.set(9.2,0,3.2);W.add(jb);box(1.2,1.8,.8,mt(0x8a4a2a),0,.9,0,jb);const ar=new T.Mesh(new T.CylinderGeometry(.6,.6,.8,16,1,false,0,Math.PI),mt(0xf0b030));ar.rotation.z=Math.PI/2;ar.rotation.y=Math.PI/2;ar.position.set(0,1.8,0);jb.add(ar);
+    const gl=new T.Mesh(new T.PlaneGeometry(.8,.7),new T.MeshBasicMaterial({color:0xff7ab0}));gl.position.set(-.61,1.2,0);gl.rotation.y=-Math.PI/2;jb.add(gl);I.boxes.push({x:9.2,z:3.2,hx:.5,hz:.7});
+    I.spots.push({x:8.2,z:3.2,r:1.2,t:'E: 📻 Pikaptan şarkı seç',fn:()=>{mood=clamp(mood+4,0,100);toast(pick(['🎵 Elvis çalıyor','🎵 Sezen Aksu · Firuze','🎵 Barış Manço · Gülpembe','🎵 Ajda Pekkan · Bambaşka Biri']))}});
+    const ns=new T.Mesh(new T.PlaneGeometry(3,.9),new T.MeshBasicMaterial({map:textSign('OPEN · AÇIK',3,.9,'#1a1020','#ff5ab0')}));ns.position.set(-3,2.6,-6.82);W.add(ns)}
+  {const sg=labelSprite('☕ '+th.nm);sg.scale.set(3,.75,1);sg.position.set(0,3.6,-6.4);W.add(sg)}}
+function kfLedger(){const S=kfS(),L=S.led,ds=(S.days||[]).slice(-5);const A=[['⭐','Müşteri memnuniyeti: %'+S.rep+(S.rep>=70?' · harika!':S.rep>=50?' · iyi':' · geliştirilmeli'),()=>{}],['💰','Toplam ciro: '+L.ciro.toLocaleString('tr-TR')+'🪙 · masraf: '+L.masraf.toLocaleString('tr-TR')+'🪙',()=>{}],['🧑‍🍳','Vardiya sayısı: '+S.shifts,()=>{}]];
+  ds.forEach(d=>A.push(['📅','Gün '+d.d+' · net '+(d.net>=0?'+':'')+d.net.toLocaleString('tr-TR')+'🪙',()=>{}]));
+  [1,2].forEach(b=>{const B=S.br[b];if(B&&B.st==='acik')A.push(['🏪',kfName(b)+' · sabit gider '+KF_BR[b].fix+'🪙/gün',()=>{}])});
+  if(!S.br[2])A.push(['📈','2. şube: memnuniyet %70+ ve 3 vardiya gerekli ('+Math.min(3,S.shifts)+'/3)',()=>{}]);actionMenu('📒 Kafe defteri',A)}
+/* --- vardiya mini oyunu: sipariş al, sıralı tıklamayla hazırla --- */
+(function(){const st=document.createElement('style');st.textContent=`
+#scnov .kfg{width:min(620px,97vw);max-height:94vh;overflow:auto;border-radius:24px;padding:14px;background:linear-gradient(180deg,#3a2618,#1d130c);border:1px solid rgba(255,220,170,.22);box-sizing:border-box}
+#scnov .kfg h3{margin:0 0 2px;font-size:18px}#scnov .kfg .sb{opacity:.8;font-size:12.5px;margin-bottom:8px}
+#scnov .kfq{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;min-height:112px;margin-bottom:8px}
+#scnov .kfc{border-radius:14px;padding:8px;background:rgba(255,255,255,.08);border:2px solid transparent;cursor:pointer;font-size:13px;position:relative}
+#scnov .kfc.on{border-color:#ffb347;background:rgba(255,179,71,.15)}#scnov .kfc .fc{font-size:28px;line-height:1}#scnov .kfc .od{margin-top:4px}#scnov .kfc .od s{opacity:.5}
+#scnov .kfc .pb{height:6px;border-radius:4px;background:rgba(255,255,255,.15);margin-top:6px;overflow:hidden}#scnov .kfc .pb i{display:block;height:100%;background:#2fb35a}
+#scnov .kfp{border-radius:14px;padding:8px 10px;background:rgba(0,0,0,.25);font-size:14px;margin-bottom:8px;min-height:22px}#scnov .kfp b{color:#ffd27a}#scnov .kfp .sx{display:inline-block;margin:0 3px;padding:1px 6px;border-radius:8px;background:rgba(255,255,255,.1)}#scnov .kfp .sx.ok{background:#2fb35a}
+#scnov .kfpad{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px}#scnov .kfpad button{border:0;border-radius:12px;padding:10px 4px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;background:#6b4a2a;color:#fff}
+#scnov .kfpad button:active{transform:scale(.96)}#scnov .kfg.bad .kfp{animation:kfsh .3s}@keyframes kfsh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+#scnov .kfs{display:flex;justify-content:space-between;font-size:13.5px;margin:8px 2px;gap:8px;flex-wrap:wrap}#scnov .kfg .go{width:100%;border:0;border-radius:14px;padding:12px;font:inherit;font-weight:700;cursor:pointer;background:#2fb35a;color:#fff;margin-top:8px}
+#scnov .kfg .go.r{background:#e0484a}#scnov .kfg .go.g{background:transparent;border:1px solid rgba(255,255,255,.25)}#scnov .kflog{font-size:12px;opacity:.85;max-height:70px;overflow:auto;margin-top:6px;line-height:1.45}`;document.head.appendChild(st)})();
+function kfShift(bid){if(busy||SCN_UI)return;const S=kfS(),B=S.br[bid];if(B.sh===HOME.day){toast('☕ Bugünkü vardiyanı bitirdin · personel akşama kadar idare eder');return}
+  const k=B.th||'bohem',th=KF_TH[k],FACES=['👩','👨','👵','👴','🧕','👱‍♀️','🧔','👩‍🦱','🧑‍🎓','👨‍💼','👩‍💻','🧑'];const ov=scnOpen();uiPC=true;const w=el('div','kfg');ov.appendChild(w);
+  w.appendChild(el('h3','','☕ '+th.nm+' · vardiya'));w.appendChild(el('div','sb','Bir müşteriye dokun, siparişindeki adımları SIRAYLA bas. Yanlış adım ürünü bozar (malzeme zayi). Sabır bitmeden servis et!'));
+  const q=el('div','kfq'),pp=el('div','kfp'),pad=el('div','kfpad'),sts=el('div','kfs'),go=el('button','go','☕ Vardiyayı başlat (90 sn)'),cl=el('button','go g','Kapat'),log=el('div','kflog');[q,pp,pad,sts,go,cl,log].forEach(x=>w.appendChild(x));
+  let open=false,t=90,iv=null,spawnT=0,ciro=0,cost=0,served=0,angry=0,satSum=0,mist=0,tips=0,sel=null,stp=0,nid=0;const cust=[];
+  const addLog=s=>{log.insertBefore(el('div','',s),log.firstChild)};
+  const cur=c=>c?c.ord.findIndex((o,i)=>!c.done[i]):-1;
+  const drawQ=()=>{q.innerHTML='';cust.forEach(c=>{const d=el('div','kfc'+(c===sel?' on':''));d.appendChild(el('div','fc',c.f));const od=el('div','od');c.ord.forEach((o,i)=>{const M=KF_MENU[o],s=el(c.done[i]?'s':'span','',M.e+' '+M.n);od.appendChild(s);od.appendChild(document.createElement('br'))});d.appendChild(od);const pb=el('div','pb'),bi=el('i');bi.style.width=Math.round(c.pat*100)+'%';bi.style.background=c.pat>.5?'#2fb35a':c.pat>.25?'#f0b030':'#e0484a';pb.appendChild(bi);d.appendChild(pb);c.bi=bi;d.onclick=()=>{if(sel!==c){sel=c;stp=0;drawQ();drawP()}};q.appendChild(d)});
+    for(let i=cust.length;i<3;i++)q.appendChild(el('div','kfc','🪑'))};
+  const drawP=()=>{pp.innerHTML='';if(!open){pp.textContent=served?'':'Vardiya başlamadı';return}if(!sel){pp.textContent='⏳ Müşteri bekleniyor…';return}const ix=cur(sel),M=KF_MENU[sel.ord[ix]];pp.appendChild(el('span','',sel.f+' için '));pp.appendChild(el('b','',M.e+' '+M.n+': '));M.st.forEach((s,i)=>pp.appendChild(el('span','sx'+(i<stp?' ok':''),s)))};
+  const drawS=()=>{sts.innerHTML='';sts.appendChild(el('span','','⏱️ '+t+' sn'));sts.appendChild(el('span','','👥 '+served+' · 😠 '+angry));sts.appendChild(el('span','','⭐ %'+(served+angry?Math.round(satSum/(served+angry)):'–')));sts.appendChild(el('b','','💰 '+ciro+'🪙'))};
+  const leave=(c,sat)=>{const i=cust.indexOf(c);if(i>=0)cust.splice(i,1);if(sel===c){sel=cust[0]||null;stp=0}drawQ();drawP();drawS()};
+  const serve=c=>{const price=c.ord.reduce((s,o)=>{const M=KF_MENU[o];return s+Math.round(M.p*(k==='modern'&&M.k==='kahve'?1.15:1))},0);let sat=Math.round(clamp(35+65*c.pat-12*c.m+(k==='bohem'?6:0),0,100));
+    const tip=sat>=80?Math.round(price*.15*(k==='retro'?1.6:1)):sat>=60?Math.round(price*.05*(k==='retro'?1.6:1)):0;ciro+=price+tip;tips+=tip;cost+=Math.round(price*.3);satSum+=sat;served++;try{sfx('coin')}catch(e){}
+    addLog((sat>=80?'😍':sat>=60?'🙂':sat>=40?'😐':'😒')+' '+c.f+' '+c.ord.map(o=>KF_MENU[o].e).join('')+' · +'+price+(tip?' (+'+tip+' bahşiş)':'')+'🪙 · %'+sat);leave(c,sat)};
+  const spawn=()=>{if(cust.length>=3)return;const tatliW=k==='bohem'?2:1,keys=Object.keys(KF_MENU),pool=[];keys.forEach(o=>{const n=KF_MENU[o].k==='tatli'?tatliW:1;for(let i=0;i<n;i++)pool.push(o)});const n=Math.random()<.45?2:1,ord=[];for(let i=0;i<n;i++)ord.push(pick(pool));
+    const c={id:nid++,f:pick(FACES),ord:ord,done:ord.map(()=>false),pat:1,r:1/((k==='bohem'?44:36)+n*8),m:0};cust.push(c);if(!sel){sel=c;stp=0}drawQ();drawP()};
+  KF_PAD.forEach(L=>{const b=el('button','',L);b.onclick=()=>{if(!open||!sel)return;const ix=cur(sel),M=KF_MENU[sel.ord[ix]];if(M.st[stp]===L){stp++;try{sfx('blip')}catch(e){}if(stp>=M.st.length){sel.done[ix]=true;stp=0;if(cur(sel)<0){serve(sel);return}}drawQ();drawP()}
+    else{mist++;sel.m++;cost+=8;stp=0;try{sfx('hole')}catch(e){}w.classList.remove('bad');void w.offsetWidth;w.classList.add('bad');addLog('💥 Yanlış adım: '+M.n+' bozuldu (−8🪙 malzeme)');drawP()}};pad.appendChild(b)});
+  const finish=()=>{if(!open)return;open=false;clearInterval(iv);cust.forEach(c=>{angry++});cust.length=0;sel=null;const n=served+angry,avg=n?Math.round(satSum/n):S.rep;
+    S.rep=Math.round(clamp(S.rep*.6+avg*.4,0,100));S.shifts++;B.sh=HOME.day;const net=ciro-cost;coins+=net;try{txNote67('☕ Kafe vardiyası','gelir')}catch(e){}S.led.ciro+=ciro;S.led.masraf+=cost;S.today=(S.today|0)+net;
+    GT=Math.min(GT+240,23*60);NEED.en=clamp(NEED.en-15,0,100);mood=clamp(mood+(avg>=60?10:2),0,100);NEED.soc=clamp(NEED.soc+12,0,100);if(S.shifts===1)scnTaskDone('kf_vardiya');try{memAdd('☕','Kafede vardiya · '+served+' müşteri · +'+net+'🪙')}catch(e){}try{saveGame()}catch(e){}
+    drawQ();pp.textContent='🏁 Vardiya bitti · ciro '+ciro+'🪙 (bahşiş '+tips+') · malzeme −'+cost+'🪙 · net +'+net+'🪙 · ortalama memnuniyet %'+avg+' → kafe puanı %'+S.rep;drawS();go.textContent='Tamam';go.className='go';go.onclick=()=>close()};
+  const close=()=>{if(open)finish();clearInterval(iv);scnClose();uiPC=false;toast('☕ Vardiya kapandı · kafe puanı %'+S.rep)};cl.onclick=close;
+  go.onclick=()=>{if(open){finish();return}open=true;go.textContent='⏹️ Vardiyayı erken bitir';go.className='go r';addLog('☕ Kapı açıldı! "Hoş geldiniz!"');spawn();
+    let tick=0;iv=setInterval(()=>{tick++;cust.slice().forEach(c=>{c.pat-=c.r*.25;if(c.pat<=0){angry++;satSum+=0;addLog('😠 '+c.f+' beklemekten sıkıldı, gitti');leave(c,0)}else if(c.bi){c.bi.style.width=Math.round(c.pat*100)+'%';c.bi.style.background=c.pat>.5?'#2fb35a':c.pat>.25?'#f0b030':'#e0484a'}});
+      spawnT-=.25;if(spawnT<=0){spawn();spawnT=4+Math.random()*3.5}if(tick%4===0){t--;drawS();if(t<=0)finish()}},250)};
+  drawQ();drawP();drawS();w.__test={get cust(){return cust},get sel(){return sel},get stp(){return stp},get ciro(){return ciro},get served(){return served},get open(){return open},press:L=>{const b=[...pad.children].find(x=>x.textContent===L);b&&b.click()},finish:finish}}
+/* --- gün sonu: personel geliri, sabit giderler, 2. şube fırsatı --- */
+{const _nd=newDay;newDay=function(){const r=_nd.apply(this,arguments);try{kfDaily()}catch(e){scnErr(e)}return r}}
+function kfDaily(){const S=kfS();if(!S||!S.br)return;let lines=[],tot=0;[1,2].forEach(bid=>{const B=S.br[bid];if(!B||B.st!=='acik')return;const R=KF_BR[bid];
+    const rev=Math.round((600+S.rep*10)*(bid==2?1.15:1)*(.9+Math.random()*.2)),ing=Math.round(rev*.3),net=rev-ing-R.fix;coins+=net;S.led.ciro+=rev;S.led.masraf+=ing+R.fix;tot+=net;lines.push(R.n+': ciro '+rev+' · masraf '+(ing+R.fix)+' · '+(net>=0?'+':'')+net+'🪙')});
+  if(lines.length){tot+=(S.today|0);S.days=(S.days||[]).concat([{d:HOME.day-1,net:tot}]).slice(-14);S.today=0;try{txNote67('☕ Kafe gün sonu','gelir')}catch(e){}setTimeout(()=>notify('☕ Kafe · gün sonu',lines.join(' | ')+' · memnuniyet %'+S.rep,[{t:'Tamam',fn:()=>{}}]),8000)}
+  if(S.br[1]&&S.br[1].st==='acik'&&!S.br[2]&&S.rep>=70&&S.shifts>=3){S.br[2]={st:'ilan'};kfDraw(2);try{saveGame()}catch(e){}setTimeout(()=>{scnTask('kf_sube2','Bostanlı\'daki 2. şube fırsatını değerlendir','📈');
+    notify('❤️ Gökhan','Aşkım müşteriler bayılıyor, puanın %'+S.rep+'! Bostanlı sahilde, festival alanının ilerisinde devren bir dükkân var. 2. şube? 😍',[{t:'İlana bak',fn:()=>kfIlan(2)},{t:'Sonra',fn:()=>{}}])},12000)}}
+/* --- senaryo kaydı: sadece Çiço --- */
+scnAdd('kafeCico',{after:3,cond:()=>isCico83(),fire:()=>{SCN.v.kafe={st:'call',d:HOME.day};kfInit();
+  const go=()=>{const S=kfS();S.st='ilan';S.br[1]={st:'ilan'};scnTask('kf_ilan1','Karşıyaka çarşıdaki devren kiralık kafeye bak (Arena\'nın yanı)','🏪');kfDraw(1);try{saveGame()}catch(e){}};
+  notify('📧 Ege Holding · İK','Terfi sonuçları açıklandı: Satış Müdürlüğü\'ne Selin Aydın atanmıştır. Katkılarınız için teşekkür ederiz.',[{t:'…',fn:()=>{}}]);try{say(player,'Yine mi ben değilim?! 😞',3)}catch(e){}mood=clamp(mood-12,0,100);
+  setTimeout(()=>{scnCall({from:'Gökhan ❤️',ic:'👨🏻',msg:['Gökhan: Aşkım? Sesin bir tuhaf geliyor…','Çiço: Terfiyi yine Selin aldı. Yıllardır o şirkete emek veriyorum Gökhan… 😞','Gökhan: Boş ver onları. Hep "bir gün kendi kafemi açacağım" demiyor muydun?','Çiço: Diyordum ama… para, risk… ya batarsa?','Gökhan: Karşıyaka çarşıda, Arena\'nın yanında devren kiralık bir kafe ilanı gördüm. Peşin olmazsa banka ya da KOSGEB kredisi var. Bir bak bence, ben hep arkandayım ❤️','Çiço: Tamam… bakacağım! ☕'],
+    onAnswer:()=>{try{say(player,'Kendi kafem… neden olmasın? ☕',2.8)}catch(e){}go()},onReject:()=>{go();setTimeout(()=>notify('❤️ Gökhan','Aşkım telefonu açmadın 🙁 Terfiyi duydum, üzülme. Karşıyaka çarşıda devren kiralık bir kafe var, Arena\'nın yanında. Kendi işini kur, ben arkandayım ❤️',[{t:'Tamam',fn:()=>{}}]),800)}})},3200)}});
+scnResetHook.push(()=>{[1,2].forEach(b=>{try{kfDraw(b)}catch(e){}delete INT['rest_cf_'+b]})});
+{const _ld=load25;load25=function(x){const r=_ld.apply(this,arguments);try{const S=kfS();if(S){kfInit();if(S.st==='call'){S.st='ilan';S.br[1]=S.br[1]||{st:'ilan'};if(!SCN.tasks.find(q=>q.id==='kf_ilan1'))SCN.tasks.push({id:'kf_ilan1',t:"Karşıyaka çarşıdaki devren kiralık kafeye bak (Arena'nın yanı)",ic:'🏪',done:false,day:HOME.day})}
+  [1,2].forEach(b=>{const B=S.br[b];if(B&&B.st==='hazir'&&!SCN.timers['kfDekor'+b])B.st='acilis'})}}catch(e){}return r}}
+window.__kf={get S(){return kfS()},draw:kfDraw,ilan:kfIlan,buy:kfBuy,theme:kfThemeSet,ribbon:kfRibbon,shift:kfShift,daily:kfDaily,menu:KF_MENU};
 function saveGame(){if(!me)return;try{const furn=Object.assign({},SAVE&&SAVE.furn||{});
   Object.keys(INT).forEach(k=>{const I=INT[k];if(k.indexOf('ev_')!==0||!I.furn)return;furn[k]=I.furn.filter(f=>f.key).map(f=>({key:f.key,x:+f.g.position.x.toFixed(3),z:+f.g.position.z.toFixed(3),q:f.q|0,sold:!!f.sold}))});
   const looks=Object.assign({},SAVE&&SAVE.looks||{});looks[me.key]=curLook();const bonds={};Object.keys(BONDS).forEach(k=>bonds[k]=BONDS[k].v);
