@@ -4836,7 +4836,8 @@ function makeBus38(o){o=o||{};const L=o.L||11.6,Wd=2.5,H=2.72,y0=.42,g=new T.Gro
     const lg=new T.Mesh(new T.PlaneGeometry(3.4,.62),new T.MeshBasicMaterial({map:vkText(o.brand||'ESHOT',o.sub||'İzmir Büyükşehir Belediyesi',o.brandC||'#0d6f9e',3.4,.62),transparent:true}));lg.position.set(-L*.2,y0+1.2,s*(Wd/2+.04));if(s<0)lg.rotation.y=Math.PI;g.add(lg)});
   box(.05,1.6,Wd*.9,vkGlass(),L/2+.08,y0+1.78,0,g);box(.05,.95,Wd*.78,vkGlass(),-L/2-.08,y0+2.02,0,g);
   const led=new T.Mesh(new T.PlaneGeometry(Wd*.82,.3),new T.MeshBasicMaterial({map:vkLed(o.route||'302 KARŞIYAKA')}));led.position.set(L/2+.1,y0+2.75,0);led.rotation.y=Math.PI/2;g.add(led);
-  [L*.3,-L*.1].forEach(x=>{box(1.15,2.15,.04,vkGlass(),x,y0+1.25,-(Wd/2+.03),g);box(.05,2.15,.06,vkMat(0x9aa0a8,{metalness:.4}),x,y0+1.25,-(Wd/2+.04),g)});
+  g.userData.doors=[];[L*.3,-L*.1].forEach(x=>{const d=box(1.15,2.15,.04,vkGlass(),x,y0+1.25,Wd/2+.03,g),m=box(.05,2.15,.06,vkMat(0x9aa0a8,{metalness:.4}),x,y0+1.25,Wd/2+.04,g);g.userData.doors.push({d:d,m:m,x:x})});
+  g.userData.door=k=>{g.userData.doors.forEach(o=>{o.d.position.set(o.x+.62*k,y0+1.25,Wd/2+.03+.1*k);o.m.position.set(o.x+.62*k,y0+1.25,Wd/2+.04+.1*k)})};
   vkMesh(vkRBox(3.6,.42,1.7,.18),vkMat(0xdfe3e6,{roughness:.5}),-.9,y0+H+.05,0,g);
   box(.22,.36,Wd*.97,vkMat(0x26282e,{roughness:.6}),L/2+.06,y0+.18,0,g);box(.22,.36,Wd*.97,vkMat(0x26282e,{roughness:.6}),-L/2-.06,y0+.18,0,g);
   vkLights(g,L/2+.14,-L/2-.14,y0+.55,Wd,.2);
@@ -8289,11 +8290,31 @@ function nearStop72(){const A=activeD;if(!A)return null;let b=null,bd=12;(A.stop
 {const _tt=travelTo;travelTo=function(dest,how,icon,cost){if(busy||mode!=='world')return _tt.apply(this,arguments);if(coins<cost){toast('İzmirim Kart bakiyesi yetersiz 🪙');return}
   const bus=/ESHOT|Havaş|otobüs/i.test(how),st=bus?nearStop72():null;RIDE72={dest:dest,how:how,icon:icon,cost:cost,kind:bus?'bus':/Taksi/.test(how)?'taxi':'rail',from:activeD.name};if(RIDE72.kind==='taxi')return taxiRide72(dest,cost);
   if(st)busWait72(st);else boardRide72()}}
-function busWait72(s){const A=activeD,fx=Math.sin(s.ang),fz=Math.cos(s.ang),tx=Math.cos(s.ang),tz=-Math.sin(s.ang),cx=s.x+fx*3.8,cz=s.z+fz*3.8;const isH=/Havaş/.test(RIDE72.how);
-  const b=makeBus38(isH?{brand:'HAVAŞ',sub:'Havalimanı servisi',brandC:'#1f4a8a',c1:0x1f4a8a,c2:0x0d2a5a}:{});b.rotation.y=s.ang;A.G.add(b);const wait=(6+Math.random()*4)*(window.BUSK72||1),line=isH?'Havaş':'Hat '+(30+((HOME.day*7+Math.round(s.x))%60));let t=0,ph='come';
-  const pos=k=>b.position.set(cx-tx*k,0,cz-tz*k);pos(60);faceDir72(fx,fz);
-  startAct({name:'🚏 '+(s.name||'Durak')+' · '+line+' bekleniyor (~'+Math.round(wait)+' dk)',ic:'🚏',dur:wait+6,tm:1,pose:'phone',per:{fun:-.05},
-    tick:(dt)=>{t+=dt;if(ph==='come'){const k=Math.max(0,1-Math.min(1,t/wait));pos(60*k*k);if(k<=0){ph='door';t=0;sfx('bell');say(player,pick(['Otobüs geldi 🚌','İşte bizimki!','Kartımı basayım 💳']),1.6)}}else if(ph==='door'&&t>1.2){ph='in';player.visible=false;dog.visible=false;coins-=RIDE72.cost;txNote67('🚌 '+line+' · İzmirim Kart','ulaşım');sfx('coin')}else if(ph==='in'){pos(-t*t*6)}},
+/* durağın yolunu bul: yol örneklerinden merkez çizgi zinciri; yön = durak sürücünün SAĞINDA (sağdan trafik) */
+function busRoute72(A,s){const S=A&&A.roadSamples;if(!S||S.length<2)return null;let iq=-1,bd=1e9;S.forEach((r,i)=>{const d=Math.hypot(r.x-s.x,r.z-s.z);if(d<bd){bd=d;iq=i}});
+  const gap=(i,j)=>Math.hypot(S[i].x-S[j].x,S[i].z-S[j].z),d0=Math.min(iq>0&&S[iq-1].r===S[iq].r?gap(iq,iq-1):9,iq<S.length-1&&S[iq+1].r===S[iq].r?gap(iq,iq+1):9),lim=Math.max(4,d0*2.2);
+  const lk=(i,j)=>S[i]&&S[j]&&S[i].r===S[j].r&&gap(i,j)<lim;let a=iq,b=iq;while(a>0&&lk(a,a-1))a--;while(b<S.length-1&&lk(b,b+1))b++;
+  let P=S.slice(a,b+1).map(p=>({x:p.x,z:p.z})),k=iq-a;if(P.length<3)return null;
+  const tan=i=>{const p=P[Math.max(0,i-1)],q=P[Math.min(P.length-1,i+1)],l=Math.hypot(q.x-p.x,q.z-p.z)||1;return{x:(q.x-p.x)/l,z:(q.z-p.z)/l}};
+  let u=tan(k);const vx=s.x-P[k].x,vz=s.z-P[k].z;if(vx*-u.z+vz*u.x<0){P.reverse();k=P.length-1-k;u=tan(k)}
+  const L=[0];for(let i=1;i<P.length;i++)L.push(L[i-1]+Math.hypot(P[i].x-P[i-1].x,P[i].z-P[i-1].z));const Lt=L[L.length-1];
+  const at=sa=>{sa=Math.max(0,Math.min(Lt-.001,sa));let i=0;while(i<P.length-2&&L[i+1]<=sa)i++;const f=(sa-L[i])/((L[i+1]-L[i])||1),p=P[i],q=P[i+1],l=Math.hypot(q.x-p.x,q.z-p.z)||1;
+    return{x:p.x+(q.x-p.x)*f,z:p.z+(q.z-p.z)*f,tx:(q.x-p.x)/l,tz:(q.z-p.z)/l}};
+  return{at:at,sS:L[k]+vx*u.x+vz*u.z,Lt:Lt,hw:Math.max(1.6,S[iq].r-1.6)}}
+function busWait72(s){const A=activeD,isH=/Havaş/.test(RIDE72.how),R=busRoute72(A,s);if(!R)return boardRide72();
+  const b=makeBus38(isH?{brand:'HAVAŞ',sub:'Havalimanı servisi',brandC:'#1f4a8a',c1:0x1f4a8a,c2:0x0d2a5a}:{});A.G.add(b);const wait=(6+Math.random()*4)*(window.BUSK72||1),line=isH?'Havaş':'Hat '+(30+((HOME.day*7+Math.round(s.x))%60));let t=0,ph='come';
+  /* şerit: sağ şerit ortası; durakta kaldırıma yanaş. Park etmiş araç/engel varsa yanaşma yok, şerit ortasından geç */
+  const DOOR=11.6*.3,cS=Math.max(DOOR+4,Math.min(R.Lt-8,R.sS-DOOR)),s0=Math.max(0,cS-55),s1=Math.min(R.Lt,cS+45);let lane=R.hw*.5,curb=Math.max(lane,R.hw-1.4);
+  const hit=(sa,off)=>{const p=at0(sa),rx=-p.tz,rz=p.tx;for(let j=-2;j<=2;j++){const cx=p.x+p.tx*j*2.3+rx*off,cz=p.z+p.tz*j*2.3+rz*off;for(const q of A.boxes){const dx=Math.max(0,Math.abs(cx-q.x)-q.hx),dz=Math.max(0,Math.abs(cz-q.z)-q.hz);if(dx*dx+dz*dz<1.3*1.3)return true}}return false},at0=R.at;
+  for(let sa=cS-14;sa<=cS+4;sa+=2)if(hit(sa,curb)){curb=lane;break}
+  for(let sa=s0;sa<=s1;sa+=3)if(hit(sa,lane)){lane=Math.min(lane,R.hw*.25);curb=Math.min(curb,lane);break}
+  const sm=x=>{x=Math.max(0,Math.min(1,x));return x*x*(3-2*x)},off=sa=>sa<cS?lane+(curb-lane)*sm((sa-(cS-14))/14):curb+(lane-curb)*sm((sa-cS)/10);
+  let last=s0;const place=sa=>{const p=R.at(sa),o=off(sa);b.position.set(p.x-p.tz*o,0,p.z+p.tx*o);b.userData.face(p.tx,p.tz);if(b.userData.spin)b.userData.spin(sa-last);last=sa};place(s0);
+  const dp=R.at(cS+DOOR),dO=off(cS);faceDir72(dp.x-dp.tz*dO-pl.x,dp.z+dp.tx*dO-pl.z);
+  startAct({name:'🚏 '+(s.name||'Durak')+' · '+line+' bekleniyor (~'+Math.round(wait)+' dk)',ic:'🚏',dur:wait+7,tm:1,pose:'phone',per:{fun:-.05},
+    tick:(dt)=>{t+=dt;if(ph==='come'){const k=Math.max(0,1-Math.min(1,t/wait));place(cS-(cS-s0)*k*k);if(k<=0){ph='door';t=0;sfx('bell');say(player,pick(['Otobüs geldi 🚌','İşte bizimki!','Kartımı basayım 💳']),1.6)}}
+      else if(ph==='door'){b.userData.door&&b.userData.door(Math.min(1,t/.6));if(t>1.4){ph='in';t=0;player.visible=false;dog.visible=false;coins-=RIDE72.cost;txNote67('🚌 '+line+' · İzmirim Kart','ulaşım');sfx('coin')}}
+      else if(ph==='in'){b.userData.door&&b.userData.door(Math.max(0,1-t/.6));if(t>.8)place(Math.min(s1,cS+(t-.8)*(t-.8)*4))}},
     stop:()=>{if(b.parent)b.parent.remove(b);player.visible=true;dog.visible=true},end:()=>{if(b.parent)b.parent.remove(b);RIDE72.paid=1;boardRide72()}})}
 function faceDir72(x,z){player.rotation.y=Math.atan2(x,z)}
 function boardRide72(){const R=RIDE72;if(!R)return;if(!R.paid){coins-=R.cost;txNote67(R.icon+' '+R.how,'ulaşım')}player.visible=true;dog.visible=true;enter('rest_x72ride')}
