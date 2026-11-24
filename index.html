@@ -1509,11 +1509,11 @@ function buildOpen(){if(!isHome())return;linkSpots(curI);BUILD.on=true;uiPC=true
 function buildClose(){if(BUILD.sel){BUILD.sel.g.scale.setScalar(1);buildFix(BUILD.sel)}BUILD.on=false;BUILD.sel=null;BUILD.drag=false;uiPC=false;$('styl').classList.remove('on','bld','mini');BUILD.cx=null;BUILD.pan=null;zoomT=BUILD.z0||zoomI}
 function buildRender(){const d=$('styl');d.innerHTML='';d.classList.add('on','bld');{const h=el('h3','','🛋️ Evi düzenle ');const tg=el('button','no','▾ küçült');tg.style.cssText='float:right;padding:3px 10px;border-radius:10px;border:0;cursor:pointer;font:inherit;font-size:12px';tg.onclick=bldToggle;h.appendChild(tg);d.appendChild(h)}
   d.appendChild(el('div','sub','Önce eşyaya dokun (seç), sonra sürükle · boş yeri sürükle: kamerayı kaydır · ＋/－ yakınlaştır'));
-  const tb=el('div','stabs');[['sel','🎯 Seçili'],['depo','📦 Depo ('+DEPO.length+')'],['buy','🛒 Mağaza'],['reno','🧱 Tadilat']].forEach(x=>{const b=el('button',BUILD.tab===x[0]?'on':'',x[1]);b.onclick=()=>{BUILD.tab=x[0];buildRender()};tb.appendChild(b)});d.appendChild(tb);
+  const tb=el('div','stabs');[['sel','🎯 Seçili'],['depo','📦 Depo ('+DEPO.length+')'],['buy','🛒 Mağaza'],['zemin','🎨 Duvar & Zemin'],['reno','🧱 Tadilat']].forEach(x=>{const b=el('button',BUILD.tab===x[0]?'on':'',x[1]);b.onclick=()=>{BUILD.tab=x[0];buildRender()};tb.appendChild(b)});d.appendChild(tb);
   if(BUILD.tab==='sel'){const f=BUILD.sel;d.appendChild(el('div','sub',f?('Seçili: '+(f.name||'eşya')):'Bir eşyaya tıkla'));const g=el('div','sopts');
     [['⟲','Sola döndür (Q)',()=>buildRot(-1)],['⟳','Sağa döndür (E)',()=>buildRot(1)],['📦','Depoya kaldır',()=>buildStore()],['💰','Sat (%50)',()=>buildSell()]].forEach(a=>{const b=el('button','sopt');b.appendChild(el('span','ic',a[0]));b.appendChild(document.createTextNode(a[1]));b.onclick=a[2];if(!f)b.disabled=true,b.style.opacity=.4;g.appendChild(b)});d.appendChild(g)}
   else if(BUILD.tab==='depo'){depoRender(d)}
-  else if(BUILD.tab==='reno'){renoRender(d)}else{bldStore(d)}try{renoHi(curI)}catch(e){}try{topFix(curI)}catch(e){}
+  else if(BUILD.tab==='reno'){renoRender(d)}else if(BUILD.tab==='zemin'){floorRender102(d)}else{bldStore(d)}try{renoHi(curI)}catch(e){}try{topFix(curI)}catch(e){}
   const ft=el('div','foot');ft.appendChild(el('b','','🪙 '+coins));const ok=el('button','ok','Bitti ✓');ok.onclick=buildClose;ft.appendChild(ok);d.appendChild(ft)}
 function buildRot(k){const f=BUILD.sel;if(!f)return;f.q=((f.q+k)%4+4)%4;f.g.rotation.y=f.q*Math.PI/2;const q=buildClamp(f,f.g.position.x,f.g.position.z);f.g.position.x=q[0];f.g.position.z=q[1];buildFix(f)}
 function buildSell(){const f=BUILD.sel;if(!f)return;if(f.g.parent)f.g.parent.remove(f.g);f.g.visible=false;f.sold=true;curI.boxes=curI.boxes.filter(b=>b!==f.b);(f.spots||[]).forEach(o=>{curI.spots=curI.spots.filter(s=>s!==o.sp)});
@@ -10937,6 +10937,83 @@ function evInfo(k){k=k||HOME.cur;if(k==='ev_cigli')return {tip:'daire',bolge:'ci
   [b1,b2,b3].forEach(b=>bt.appendChild(b));bx.appendChild(bt);c.appendChild(bx);const last=w.lastElementChild;w.insertBefore(c,last)}catch(e){showErrOnce(e)}}}
 /* migrasyon: cur geçerli ve sahip olunan ev olmalı (homeFix95 + villa kapısı) */
 window.__ev101={info:evInfo,get cur(){return HOME.cur}};
+/* ================= v102: Duvar & Zemin · oda bazında zemin: parke (meşe, ceviz, balıksırtı, gri laminat), karo (mermer, beton, dama, Akdeniz, terrakota) · karo boyutu + derz rengi ================= */
+const FT102={mese:{n:'Meşe açık',g:'parke',ic:'🪵'},ceviz:{n:'Ceviz koyu',g:'parke',ic:'🟫'},balik:{n:'Balıksırtı',g:'parke',ic:'🔶'},laminat:{n:'Gri laminat',g:'parke',ic:'▫️'},
+  mermer:{n:'Beyaz mermer',g:'karo',ic:'⬜'},beton:{n:'Gri beton görünüm',g:'karo',ic:'◻️'},dama:{n:'Siyah-beyaz dama',g:'karo',ic:'🏁'},akdeniz:{n:'Akdeniz karosu',g:'karo',ic:'🔷'},terra:{n:'Terrakota',g:'karo',ic:'🟧'}};
+const FS102={'30x30':[.3,.3],'45x45':[.45,.45],'60x60':[.6,.6],'60x120':[.6,1.2]},FG102={beyaz:'#f2efe8',gri:'#8e8e92',siyah:'#1e1e22'};
+let FLOOR102={};/* kind → [{x,z,t,s,g}] (oda içindeki örnek nokta ile eşleşir) */
+const FTEX102={};
+/* --- dokular: bir "blok" çizilir, blok dünya ölçüsü (m) döndürülür; repeat = 1/blok --- */
+function ftex102(t,s,g){const key=t+'|'+s+'|'+g;if(FTEX102[key])return FTEX102[key];const r=mulberry(key.length*131+t.charCodeAt(0)*7);let bw,bd,draw;
+  const shade=(hex,k)=>{const c=new T.Color(hex);c.offsetHSL(0,0,k);return '#'+c.getHexString()};
+  if(FT102[t].g==='parke'){
+    if(t==='balik'){const W=.09,Lp=4;bw=bd=8*W;draw=(c,w,h)=>{const u=w/8;c.fillStyle='#6a4a2a';c.fillRect(0,0,w,h);const base=['#b98a55','#a8784a','#c4975f','#9d6e42','#b3844f'];
+        for(let i=-14;i<=22;i++)for(let j=-3;j<=3;j++){const ox=(i+8*j)*u,oy=i*u;[[ox,oy,Lp*u,u],[ox-u,oy,u,Lp*u]].forEach((R,k)=>{for(const dx of [-w,0,w])for(const dy of [-h,0,h]){const x=R[0]+dx,y=R[1]+dy;if(x>w||y>h||x+R[2]<0||y+R[3]<0)continue;
+          c.fillStyle=base[((((i%8)+8)%8)*3+k*2)%base.length];c.fillRect(x+1,y+1,R[2]-2,R[3]-2);c.strokeStyle='rgba(60,35,15,.22)';c.lineWidth=1;for(let n=0;n<3;n++){c.beginPath();if(k===0){const yy=y+3+n*(R[3]-6)/2;c.moveTo(x+2,yy);c.bezierCurveTo(x+R[2]*.3,yy+2,x+R[2]*.7,yy-2,x+R[2]-2,yy)}else{const xx=x+3+n*(R[2]-6)/2;c.moveTo(xx,y+2);c.bezierCurveTo(xx+2,y+R[3]*.3,xx-2,y+R[3]*.7,xx,y+R[3]-2)}c.stroke()}}})}}}
+    else{const P={mese:{w:.18,l:1.2,c:['#d9b98a','#cfae7c','#e2c497','#c9a46f','#d6b380'],gr:'rgba(120,80,40,.18)'},ceviz:{w:.16,l:1.1,c:['#6a4428','#5b3920','#77502f','#4f321c','#6e4a2c'],gr:'rgba(30,15,5,.28)'},laminat:{w:.2,l:1.38,c:['#a5a29d','#9a9792','#b0ada8','#8f8c88','#a09d98'],gr:'rgba(70,70,70,.16)'}}[t];
+      bw=P.l*2;bd=bw/2;const rows=Math.max(3,Math.round(bd/P.w));draw=(c,w,h)=>{const ph=h/rows,pl=w/2;c.fillStyle='#3a2a1a';c.fillRect(0,0,w,h);
+        for(let ro=0;ro<rows;ro++){const off=((ro*0.37)%1)*pl;for(let k=-1;k<3;k++){const kk=((k%2)+2)%2,rr=mulberry(1000+ro*7+kk*3+t.length),x=k*pl+off,y=ro*ph;c.fillStyle=P.c[(ro*3+kk*2)%P.c.length];c.fillRect(x+1,y+1,pl-2,ph-2);
+          for(let n=0;n<5;n++){c.strokeStyle=P.gr;c.lineWidth=.8+rr()*.8;c.beginPath();const yy=y+3+rr()*(ph-6);c.moveTo(x+2,yy);for(let s2=1;s2<=6;s2++)c.lineTo(x+2+s2*(pl-4)/6,yy+Math.sin(s2*1.3+n+ro)*2.2);c.stroke()}
+          if(rr()<.5){c.fillStyle='rgba(80,50,20,.25)';c.beginPath();c.ellipse(x+pl*(.2+rr()*.6),y+ph/2,3,1.6,0,0,7);c.fill()}}}}}}
+  else{const S=FS102[s]||FS102['60x60'],gc=FG102[g]||FG102.gri;bw=S[0]*2;bd=S[1]*2;draw=(c,w,h)=>{const tw=w/2,th=h/2,gp=Math.max(2,Math.round(.004*w/bw*1.0+2));c.fillStyle=gc;c.fillRect(0,0,w,h);
+      for(let i=0;i<2;i++)for(let j=0;j<2;j++){const x=i*tw+gp/2,y=j*th+gp/2,ww=tw-gp,hh=th-gp;
+        if(t==='mermer'){c.fillStyle=shade('#f2f0ec',(r()-.5)*.03);c.fillRect(x,y,ww,hh);for(let v=0;v<4;v++){c.strokeStyle='rgba(120,120,130,'+(.12+r()*.25)+')';c.lineWidth=.6+r()*1.8;c.beginPath();let px=x+r()*ww,py=y;c.moveTo(px,py);for(let s2=0;s2<8;s2++){px+= (r()-.5)*ww*.35;py+=hh/8;c.lineTo(Math.max(x,Math.min(x+ww,px)),py)}c.stroke()}}
+        else if(t==='beton'){c.fillStyle=shade('#a4a4a2',(r()-.5)*.06);c.fillRect(x,y,ww,hh);for(let n=0;n<220;n++){c.fillStyle='rgba('+(r()<.5?'60,60,60':'230,230,230')+','+(r()*.12)+')';c.fillRect(x+r()*ww,y+r()*hh,1+r()*3,1+r()*3)}}
+        else if(t==='dama'){c.fillStyle=(i+j)%2?'#1c1c20':'#f4f2ee';c.fillRect(x,y,ww,hh)}
+        else if(t==='terra'){c.fillStyle=shade('#c0603a',(r()-.5)*.09);c.fillRect(x,y,ww,hh);for(let n=0;n<120;n++){c.fillStyle='rgba(90,30,10,'+(r()*.12)+')';c.fillRect(x+r()*ww,y+r()*hh,2,2)}}
+        else if(t==='akdeniz'){c.fillStyle='#f1e6cf';c.fillRect(x,y,ww,hh);c.save();c.beginPath();c.rect(x,y,ww,hh);c.clip();const m=Math.min(ww,hh);c.fillStyle='#1f4e8a';[[x,y],[x+ww,y],[x,y+hh],[x+ww,y+hh]].forEach(p=>{c.beginPath();c.arc(p[0],p[1],m*.32,0,7);c.fill()});
+          c.fillStyle='#e0a33a';[[x,y],[x+ww,y],[x,y+hh],[x+ww,y+hh]].forEach(p=>{c.beginPath();c.arc(p[0],p[1],m*.18,0,7);c.fill()});c.fillStyle='#2f78c4';c.beginPath();const cx=x+ww/2,cy=y+hh/2,R2=m*.3;c.moveTo(cx,cy-R2);c.lineTo(cx+R2,cy);c.lineTo(cx,cy+R2);c.lineTo(cx-R2,cy);c.closePath();c.fill();
+          c.fillStyle='#c8502a';c.beginPath();c.arc(cx,cy,m*.09,0,7);c.fill();c.restore()}}}}
+  const px=512,py=Math.round(512*bd/bw),tx=canvasTex(px,Math.max(64,Math.min(2048,py)),draw,{repeat:true});tx.wrapS=tx.wrapT=T.RepeatWrapping;tx.anisotropy=4;
+  FTEX102[key]={tx:tx,bw:bw,bd:bd,rot:t==='balik'?Math.PI/4:0};return FTEX102[key]}
+/* --- odalar: duvar çizgileriyle ayrılan bölgeler (ızgara taşma doldurma; kapı boşlukları oda ayırır) --- */
+function rooms102(I){const cs=.5,hw=(I.w||16)/2,hd=(I.d||12)/2,nx=Math.round(2*hw/cs),nz=Math.round(2*hd/cs),walls=(I.wallDefs||[]).filter(w=>!w.rm);
+  const blockX=new Set(),blockZ=new Set();/* kenar engelleri: x yönünde (i,j)-(i+1,j) arası / z yönünde */
+  walls.forEach(w=>{const [x1,z1,x2,z2]=w.a;if(Math.abs(x1-x2)<.01){const i=Math.round((x1+hw)/cs);const j0=Math.round((Math.min(z1,z2)+hd)/cs),j1=Math.round((Math.max(z1,z2)+hd)/cs);for(let j=j0;j<j1;j++)blockX.add((i-1)+','+j)}
+    else{const j=Math.round((z1+hd)/cs);const i0=Math.round((Math.min(x1,x2)+hw)/cs),i1=Math.round((Math.max(x1,x2)+hw)/cs);for(let i=i0;i<i1;i++)blockZ.add(i+','+(j-1))}});
+  const id=new Int16Array(nx*nz).fill(-1);let n=0;const R=[];for(let s=0;s<nx*nz;s++){if(id[s]>=0)continue;const q=[s];id[s]=n;const cells=[];while(q.length){const c=q.pop();cells.push(c);const i=c%nx,j=(c/nx)|0;
+      const nb=[[i+1,j,!blockX.has(i+','+j)],[i-1,j,!blockX.has((i-1)+','+j)],[i,j+1,!blockZ.has(i+','+j)],[i,j-1,!blockZ.has(i+','+(j-1))]];nb.forEach(b=>{if(b[0]<0||b[1]<0||b[0]>=nx||b[1]>=nz||!b[2])return;const k=b[1]*nx+b[0];if(id[k]<0){id[k]=n;q.push(k)}})}
+    R.push({i:n,cells:cells});n++}
+  const ctr=c=>({x:-hw+(c%nx+.5)*cs,z:-hd+(((c/nx)|0)+.5)*cs});const fur=(I.furn||[]).filter(f=>f.key&&!f.sold);
+  /* açık plan: düzenin mutfak/banyo zemin alanı ayrı oda */
+  ((I.lay&&I.lay.floors)||[]).forEach(fr=>{const x0=Math.min(fr[0],fr[2]),x1=Math.max(fr[0],fr[2]),z0=Math.min(fr[1],fr[3]),z1=Math.max(fr[1],fr[3]);R.slice().forEach(r=>{const ins=r.cells.filter(c=>{const p=ctr(c);return p.x>x0&&p.x<x1&&p.z>z0&&p.z<z1});
+    if(ins.length>=6&&ins.length<r.cells.length-6){const set=new Set(ins);r.cells=r.cells.filter(c=>!set.has(c));ins.forEach(c=>id[c]=n);R.push({i:n,cells:ins,forced:fr[4]==='k'?'Mutfak':'Banyo'});n++}})});
+  R.forEach(r=>{let sx=0,sz=0;r.cells.forEach(c=>{const p=ctr(c);sx+=p.x;sz+=p.z});r.cx=sx/r.cells.length;r.cz=sz/r.cells.length;const has=ks=>fur.some(f=>ks.includes(f.key)&&id[Math.floor((f.g.position.z+hd)/cs)*nx+Math.floor((f.g.position.x+hw)/cs)]===r.i);
+    r.n=r.forced?r.forced:has(['sofa','tv','sofa2'])&&has(['fridge','stove','sink'])?'Salon & mutfak':has(['fridge','stove','sink'])?'Mutfak':has(['toilet','shower','tub','bsink'])?'Banyo':has(['bed'])?'Yatak odası':has(['bed2'])?'Çocuk / misafir odası':has(['sofa','tv','sofa2'])?'Salon':has(['desk'])?'Çalışma odası':'Oda';r.area=r.cells.length*cs*cs});
+  const cnt={};R.forEach(r=>{cnt[r.n]=(cnt[r.n]||0)+1});const seen={};R.forEach(r=>{if(cnt[r.n]>1){seen[r.n]=(seen[r.n]||0)+1;r.n+=' '+seen[r.n]}});
+  return {R:R.filter(r=>r.area>=1.5).sort((a,b)=>b.area-a.area),id:id,nx:nx,nz:nz,cs:cs,hw:hw,hd:hd,ctr:ctr}}
+/* --- bölge için zemin örtüsü: hücre satırlarından dikdörtgenler, UV = dünya ölçüsü (gerilme yok) --- */
+function floorMesh102(RM,r,o){const T0=ftex102(o.t,o.s,o.g),P=[],U=[],N=[],cs=RM.cs;const set=new Set(r.cells);const rows={};r.cells.forEach(c=>{const j=(c/RM.nx)|0;(rows[j]||(rows[j]=[])).push(c%RM.nx)});
+  Object.keys(rows).forEach(j=>{const xs=rows[j].sort((a,b)=>a-b);let a=xs[0],p=xs[0];const flush=(a,b)=>{const x0=-RM.hw+a*cs,x1=-RM.hw+(b+1)*cs,z0=-RM.hd+j*cs,z1=z0+cs;[[x0,z0],[x1,z1],[x1,z0],[x0,z0],[x0,z1],[x1,z1]].forEach(q=>{P.push(q[0],0,q[1]);U.push(q[0],-q[1]);N.push(0,1,0)})};
+    for(let k=1;k<=xs.length;k++){if(k<xs.length&&xs[k]===p+1){p=xs[k];continue}flush(a,p);a=xs[k];p=xs[k]}});
+  const geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute(P,3));geo.setAttribute('normal',new T.Float32BufferAttribute(N,3));geo.setAttribute('uv',new T.Float32BufferAttribute(U,2));
+  const tx=T0.tx.clone();tx.needsUpdate=true;tx.wrapS=tx.wrapT=T.RepeatWrapping;tx.repeat.set(1/T0.bw,1/T0.bd);tx.rotation=T0.rot;
+  const parq=FT102[o.t].g==='parke';const m=new T.Mesh(geo,new T.MeshStandardMaterial({map:tx,roughness:parq?.55:o.t==='mermer'?.18:.6,metalness:o.t==='mermer'?.05:0}));m.position.y=.014;m.receiveShadow=true;m.userData.noMerge=true;m.userData.fl102=1;return m}
+function floorApply102(I){if(!I||!I.G||!/^ev_/.test(I.name||''))return;(I.fl102||[]).forEach(m=>{if(m.parent)m.parent.remove(m);try{m.geometry.dispose();m.material.dispose()}catch(e){}});I.fl102=[];const L=FLOOR102[I.name];if(!L||!L.length)return;
+  const RM=rooms102(I);L.forEach(o=>{const c=Math.floor((o.z+RM.hd)/RM.cs)*RM.nx+Math.floor((o.x+RM.hw)/RM.cs),rid=RM.id[c],r=RM.R.find(q=>q.i===rid);if(!r)return;const m=floorMesh102(RM,r,o);I.G.add(m);I.fl102.push(m)})}
+/* iç mekân kurulduğunda ve tadilattan sonra uygula */
+{const _int=interior;interior=function(kind){const I=_int.apply(this,arguments);try{if(I&&/^ev_/.test(kind)&&!I.fl102done){I.fl102done=1;floorApply102(I)}}catch(e){showErrOnce(e)}return I}}
+{const _rd=renoDraw;renoDraw=function(I){const r=_rd.apply(this,arguments);try{if(I&&I.fl102done)floorApply102(I)}catch(e){}return r}}
+/* --- arayüz: Evi düzenle → 🎨 Duvar & Zemin --- */
+const FL102UI={room:null,t:'mese',s:'60x60',g:'gri'};
+function floorRender102(d){const I=curI;if(!I||!/^ev_/.test(I.name||'')){d.appendChild(el('div','sub','Sadece evinde kullanılabilir'));return}const RM=rooms102(I);
+  if(FL102UI.room==null||!RM.R.find(r=>r.i===FL102UI.room))FL102UI.room=RM.R[0]&&RM.R[0].i;d.appendChild(el('div','sub','Oda seç → zemin türü, karo boyutu ve derz rengi · usta 1 saatte döşer (m² başına ücret)'));
+  const rb=el('div','stabs');RM.R.forEach(r=>{const b=el('button',r.i===FL102UI.room?'on':'',r.n+' · '+Math.round(r.area)+' m²');b.onclick=()=>{FL102UI.room=r.i;FL102UI.touched=0;fl102Hi(I,RM,r);buildRender()};rb.appendChild(b)});d.appendChild(rb);
+  const room=RM.R.find(r=>r.i===FL102UI.room);if(room)fl102Hi(I,RM,room);const cur=(FLOOR102[I.name]||[]).find(o=>{const c=Math.floor((o.z+RM.hd)/RM.cs)*RM.nx+Math.floor((o.x+RM.hw)/RM.cs);return RM.id[c]===FL102UI.room});
+  if(cur&&!FL102UI.touched){FL102UI.t=cur.t;FL102UI.s=cur.s;FL102UI.g=cur.g}
+  ['parke','karo'].forEach(gr=>{d.appendChild(el('div','sub',gr==='parke'?'🪵 Parke':'🔲 Fayans / seramik'));const g=el('div','sopts');Object.keys(FT102).filter(k=>FT102[k].g===gr).forEach(k=>{const b=el('button','sopt'+(FL102UI.t===k?' on':''));const sw=el('span','sw');sw.style.height='34px';
+    try{const T0=ftex102(k,FL102UI.s,FL102UI.g);sw.style.backgroundImage='url('+T0.tx.image.toDataURL()+')';sw.style.backgroundSize=(gr==='parke'?'120%':'100%')}catch(e){}b.appendChild(sw);b.appendChild(document.createTextNode(FT102[k].n));b.onclick=()=>{FL102UI.t=k;FL102UI.touched=1;buildRender()};g.appendChild(b)});d.appendChild(g)});
+  if(FT102[FL102UI.t].g==='karo'){d.appendChild(el('div','sub','📐 Karo boyutu (cm)'));const sb=el('div','stabs');Object.keys(FS102).forEach(k=>{const b=el('button',FL102UI.s===k?'on':'',k);b.onclick=()=>{FL102UI.s=k;FL102UI.touched=1;buildRender()};sb.appendChild(b)});d.appendChild(sb);
+    d.appendChild(el('div','sub','🧱 Derz rengi'));const gb=el('div','stabs');Object.keys(FG102).forEach(k=>{const b=el('button',FL102UI.g===k?'on':'',k[0].toUpperCase()+k.slice(1));b.style.borderLeft='10px solid '+FG102[k];b.onclick=()=>{FL102UI.g=k;FL102UI.touched=1;buildRender()};gb.appendChild(b)});d.appendChild(gb)}
+  const area=room?room.area:0,unit=FT102[FL102UI.t].g==='parke'?(FL102UI.t==='balik'?28:FL102UI.t==='ceviz'?24:16):(FL102UI.t==='mermer'?30:FL102UI.t==='akdeniz'?26:15),cost=Math.round(area*unit/5)*5;
+  const f=el('div','foot');f.appendChild(el('b','',(room?room.n:'')+' · '+cost+'🪙'));const pv=el('button','no','👁️ Önizle');pv.onclick=()=>fl102Set(I,RM,room,true);const ok=el('button','ok','Döşet ✓');ok.onclick=()=>{if(!room)return;if(!payOk(cost))return;pay(cost);fl102Set(I,RM,room,false);GT=Math.min(GT+60,23*60);toast('🧱 '+room.n+' zemini döşendi · '+FT102[FL102UI.t].n+(FT102[FL102UI.t].g==='karo'?' '+FL102UI.s+' · '+FL102UI.g+' derz':'')+' (−'+cost+'🪙)');memAdd('🧱',room.n+' zemini: '+FT102[FL102UI.t].n);mood=clamp(mood+4,0,100);try{saveGame()}catch(e){}buildRender()};
+  f.appendChild(pv);f.appendChild(ok);d.appendChild(f)}
+function fl102Set(I,RM,room,preview){if(!room)return;const L=(FLOOR102[I.name]||(FLOOR102[I.name]=[])).filter(o=>{const c=Math.floor((o.z+RM.hd)/RM.cs)*RM.nx+Math.floor((o.x+RM.hw)/RM.cs);return RM.id[c]!==room.i});const c0=room.cells[(room.cells.length/2)|0],p=RM.ctr(c0);
+  const o={x:+p.x.toFixed(2),z:+p.z.toFixed(2),t:FL102UI.t,s:FL102UI.s,g:FL102UI.g};if(preview){const old=FLOOR102[I.name];FLOOR102[I.name]=L.concat([o]);floorApply102(I);FLOOR102[I.name]=old;toast('👁️ Önizleme · beğendiysen "Döşet"');return}L.push(o);FLOOR102[I.name]=L;floorApply102(I)}
+function fl102Hi(I,RM,r){if(I.fl102hi&&I.fl102hi.parent)I.fl102hi.parent.remove(I.fl102hi);const m=floorMesh102(RM,r,{t:'mermer',s:'60x60',g:'beyaz'});m.material=new T.MeshBasicMaterial({color:0xffb347,transparent:true,opacity:.18,depthWrite:false});m.position.y=.02;I.G.add(m);I.fl102hi=m;clearTimeout(fl102Hi.t);fl102Hi.t=setTimeout(()=>{if(m.parent)m.parent.remove(m)},1600)}
+{const _sv=save25;save25=function(){const o=_sv.apply(this,arguments);try{o.x102=FLOOR102}catch(e){}return o}}
+{const _ld=load25;load25=function(x){const r=_ld.apply(this,arguments);try{if(x&&x.x102)FLOOR102=x.x102;Object.keys(INT).forEach(k=>{const I=INT[k];if(I&&I.fl102done)floorApply102(I)})}catch(e){}return r}}
+window.__fl102={rt:()=>{const o=save25();FLOOR102={};load25(o);return FLOOR102},rebuild:k=>{const o=INT[k];if(o){if(o.G&&o.G.parent)o.G.parent.remove(o.G);delete INT[k]}},rooms:()=>rooms102(curI),get F(){return FLOOR102},set F(v){FLOOR102=v},apply:()=>floorApply102(curI),tex:ftex102,UI:FL102UI};
 /* ================= v90: bahçe & tarım görsel yenileme — tekrarsız çim, sürülmüş toprak, taş yol, lamba, bank, 3 evreli instanced bitkiler, rüzgâr, hasat animasyonu ================= */
 const U90={t:{value:0}};
 function sway90(col,o,amp){const m=std(col,Object.assign({roughness:.75},o||{}));const A=(amp||.03).toFixed(3);
