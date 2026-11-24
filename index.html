@@ -9772,6 +9772,99 @@ APPS.splice(1,0,['calls','📞','Telefon','#2fb35a,#7ae09a']);
 {const _rm=randomMessage;randomMessage=function(){if(me&&!SET.mute&&!VC&&!SCN_UI&&mode!=='drive'&&rnd()<.35){const cs=contacts().map(q=>q[0]).filter(c=>c!=='P'||!partnerNear());if(cs.length){const c=pick(cs),D2=dlg(c);if(vcall(c,true,pick(D2.open)))return}}return _rm.apply(this,arguments)}}
 window.__vc={call:vcall,out:vcallOut,get VC(){return VC},log:VCLOG};
 {const _sf=scnFree;scnFree=function(){return !VC&&_sf.apply(this,arguments)}}
+/* ---------- v87 · navigasyon: modern harita uygulaması (arama, kategoriler, favoriler, son gidilenler, rota önizleme) ---------- */
+(function(){const st=document.createElement('style');st.textContent=`
+#nav .cp.nv{width:min(760px,96vw);max-height:92vh;max-height:92dvh;display:flex;flex-direction:column;overflow:hidden;padding:0;background:#f6f7fb;color:#1c2333;border:0;border-radius:24px;box-shadow:0 24px 70px rgba(0,0,0,.55);position:relative;box-sizing:border-box}
+#nav .nvtop{flex:none;padding:14px 14px 8px;background:linear-gradient(180deg,#fff,#f6f7fb)}
+#nav .nvh{display:flex;align-items:center;gap:10px;margin-bottom:10px}#nav .nvh b{flex:1;font-size:18px}#nav .nvh span{font-size:13px;color:#6a7385;font-variant-numeric:tabular-nums}
+#nav .nvh button{border:0;background:#e9ecf3;color:#1c2333;border-radius:50%;width:34px;height:34px;font:inherit;cursor:pointer;flex:none}
+#nav .nvs{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #dfe3ec;border-radius:16px;padding:0 12px;box-shadow:0 2px 8px rgba(30,40,70,.06)}
+#nav .nvs input{flex:1;min-width:0;border:0;outline:0;background:transparent;font:inherit;font-size:15px;padding:11px 0;color:#1c2333}#nav .nvs button{border:0;background:none;font-size:15px;cursor:pointer;color:#8a93a5}
+#nav .nvc{display:flex;gap:6px;overflow-x:auto;padding:10px 0 2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}#nav .nvc::-webkit-scrollbar{display:none}
+#nav .nvc button{flex:none;border:1px solid #dfe3ec;background:#fff;color:#2b3448;border-radius:999px;padding:7px 12px;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
+#nav .nvc button.on{background:#1a73e8;border-color:#1a73e8;color:#fff}
+#nav .nvwho{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:4px 0 0;font-size:13px}#nav .nvwho>div{margin:0!important}#nav .nvwho b{color:#2b3448}
+#nav .nvwho button{border-color:#1a73e8!important;color:#1a73e8!important}#nav .nvwho button{background:#fff!important}#nav .nvwho button[style*="42, 26, 10"]{background:#1a73e8!important;color:#fff!important}
+#nav .nvl{flex:1 1 auto;min-height:0;overflow-y:auto;padding:4px 14px 16px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+#nav .nvsec{margin:12px 2px 6px;font-size:13px;font-weight:700;color:#6a7385;text-transform:uppercase;letter-spacing:.4px}
+#nav .nvg{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px}
+#nav .nvk{display:flex;align-items:center;gap:10px;padding:10px;border-radius:16px;background:#fff;border:1px solid #e6e9f0;cursor:pointer;min-width:0;transition:border-color .12s,box-shadow .12s}
+#nav .nvk:hover{border-color:#1a73e8;box-shadow:0 4px 14px rgba(26,115,232,.15)}#nav .nvk.sel{border-color:#1a73e8;background:#eef4ff}
+#nav .nvk .ic{width:42px;height:42px;flex:none;border-radius:12px;display:grid;place-items:center;font-size:22px;background:#eef1f7}
+#nav .nvk .tx{flex:1;min-width:0}#nav .nvk .tx b{display:block;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#nav .nvk .tx small{display:block;font-size:12px;color:#6a7385;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#nav .nvk .eta{display:inline-block;margin-top:4px;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px}
+#nav .t0{background:#e3f6e8;color:#13843a}#nav .t1{background:#fff4d6;color:#a16a00}#nav .t2{background:#fde4e2;color:#c5221f}
+#nav .nvk .fv{border:0;background:none;font-size:19px;cursor:pointer;color:#c2c8d4;padding:4px;flex:none}#nav .nvk .fv.on{color:#f4b400}
+#nav .nvk .go{border:0;background:#1a73e8;color:#fff;border-radius:12px;padding:9px 14px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;flex:none}
+#nav .nvrow{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}#nav .nvrow::-webkit-scrollbar{display:none}
+#nav .nvrow .nvk{flex:0 0 auto;width:min(250px,70vw)}
+#nav .nvem{color:#8a93a5;font-size:13px;padding:10px 4px}
+#nav .nvp{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:22px 22px 0 0;box-shadow:0 -10px 40px rgba(20,30,60,.25);padding:10px 16px 16px;transform:translateY(105%);transition:transform .3s cubic-bezier(.2,.9,.25,1);max-height:85%;overflow-y:auto;box-sizing:border-box}
+#nav .nvp.on{transform:none}#nav .nvp .grab{width:44px;height:5px;border-radius:5px;background:#d5dae4;margin:0 auto 10px}
+#nav .nvmap{height:120px;border-radius:16px;overflow:hidden;background:#e8eef5;position:relative}#nav .nvmap svg{width:100%;height:100%;display:block}#nav .nvmap .pa,#nav .nvmap .pb{position:absolute;transform:translate(-50%,-50%);pointer-events:none}#nav .nvmap .pa{width:14px;height:14px;border-radius:50%;background:#1a73e8;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3)}#nav .nvmap .pb{font-size:24px;transform:translate(-50%,-90%);filter:drop-shadow(0 2px 2px rgba(0,0,0,.3))}
+#nav .nvft{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:center;margin:12px 2px 6px;font-size:14px}
+#nav .nvft i{font-style:normal;width:22px;text-align:center}#nav .nvft span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#nav .nvst{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 2px 4px}#nav .nvst b{font-size:22px}#nav .nvst .eta{font-size:13px;font-weight:700;padding:3px 10px;border-radius:999px}
+#nav .nvnote{font-size:12.5px;color:#6a7385;margin:2px 2px 10px;line-height:1.45}
+#nav .nvbt{display:flex;gap:8px}#nav .nvbt button{border:0;border-radius:14px;padding:13px;font:inherit;font-weight:700;cursor:pointer;font-size:15px}
+#nav .nvbt .gx{flex:1;background:#1a73e8;color:#fff}#nav .nvbt .cx{background:#e9ecf3;color:#2b3448}
+@media (max-width:600px),(max-height:520px){#nav{align-items:stretch;justify-content:stretch}#nav .cp.nv{width:100vw;max-height:none;height:100%;border-radius:0;padding-top:env(safe-area-inset-top,0px)}#nav .nvg{grid-template-columns:1fr}}
+@media (max-height:520px){#nav .nvtop{padding:8px 12px 4px}#nav .nvh{margin-bottom:6px}#nav .nvh b{font-size:15px}#nav .nvh button{width:28px;height:28px}#nav .nvs input{padding:7px 0;font-size:14px}#nav .nvc{padding-top:6px}#nav .nvc button{padding:5px 10px;font-size:12px}
+ #nav .nvg{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}#nav .nvk{padding:7px}#nav .nvk .ic{width:34px;height:34px;font-size:18px}#nav .nvp{max-height:96%;padding:6px 14px 10px}#nav .nvmap{height:70px}#nav .nvft{margin:6px 2px 2px;font-size:13px}#nav .nvst b{font-size:18px}#nav .nvbt button{padding:9px}}`;document.head.appendChild(st)})();
+const NV_CATS=[['all','🗺️','Tümü'],['Ev','🏠','Ev'],['İş','💼','İş'],['Yemek','🍽️','Yemek'],['Alışveriş','🛍️','Alışveriş'],['Eğlence','🎡','Eğlence'],['Sağlık','🩺','Sağlık']];
+const NV_CAT={merkez:['İş'],cigli:['Ev'],karabaglar:['Ev'],bornova:['Ev'],kocaeli:['Ev'],menemen:['İş','Eğlence'],karsiyaka:['Yemek','Alışveriş','Sağlık'],alsancak:['Yemek','Eğlence'],bostanli:['Yemek','Eğlence','Sağlık'],
+ forum:['Alışveriş','Eğlence','Yemek'],hilltown:['Alışveriş','Yemek'],mavibahce:['Alışveriş','Yemek'],havaalani:['Eğlence'],aksaz:['Eğlence'],marmaris:['Eğlence','Yemek'],bozdag:['Eğlence']};
+const NV_ILCE={merkez:'Konak',cigli:'Çiğli',karabaglar:'Karabağlar',bostanli:'Karşıyaka',forum:'Bornova',hilltown:'Karşıyaka',mavibahce:'Karşıyaka',alsancak:'Konak',karsiyaka:'Karşıyaka',kocaeli:'İzmit · Kocaeli',havaalani:'Gaziemir',aksaz:'Marmaris · Muğla',marmaris:'Marmaris · Muğla',bozdag:'Ödemiş',bornova:'Bornova',menemen:'Menemen'};
+let NV={cat:'all',q:'',sel:null};
+function nvStore(){let o=null;try{o=JSON.parse(localStorage.getItem('pw_nav86_'+(me?me.key:''))||'null')}catch(e){}o=o||{};o.fav=o.fav||[];o.rec=o.rec||[];return o}
+function nvSave(o){try{localStorage.setItem('pw_nav86_'+(me?me.key:''),JSON.stringify(o))}catch(e){}}
+function nvCats(k){const c=(NV_CAT[k]||['Eğlence']).slice();if(me&&k===me.home&&c.indexOf('Ev')<0)c.unshift('Ev');return c}
+function nvInfo(k){const here=D2P[activeD.name],p=PLACES[k]||{n:k,icon:'📍',km:5,m:2400};let km=(typeof KM72!=='undefined'&&KM72[p.d])||p.km||5;
+  const hw=km>50;let tp={dens:.5};try{tp=trafficProfile(here,p.d||k,()=>.99)}catch(e){}const dens=hw?.3:tp.dens;
+  const lvl=dens<.6?0:dens<.9?1:2,spd=hw?92:Math.max(18,54-dens*28),min=Math.max(3,Math.round(km/spd*60));
+  return {k:k,p:p,km:km,min:min,lvl:lvl,tl:['Akıcı','Orta yoğun','Yoğun'][lvl],hw:hw,rush:!!tp.rush,night:!!tp.night,name:placeLabel(k),ilce:NV_ILCE[k]||DNAME[p.d]||''}}
+function nvDur(m){return m<60?m+' dk':Math.floor(m/60)+' sa '+(m%60?m%60+' dk':'')}
+function nvHere(){const n=activeD&&activeD.name,k=D2P[n];return (k&&k===me.home)?'Ev':(DNAME&&DNAME[n])||(typeof TRAVEL_LBL!=='undefined'&&TRAVEL_LBL[n])||(k&&PLACES[k]&&PLACES[k].n)||'Bulunduğun yer'}
+function nvGo(k){const here=D2P[activeD.name],o=nvStore();o.rec=[k].concat(o.rec.filter(x=>x!==k)).slice(0,6);nvSave(o);NV.sel=null;
+  closeNav();try{rideInvite(k)}catch(e){}if(k==='kocaeli'||here==='kocaeli')tollPick(k,()=>startDrive(k));else startDrive(k)}
+function nvCard(I,fav){const c=el('div','nvk'+(NV.sel===I.k?' sel':''));const ic=el('div','ic',I.p.icon);c.appendChild(ic);const tx=el('div','tx');tx.appendChild(el('b','',I.name));
+  tx.appendChild(el('small','',(I.ilce?I.ilce+' · ':'')+(I.km>=100?Math.round(I.km):I.km.toFixed(1).replace('.',','))+' km'));tx.appendChild(el('span','eta t'+I.lvl,'~'+nvDur(I.min)));c.appendChild(tx);
+  const f=el('button','fv'+(fav?' on':''),fav?'★':'☆');f.title=fav?'Favorilerden çıkar':'Favorilere ekle';f.onclick=e=>{e.stopPropagation();const o=nvStore();o.fav=fav?o.fav.filter(x=>x!==I.k):o.fav.concat([I.k]);nvSave(o);toast(fav?'☆ Favorilerden çıkarıldı':'⭐ Favorilere eklendi');nvRender()};c.appendChild(f);
+  const g=el('button','go','Git');g.onclick=e=>{e.stopPropagation();nvPreview(I.k)};c.appendChild(g);c.onclick=()=>nvPreview(I.k);return c}
+function nvMap(I){const key=String(I.k);let h=7;for(let i=0;i<key.length;i++)h=(h*31+key.charCodeAt(i))>>>0;const r=()=>{h=(h*1103515245+12345)>>>0;return (h>>>8)/16777216};
+  const col=['#1e9e4a','#f2a600','#d93025'][I.lvl],pts=[[30,90]];for(let i=1;i<5;i++)pts.push([30+i*62+r()*20-10,25+r()*70]);pts.push([330,30+r()*40]);
+  let d='M'+pts[0][0]+' '+pts[0][1];for(let i=1;i<pts.length;i++){const a=pts[i-1],b=pts[i];d+=' Q'+a[0]+' '+b[1]+' '+((a[0]+b[0])/2)+' '+((a[1]+b[1])/2)+' T'+b[0]+' '+b[1]}
+  let s='<svg viewBox="0 0 360 120" preserveAspectRatio="none"><rect width="360" height="120" fill="#e8eef5"/>';
+  if(I.k==='bostanli'||I.k==='karsiyaka'||I.k==='alsancak'||I.k==='marmaris'||I.k==='aksaz')s+='<path d="M0 0 H360 V22 Q260 40 180 18 T0 26 Z" fill="#a9d2f3"/>';
+  for(let i=0;i<7;i++)s+='<rect x="'+(10+r()*320)+'" y="'+(10+r()*90)+'" width="'+(22+r()*30)+'" height="'+(12+r()*16)+'" rx="3" fill="#dde4ee"/>';
+  s+='<path d="M0 70 H360 M120 0 V120 M250 0 V120" stroke="#fff" stroke-width="7" fill="none" vector-effect="non-scaling-stroke"/><path d="'+d+'" stroke="#fff" stroke-width="9" fill="none" stroke-linecap="round" vector-effect="non-scaling-stroke"/><path d="'+d+'" stroke="'+col+'" stroke-width="5" fill="none" stroke-linecap="round" pathLength="600" stroke-dasharray="600" stroke-dashoffset="600" vector-effect="non-scaling-stroke"><animate attributeName="stroke-dashoffset" from="600" to="0" dur="1s" fill="freeze"/></path>';
+  const e=pts[pts.length-1];s+='</svg><i class="pa" style="left:'+(30/3.6)+'%;top:'+(90/1.2)+'%"></i><i class="pb" style="left:'+(e[0]/3.6)+'%;top:'+(e[1]/1.2)+'%">📍</i>';return s}
+function nvPreview(k){NV.sel=k;const I=nvInfo(k),P=document.querySelector('#nav .nvp');if(!P)return;P.innerHTML='';P.appendChild(el('div','grab'));
+  const m=el('div','nvmap');m.innerHTML=nvMap(I);P.appendChild(m);
+  const ft=el('div','nvft');ft.appendChild(el('i','','🔵'));ft.appendChild(el('span','',nvHere()));ft.appendChild(el('i','','📍'));ft.appendChild(el('span','',I.p.icon+' '+I.name+(I.ilce?' · '+I.ilce:'')));P.appendChild(ft);
+  const s=el('div','nvst');s.appendChild(el('b','',nvDur(I.min)));s.appendChild(el('span','',(I.km>=100?Math.round(I.km):I.km.toFixed(1).replace('.',','))+' km'));s.appendChild(el('span','eta t'+I.lvl,'🚦 '+I.tl));P.appendChild(s);
+  const n=[];if(I.hw)n.push('🛣️ Şehirlerarası yol'+(k==='kocaeli'?' · otoyol ücretli/ücretsiz seçimi var':''));else if(I.night)n.push('🌙 Gece · yollar boş');else if(I.rush)n.push('🚗 İş giriş/çıkış saati · trafik yoğun');else n.push(I.lvl===0?'🟢 Yollar açık görünüyor':'🚙 Normal şehir trafiği');
+  if(RIDEWHO&&RIDEWHO!=='self')n.push('🧑‍🤝‍🧑 Yanında yolcu var');P.appendChild(el('div','nvnote',n.join(' · ')));
+  const bt=el('div','nvbt'),x=el('button','cx','Vazgeç'),g=el('button','gx','🚗 Yola çık');x.onclick=()=>{NV.sel=null;P.classList.remove('on');nvRender()};g.onclick=()=>nvGo(k);bt.appendChild(x);bt.appendChild(g);P.appendChild(bt);
+  P.classList.add('on');document.querySelectorAll('#nav .nvk').forEach(c=>c.classList.toggle('sel',c.dataset.k===k))}
+function nvRender(){const L=document.querySelector('#nav .nvl');if(!L)return;L.innerHTML='';const items=navItems(),o=nvStore(),fav=new Set(o.fav),q=NV.q.trim().toLocaleLowerCase('tr');
+  const info=items.map(nvInfo);const mk=(I)=>{const c=nvCard(I,fav.has(I.k));c.dataset.k=I.k;return c};
+  const filt=info.filter(I=>(NV.cat==='all'||nvCats(I.k).indexOf(NV.cat)>=0)&&(!q||(I.name+' '+I.ilce+' '+I.p.n).toLocaleLowerCase('tr').indexOf(q)>=0));
+  if(NV.cat==='all'&&!q){const sec=(t,arr)=>{L.appendChild(el('div','nvsec',t));if(!arr.length){L.appendChild(el('div','nvem',t.indexOf('Favori')>=0?'Yıldıza dokunup favori ekleyebilirsin ☆':'Henüz bir yere gitmedin.'));return}const r=el('div','nvrow');arr.forEach(I=>r.appendChild(mk(I)));L.appendChild(r)};
+    sec('⭐ Favoriler',info.filter(I=>fav.has(I.k)));sec('🕘 Son gidilenler',o.rec.map(k=>info.find(I=>I.k===k)).filter(Boolean))}
+  L.appendChild(el('div','nvsec',q?'🔍 Sonuçlar':NV.cat==='all'?'📍 Tüm yerler':NV_CATS.find(c=>c[0]===NV.cat)[1]+' '+NV.cat));
+  if(!filt.length)L.appendChild(el('div','nvem','Sonuç bulunamadı. Başka bir şey ara 🔍'));const g=el('div','nvg');filt.sort((a,b)=>a.min-b.min).forEach(I=>g.appendChild(mk(I)));L.appendChild(g)}
+openNav=function(){if(busy)return;const cp=document.querySelector('#nav .cp');cp.className='cp nv';cp.innerHTML='';const now=new Date();
+  const top=el('div','nvtop'),h=el('div','nvh');h.appendChild(el('b','','🧭 Harita'));h.appendChild(el('span','',('0'+now.getHours()).slice(-2)+':'+('0'+now.getMinutes()).slice(-2)));const x=el('button','','✖');x.id='cpx';x.title='Kapat';x.onclick=closeNav;h.appendChild(x);top.appendChild(h);
+  const s=el('div','nvs');s.appendChild(el('span','','🔍'));const inp=el('input');inp.type='search';inp.placeholder='Yer ara: Kordon, AVM, Karşıyaka…';inp.value=NV.q;inp.autocomplete='off';
+  ['keydown','keyup','keypress'].forEach(t=>inp.addEventListener(t,e=>{e.stopPropagation();if(t==='keydown'&&e.key==='Escape'){inp.blur()}}));inp.oninput=()=>{NV.q=inp.value;nvRender()};s.appendChild(inp);
+  const cl=el('button','','✕');cl.title='Temizle';cl.onclick=()=>{NV.q='';inp.value='';nvRender()};s.appendChild(cl);top.appendChild(s);
+  const c=el('div','nvc');NV_CATS.forEach(q=>{const b=el('button',NV.cat===q[0]?'on':'',q[1]+' '+q[2]);b.onclick=()=>{NV.cat=q[0];c.querySelectorAll('button').forEach(z=>z.classList.toggle('on',z===b));nvRender()};c.appendChild(b)});top.appendChild(c);
+  const w=el('div','nvwho');top.appendChild(w);try{navWho(w)}catch(e){showErrOnce(e)}cp.appendChild(top);
+  const l=el('div','nvl');l.id='cpl';cp.appendChild(l);const p=el('div','nvp');cp.appendChild(p);NV.sel=null;nvRender();
+  $('nav').classList.add('on');uiPC=true};
+window.__nav={get NV(){return NV},info:nvInfo,preview:nvPreview,go:nvGo};
 initMenu();
 resize();applyTime(1);frame();
 }catch(err){const e=document.getElementById('err');e.style.display='block';e.textContent='Hata: '+(err&&err.stack||err)}
