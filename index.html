@@ -8619,6 +8619,117 @@ let LOBBYSKIP74=false;
 {const _nd=newDay;newDay=function(){const r=_nd.apply(this,arguments);try{if(Math.random()<.2){const k=pick(Object.keys(NB)),n=NB[k];setTimeout(()=>notify('🏠 '+n.n,pick(['Kızım bir tüp gaz taşımama yardım eder misin? 🙏','Akşam misafirliğe gelsene, kek yaptım 🍰','Çiçeklerimi sulayabilir misin, iki gün yokum 🌷']),[{t:'Tabii 💛',fn:()=>{n.v=clamp(n.v+10,0,100);mood=clamp(mood+4,0,100);emitSafe('nb_help');toast('💛 '+n.n+' çok sevindi')}},{t:'Kusura bakma',fn:()=>{n.v=clamp(n.v-3,0,100)}}]),5000)}}catch(e){}return r}}
 {const _sv=save25;save25=function(){const o=_sv.apply(this,arguments);try{o.x74={mv:MOVE74,apt:APT74}}catch(e){}return o}}
 {const _ld=load25;load25=function(x){const r=_ld.apply(this,arguments);try{if(x&&x.x74){Object.assign(MOVE74,x.x74.mv||{});Object.assign(APT74,x.x74.apt||{})}}catch(e){}return r}}
+/* ================= v76: Pazarcık sepet, kupon, hediye (Kime alıyorsun?), siparişlerim ================= */
+const CART76=[],COUP76=[],ORDH76=[],GORD76=[],X76={n:0,wel:0,sel:null,fast:false};
+const CPOOL76=[['PIXEL10','pct',10,null,200,'Tüm ürünlerde %10 indirim'],['PIXEL15','pct',15,null,600,'Tüm ürünlerde %15 indirim'],['KARGOBEDAVA','ship',0,null,100,'Kargo bedava'],
+ ['GIYIM50','cat',50,'Giyim',250,'Giyimde 50🪙 indirim'],['AYAKKABI50','cat',50,'Ayakkabı',250,'Ayakkabıda 50🪙 indirim'],['KISLIK50','cat',50,'❄️ Kışlık',300,'Kışlıkta 50🪙 indirim'],
+ ['EVIM50','cat',50,'Mobilya',300,'Mobilyada 50🪙 indirim'],['MARKET20','cat',20,'Market',80,'Markette 20🪙 indirim']];
+const BK76={sen:'ogus',kiz:'ogus',abla:'cicom',esi:'eniste',yegen:'yegen',almira:'almira',berke:'berke'},RCPT76=['kiz','sen','abla','esi','yegen','almira','berke'];
+function dat76(n){const m=String(n).toLocaleLowerCase('tr').match(/[aeıioöuü]/g),v=m?m[m.length-1]:'e';return n+"'"+(/[aeıioöuü]$/i.test(n)?'y':'')+(/[aıou]/.test(v)?'a':'e')}
+function rcpts76(){const L=[['me','Kendim']];RCPT76.forEach(k=>{if(CH[k]&&(!me||k!==me.key))L.push([k,CH[k].n])});try{Object.values(MP.rem||{}).forEach(r=>L.push(['mp:'+r.id,'🌐 '+r.n]))}catch(e){}return L}
+function rName76(to){if(to==='me')return 'Kendim';if(String(to).indexOf('mp:')===0){const r=MP.rem&&MP.rem[to.slice(3)];return r?r.n:'Arkadaşın'}return CH[to]?CH[to].n:to}
+const cartN76=()=>CART76.reduce((s,l)=>s+l.q,0);
+function catsOf76(it){let c=[it.c];try{c=c.concat(cats64(it))}catch(e){}return c}
+function cpLive76(){return COUP76.filter(c=>!c.used&&c.exp>=HOME.day)}
+function cpGive76(code,silent){const P=CPOOL76.find(p=>p[0]===code)||pick(CPOOL76),exp=HOME.day+2+((Math.random()*4)|0);const ex=COUP76.find(c=>c.c===P[0]&&!c.used&&c.exp>=HOME.day);
+  if(ex)ex.exp=Math.max(ex.exp,exp);else COUP76.push({c:P[0],k:P[1],v:P[2],cat:P[3],min:P[4],d:P[5],exp:exp,used:0});if(COUP76.length>20)COUP76.splice(0,COUP76.length-20);
+  const txt='🎟️ '+P[0]+' — '+P[5]+(P[4]?' · sepette en az '+P[4]+'🪙':'')+' · son gün: Gün '+(ex?ex.exp:exp);
+  if(silent)toast(txt);else notify('🧡 Pazarcık · sana kupon var!',txt,[{t:'Sepete git 🛒',fn:()=>{mktCat='__cart';phoneApp('market')}},{t:'Sonra',fn:()=>{}}])}
+function cpCheck76(c,sub,catSub){if(c.used)return 'Kullanıldı';if(c.exp<HOME.day)return 'Süresi doldu';const base=c.k==='cat'?catSub(c.cat):sub;
+  if(base<c.min)return (c.k==='cat'?c.cat+' ürünlerinde ':'Sepette ')+'en az '+c.min+'🪙 gerekli · eksik '+(c.min-base)+'🪙';return ''}
+function tot76(){const sub=CART76.reduce((s,l)=>s+l.it.p*l.q,0),catSub=cat=>CART76.reduce((s,l)=>s+(catsOf76(l.it).includes(cat)?l.it.p*l.q:0),0);let disc=0,cp=null,err='',free=false;
+  if(X76.sel){cp=COUP76.find(c=>c.c===X76.sel&&!c.used);if(!cp)X76.sel=null;else{err=cpCheck76(cp,sub,catSub);if(!err){if(cp.k==='pct')disc=Math.round(sub*cp.v/100);else if(cp.k==='cat')disc=Math.min(cp.v,catSub(cp.cat));else free=true}}}
+  const after=sub-disc,ship=!CART76.length||free||after>=500?0:29,fast=CART76.length&&X76.fast?25:0;return {sub:sub,disc:disc,ship:ship,fast:fast,total:Math.max(0,after+ship+fast),cp:cp,err:err,after:after,free:free,catSub:catSub}}
+const B76='border:0;border-radius:8px;padding:5px 9px;font:inherit;cursor:pointer;';
+function cartBtn76(box){const b=el('button','cb76');b.style.cssText=B76+'position:relative;background:#fff;color:#f27a1a;font-size:16px;padding:3px 9px';b.title='Sepetim';b.textContent='🛒';const i=el('i','',String(cartN76()));
+  i.style.cssText='position:absolute;top:-6px;right:-6px;min-width:17px;height:17px;border-radius:9px;background:#d8322c;color:#fff;font:bold 11px/17px Trebuchet MS,sans-serif;font-style:normal;text-align:center;padding:0 3px;box-sizing:border-box'+(cartN76()?'':';display:none');
+  b.appendChild(i);b.onclick=()=>{mktCat='__cart';marketView(box)};return b}
+function badge76(box){try{(box||document).querySelectorAll('.cb76 i').forEach(i=>{const n=cartN76();i.textContent=n;i.style.display=n?'':'none';if(i.animate)i.animate([{transform:'scale(1.6)'},{transform:'scale(1)'}],{duration:300})})}catch(e){}}
+checkout=function(it,box){if(!it)return;const c=JSON.parse(JSON.stringify(it));const ex=CART76.find(l=>l.it.n===c.n&&l.to==='me');if(ex)ex.q=Math.min(9,ex.q+1);else CART76.push({it:c,q:1,to:'me'});
+  toast('Sepete eklendi ✓ 🛒 '+c.n);badge76(box)};
+function mktTop76(box,title){const ob=box.querySelector('.body'),sc=ob?ob.scrollTop:0;box.innerHTML='';const w=el('div');w.id='mkt';box.appendChild(w);const h=el('div','mh');const bk=el('button','','‹ Alışverişe dön');bk.style.cssText=B76+'background:#fff;color:#f27a1a';
+  bk.onclick=()=>{mktCat='Tümü';marketView(box)};h.appendChild(bk);h.appendChild(el('b','',title));h.appendChild(el('span','','🪙 '+coins));w.appendChild(h);const b=el('div','body');w.appendChild(b);return {b:b,sc:sc}}
+function cartView76(box){const P=mktTop76(box,'🛒 Sepetim'),b=P.b,re=()=>cartView76(box);const T0=tot76();
+  const sec=t=>{const x=el('div','nm',t);x.style.cssText='min-height:0;margin:10px 0 4px';b.appendChild(x)};
+  const note=(t,css,par)=>{const x=el('div','',t);x.style.cssText=css;(par||b).appendChild(x);return x};
+  if(!CART76.length)b.appendChild(el('div','ord','Sepetin boş 🛍️ Ürünlerdeki "Sepete ekle"ye dokun, sonra buradan siparişi tamamla.'));
+  const R=rcpts76();
+  CART76.forEach((l,i)=>{const r=el('div','ord');r.style.cssText='display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center';const em=el('span','',l.it.e);em.style.fontSize='28px';r.appendChild(em);
+    const inf=el('div','');inf.style.cssText='flex:1;min-width:120px';inf.appendChild(el('b','',l.it.n));inf.appendChild(el('div','',l.it.p+' 🪙 / adet'));r.appendChild(inf);
+    const q=el('div','');q.style.cssText='display:flex;align-items:center;gap:6px';const mb=(t,fn)=>{const x=el('button','',t);x.style.cssText=B76+'background:#fff4ea;color:#f27a1a;font-weight:bold;min-width:28px';x.onclick=fn;return x};
+    q.appendChild(mb('−',()=>{if(l.q>1)l.q--;else CART76.splice(i,1);re()}));q.appendChild(el('b','',String(l.q)));q.appendChild(mb('+',()=>{l.q=Math.min(9,l.q+1);re()}));r.appendChild(q);
+    const lt=el('b','',(l.it.p*l.q)+' 🪙');lt.style.cssText='color:#f27a1a;min-width:58px;text-align:right';r.appendChild(lt);
+    const del=el('button','','🗑️');del.title='Sil';del.style.cssText=B76+'background:#fdecea';del.onclick=()=>{CART76.splice(i,1);toast('🗑️ '+l.it.n+' sepetten çıkarıldı');re()};r.appendChild(del);
+    if(!R.find(o=>o[0]===l.to))l.to='me';
+    const kw=el('div','');kw.style.cssText='flex-basis:100%;display:flex;align-items:center;gap:6px;font-size:12px';kw.appendChild(el('span','','🎁 Kime alıyorsun:'));const s=document.createElement('select');s.className='to76';
+    s.style.cssText='flex:1;border:1px solid #f27a1a;border-radius:8px;padding:4px;font:inherit;background:#fff;color:#222';R.forEach(o=>{const op=document.createElement('option');op.value=o[0];op.textContent=o[1];if(o[0]===l.to)op.selected=true;s.appendChild(op)});
+    s.onchange=()=>{l.to=s.value;re()};kw.appendChild(s);r.appendChild(kw);
+    if(l.to!=='me')note(l.it.a||l.it.w61?'👗 '+dat76(rName76(l.to))+' gardırobuna eklenecek':'🎁 '+dat76(rName76(l.to))+' hediye olarak gidecek','flex-basis:100%;font-size:11px;color:#2a9a4a',r);
+    b.appendChild(r)});
+  if(CART76.length){sec('🎟️ Kupon');const cw=el('div','ord');cw.style.cssText='display:flex;gap:6px';const inp=document.createElement('input');inp.placeholder='Kupon kodu (ör. PIXEL10)';inp.value=X76.sel||'';inp.className='cp76';
+    inp.style.cssText='flex:1;min-width:0;border:1px solid #ddd;border-radius:8px;padding:6px 8px;font:inherit;text-transform:uppercase';const ap=el('button','buy','Uygula');ap.onclick=()=>{const code=inp.value.trim().toLocaleUpperCase('tr').replace(/İ/g,'I');
+      if(!code){X76.sel=null;re();return}const c=COUP76.find(x=>x.c===code&&!x.used);if(!c){toast('❌ Geçersiz ya da sende olmayan kupon');return}if(c.exp<HOME.day){toast('⌛ Bu kuponun süresi dolmuş');return}X76.sel=code;const t=tot76();toast(t.err?'⚠️ '+t.err:'✅ '+code+' uygulandı');re()};
+    cw.appendChild(inp);cw.appendChild(ap);if(X76.sel){const rm=el('button','','✕');rm.title='Kuponu kaldır';rm.style.cssText=B76+'background:#eee';rm.onclick=()=>{X76.sel=null;re()};cw.appendChild(rm)}b.appendChild(cw);
+    if(T0.cp&&T0.err)note('⚠️ '+T0.cp.c+': '+T0.err,'color:#c8322a;font-size:12px;margin:-4px 0 6px');
+    sec('🎫 Kuponlarım');const all=COUP76.filter(c=>!c.used).slice().sort((a,c)=>(c.exp>=HOME.day)-(a.exp>=HOME.day)||a.exp-c.exp);
+    if(!all.length)b.appendChild(el('div','ord','Henüz kuponun yok · Pazarcık ara sıra bildirimle kupon gönderir 🎟️'));
+    all.forEach(c=>{const r=el('div','ord');r.style.cssText='display:flex;gap:8px;align-items:center'+(c.exp<HOME.day?';opacity:.5':'');const inf=el('div','');inf.style.flex='1';inf.appendChild(el('b','',c.c));
+      const why=cpCheck76(c,T0.sub,T0.catSub);inf.appendChild(el('div','',c.d+(c.min?' · alt limit '+c.min+'🪙':'')+' · son gün: Gün '+c.exp+(c.exp===HOME.day?' (bugün!)':'')));if(why)note(why,'color:#b06a00;font-size:11px',inf);r.appendChild(inf);
+      const on=X76.sel===c.c,s=el('button','',on?'✓ Seçili':'Seç');s.className='cps76';s.style.cssText=B76+(on?'background:#2a9a4a;color:#fff':'background:#fff4ea;color:#f27a1a');s.disabled=c.exp<HOME.day;s.onclick=()=>{X76.sel=on?null:c.c;re()};r.appendChild(s);b.appendChild(r)});
+    if(CART76.some(l=>l.to==='me')){sec('📍 Teslimat adresi (kendi ürünlerin)');const ad=el('div','cats');ADDR.forEach(a=>{const x=el('button',CK.addr===a[0]?'on':'',a[1]);x.onclick=()=>{CK.addr=a[0];re()};ad.appendChild(x)});b.appendChild(ad)}
+    sec('🚚 Kargo');const sh=el('div','cats');[[false,'Standart · 2-4 saat'],[true,'Hızlı · +25🪙 · ~45 dk']].forEach(a=>{const x=el('button',X76.fast===a[0]?'on':'',a[1]);x.onclick=()=>{X76.fast=a[0];re()};sh.appendChild(x)});b.appendChild(sh);
+    const sm=el('div','ord');sm.style.fontSize='13px';const row=(a,v,st)=>{const r=el('div','');r.style.cssText='display:flex;justify-content:space-between;padding:2px 0;'+(st||'');r.appendChild(el('span','',a));r.appendChild(el('b','',v));sm.appendChild(r)};
+    row('Ara toplam ('+cartN76()+' ürün)',T0.sub+' 🪙');if(T0.disc)row('İndirim · '+T0.cp.c,'−'+T0.disc+' 🪙','color:#2a9a4a');
+    row('Kargo',T0.ship?T0.ship+' 🪙':'Ücretsiz',T0.ship?'':'color:#2a9a4a');if(T0.ship)note('🚚 '+(500-T0.after)+'🪙 daha ekle, kargo bedava olsun (500🪙 üstü ücretsiz)','font-size:11px;color:#2a9a4a',sm);
+    if(T0.fast)row('Hızlı teslimat','+'+T0.fast+' 🪙');row('Genel toplam',T0.total+' 🪙','border-top:1px solid #eee;margin-top:4px;padding-top:6px;font-size:15px;color:#f27a1a');
+    const ok=canPay(T0.total);if(!ok)note('❌ Bakiye + kart limiti yetmiyor','color:#c8322a;font-size:11px',sm);
+    else if(coins<T0.total)note('💳 '+(T0.total-Math.max(0,coins))+'🪙 '+CARD.name+' kartından çekilecek','color:#b06a00;font-size:11px',sm);b.appendChild(sm);
+    const go=el('button','buy go76','✅ Siparişi tamamla · '+T0.total+' 🪙');go.style.cssText='width:100%;padding:10px;font-size:14px'+(ok?'':';opacity:.5');go.onclick=()=>place76(box);b.appendChild(go)}
+  requestAnimationFrame(()=>{b.scrollTop=P.sc})}
+function place76(box){if(!CART76.length)return;const T0=tot76();if(!payOk(T0.total))return;pay(T0.total);const cpOk=!!(T0.cp&&!T0.err);if(cpOk)T0.cp.used=1;X76.sel=null;
+  const eta=X76.fast?45:120+Math.round(rnd()*120),t0=now25(),id=1000+(++X76.n),H={id:id,d:HOME.day,tot:T0.total,disc:T0.disc,ship:T0.ship+T0.fast,cp:cpOk?T0.cp.c:null,L:[]};
+  CART76.forEach((l,j)=>{const it=l.it,line={n:it.n,e:it.e,q:l.q,p:it.p,to:l.to,ids:[]};
+    if(l.to==='me'){for(let k=0;k<l.q;k++){const mi=MKT.findIndex(x=>x.n===it.n),o={id:Date.now()+''+j+k+(rnd()*99|0),k:'cargo',i:mi,n:it.n,e:it.e,addr:CK.addr,t0:t0,eta:t0+eta,st:'yolda',it76:mi<0?it:null};ORD.push(o);line.ids.push(o.id)}}
+    else{const g={id:'g'+Date.now()+j+(rnd()*99|0),to:l.to,n:it.n,e:it.e,q:l.q,p:it.p,t0:t0,eta:t0+eta,st:'yolda',it:it};GORD76.push(g);line.ids.push(g.id);line.g=1;
+      if(l.to.indexOf('mp:')===0)for(let k=0;k<l.q;k++)try{mpEmit('gift39',{to:l.to.slice(3),it:{n:it.n,e:it.e||'🎁',u:it.inv?it.inv.u:(it.u||'gift'),h:0,m:it.m||0,f:it.f||null,a:it.a||null}})}catch(e){}}
+    H.L.push(line)});
+  ORDH76.push(H);if(ORDH76.length>30)ORDH76.shift();if(GORD76.length>60)GORD76.splice(0,GORD76.length-60);CART76.length=0;sfx('coin');
+  toast('Siparişin alındı 🧡 #'+id+' · tahmini '+hhmm(GT+eta)+(GT+eta>=1440?' (yarın)':''));mktCat='Siparişlerim';marketView(box)}
+function lineSt76(l){const id=l.ids[0];let o;if(l.g){o=GORD76.find(x=>x.id===id);if(!o||o.st==='teslim')return ['✅ Teslim edildi · '+rName76(l.to),1]}
+  else{o=ORD.find(x=>x.id===id);if(!o||o.st==='alindi')return ['✅ Teslim alındı',1];if(o.st==='kapida')return ['📍 Teslim edildi · '+addrName(o.addr)+' kapısında',1]}
+  const p=clamp((now25()-o.t0)/Math.max(1,o.eta-o.t0),0,.99);return [p<.25?'📦 Hazırlanıyor':'🚚 Yolda · ~'+hhmm(o.eta%1440),p]}
+function ordersView76(box,mv){mv(box);const b=box.querySelector('.body');if(!b)return;const cs=b.querySelector('.cats');while(cs&&cs.nextSibling)cs.nextSibling.remove();try{const h=box.querySelector('.mh');if(h)h.appendChild(cartBtn76(box))}catch(e){}
+  if(!ORDH76.length)b.appendChild(el('div','ord','Henüz sepetten sipariş vermedin 📦'));
+  ORDH76.slice().reverse().forEach(H=>{const c=el('div','ord');const hd=el('div','');hd.style.cssText='display:flex;justify-content:space-between;margin-bottom:4px';hd.appendChild(el('b','','#'+H.id+' · Gün '+H.d));hd.appendChild(el('b','',H.tot+' 🪙'));c.appendChild(hd);
+    if(H.cp){const x=el('div','','🎟️ '+H.cp+(H.disc?' · −'+H.disc+'🪙':' · kargo bedava'));x.style.cssText='font-size:11px;color:#2a9a4a';c.appendChild(x)}
+    H.L.forEach(l=>{const s=lineSt76(l),r=el('div','');r.style.cssText='padding:5px 0;border-top:1px solid #f2f2f2';r.appendChild(el('div','',l.e+' '+l.n+(l.q>1?' ×'+l.q:'')+(l.to!=='me'?' → 🎁 '+rName76(l.to):'')));
+      const st=el('div','st76',s[0]);st.style.cssText='font-size:11px;color:'+(s[1]>=1?'#2a9a4a':'#b06a00');r.appendChild(st);if(s[1]<1){const pb=el('div','');pb.style.cssText='height:4px;background:#eee;border-radius:3px;margin-top:3px';const i=el('i','');i.style.cssText='display:block;height:100%;border-radius:3px;background:#f27a1a;width:'+Math.max(4,s[1]*100)+'%';pb.appendChild(i);r.appendChild(pb)}c.appendChild(r)});b.appendChild(c)});
+  const ref=new Set();ORDH76.forEach(H=>H.L.forEach(l=>l.ids.forEach(x=>ref.add(x))));const old=ORD.filter(o=>o.k==='cargo'&&!ref.has(o.id));
+  if(old.length){const t=el('div','nm','Önceki siparişler');t.style.cssText='min-height:0;margin:10px 0 4px';b.appendChild(t);old.slice().reverse().slice(0,15).forEach(o=>b.appendChild(el('div','ord',(o.e||'📦')+' '+o.n+' — '+ordStatus(o))))}}
+{const _mv=marketView2;marketView2=function(box){if(mktCat==='__cart')return cartView76(box);if(mktCat==='Siparişlerim')return ordersView76(box,_mv);
+  if(!X76.wel&&me){X76.wel=1;setTimeout(()=>cpGive76('PIXEL10',true),600)}const r=_mv.apply(this,arguments);
+  try{const h=box.querySelector('.mh');if(h)h.appendChild(cartBtn76(box));box.querySelectorAll('.grid .buy').forEach(x=>x.textContent='Sepete ekle 🛒')}catch(e){}return r}}
+{const _oc=openCargo;openCargo=function(o){try{if(o&&o.it76&&!MKT.find(x=>x.n===o.n))REG64[o.n]=o.it76}catch(e){}return _oc.apply(this,arguments)}}
+/* hediye teslimi: diğer karakterin posta kutusu (cihazda kalıcı); o karakterle girince gardıroba/çantaya geçer ve onun kaydına yazılır */
+function mailGet76(){try{return JSON.parse(PWStore.get('pw_mail76')||'{}')||{}}catch(e){return {}}}
+function mailSet76(M){try{PWStore.set('pw_mail76',JSON.stringify(M))}catch(e){}}
+function giftArrive76(g){const it=g.it||{},nm=rName76(g.to),q=g.q||1;
+  if(CH[g.to]){const M=mailGet76(),e=M[g.to]||(M[g.to]={own:[],w61:[],depo:[],inv:[],from:[]});for(let k=0;k<q;k++){if(it.a)Object.keys(it.a).forEach(kk=>{e.own.push(kk+':'+it.a[kk]);if(kk==='top'&&it.a.shirt!=null)e.own.push('shirt:'+it.a.shirt)});
+      if(it.w61)e.w61.push(it.w61);if(it.f)e.depo.push(it.f);else if(it.inv)e.inv.push(Object.assign({gift:me&&me.n},it.inv));else if(it.toy||it.u)e.inv.push({n:it.n,e:it.e,toy:!!it.toy,u:it.u||null,gift:me&&me.n});else if(!it.a&&!it.w61)e.inv.push({n:it.n,e:it.e,u:null,gift:me&&me.n})}
+    e.own=[...new Set(e.own)];e.from.push((me&&CH[me.key]?CH[me.key].n:'?')+' → '+it.e+' '+it.n);mailSet76(M)}
+  let up=0;const bk=BK76[g.to];if(bk&&BONDS[bk]){up=Math.round(clamp(4+(it.p||0)*q/30,4,20));BONDS[bk].v=clamp(BONDS[bk].v+up,0,100)}mood=clamp(mood+3,0,100);NEED.soc=clamp(NEED.soc+4,0,100);
+  try{memAdd('🎁',dat76(nm)+' kargoyla hediye: '+it.n)}catch(e){}sfx('bell');
+  notify('📦 '+dat76(nm)+' kargon ulaştı',it.e+' '+it.n+(q>1?' ×'+q:'')+(it.a||it.w61?' · '+nm+' gardırobuna ekledi 👗':' · '+nm+' hediyeni çok sevdi 💛')+(up?' · bağ +'+up:''),[{t:'Tamam 💛',fn:()=>{}}]);
+  if(bk==='ogus')setTimeout(()=>{try{addMsg('ogus','in',pick(['Kargo geldi, bayıldım 😍 Teşekkür ederim!','Ay ne güzel sürpriz 🥰 Çok teşekkürler!','Hediyen geldi 🎁 Sen bir tanesin 💛']))}catch(e){}},2500)}
+setInterval(()=>{try{if(!me)return;const n=now25();GORD76.forEach(g=>{if(g.st!=='yolda'||n<g.eta)return;g.st='teslim';giftArrive76(g)})}catch(e){}},1000);
+function mailMerge76(k){const M=mailGet76(),e=M[k];if(!e)return;(e.own||[]).forEach(x=>OWN.add(x));(e.w61||[]).forEach(x=>{WEAR61.own[x]=1});(e.depo||[]).forEach(x=>DEPO.push(x));(e.inv||[]).forEach(x=>INV.push(Object.assign({},x)));
+  delete M[k];mailSet76(M);try{saveGame()}catch(er){}const L=e.from||[];if(L.length)setTimeout(()=>{try{notify('🎁 Sana kargo geldi!',L.slice(0,4).join(' · ')+(L.length>4?' …':'')+' · gardırobuna/çantana eklendi',[{t:'Teşekkürler 😍',fn:()=>{}}])}catch(er){}},7000)}
+{const _sg=startGame;startGame=function(k){const r=_sg.apply(this,arguments);try{if(me)mailMerge76(me.key)}catch(e){}return r}}
+/* kuponlar: yeni günde ya da ara sıra bildirimle gelir */
+{const _nd=newDay;newDay=function(){const r=_nd.apply(this,arguments);try{if(Math.random()<.45&&cpLive76().length<4)setTimeout(()=>cpGive76(),9000)}catch(e){}return r}}
+setInterval(()=>{try{if(!me||document.hidden||mode==='drive')return;if(Math.random()<.1&&cpLive76().length<3)cpGive76()}catch(e){}},240000);
+{const _sv=save25;save25=function(){const o=_sv.apply(this,arguments);try{o.x76={c:CART76,cp:COUP76,h:ORDH76,g:GORD76,n:X76.n,w:X76.wel}}catch(e){}return o}}
+{const _ld=load25;load25=function(x){const r=_ld.apply(this,arguments);try{const z=x&&x.x76;if(z){const put=(A,B)=>{A.length=0;(B||[]).forEach(v=>A.push(v))};put(CART76,z.c);put(COUP76,z.cp);put(ORDH76,z.h);put(GORD76,z.g);X76.n=z.n||0;X76.wel=z.w||0}}catch(e){}return r}}
 /* ================= v71: telefon uygulamaları — okunabilir düğmeler, yatay kaymayı engelle ================= */
 {const st=document.createElement('style');st.textContent=`
 #phbody{overflow-x:hidden!important;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y}
