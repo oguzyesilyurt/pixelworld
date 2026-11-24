@@ -9049,10 +9049,10 @@ const MRS_IMG={};
 const mrsS=()=>SCN.v.mrs||null;
 /* --- yardımcılar --- */
 function mrsTri(g,d,h,col,x,y,z){const s=new T.Shape();s.moveTo(-d/2,0);s.lineTo(d/2,0);s.lineTo(0,h);s.closePath();const geo=new T.ExtrudeGeometry(s,{depth:.2,bevelEnabled:false});geo.translate(0,0,-.1);geo.rotateY(Math.PI/2);const m=new T.Mesh(geo,mt(col));m.position.set(x,y,z);m.castShadow=true;g.add(m);return m}
-function mrsGable(g,w,d,h,rc,wc,x,y,z,o){o=o||{};const ov=o.ov==null?.45:o.ov,L=Math.hypot(d/2+ov,h),a=Math.atan2(h,d/2+ov),segs=o.segs||1,sw=(w+ov*2)/segs,out=[];
-  [1,-1].forEach(sd=>{for(let i=0;i<segs;i++){if(o.skip&&o.skip(sd,i))continue;const m=box(sw-(segs>1?.04:0),.14,L,mt(rc),x-w/2-ov+sw*(i+.5),y+h/2,z+sd*(d/2+ov)/2,g);m.rotation.x=sd*a;if(o.sag&&o.sag(sd,i)){m.rotation.x+=sd*.12;m.position.y-=.18}out.push(m)}});
+function mrsGable(g,w,d,h,rc,wc,x,y,z,o){o=o||{};const ov=o.ov==null?.45:o.ov,a=Math.atan2(h,d/2),L=(d/2+ov)/Math.cos(a),dy=h*ov/(d/2),segs=o.segs||1,sw=(w+ov*2)/segs,out=[];
+  [1,-1].forEach(sd=>{for(let i=0;i<segs;i++){if(o.skip&&o.skip(sd,i))continue;const m=box(sw-(segs>1?.04:0),.14,L,mt(rc),x-w/2-ov+sw*(i+.5),y+(h-dy)/2+.07/Math.cos(a),z+sd*(d/2+ov)/2,g);m.rotation.x=sd*a;if(o.sag&&o.sag(sd,i)){m.rotation.x+=sd*.12;m.position.y-=.18}out.push(m)}});
   [-1,1].forEach(s=>mrsTri(g,d,h,wc,x+s*(w/2-.1),y,z));return out}
-function mrsHip(g,w,d,h,col,x,y,z){const m=new T.Mesh(new T.ConeGeometry(Math.SQRT1_2,1,4),mt(col));m.rotation.y=Math.PI/4;m.scale.set(w,h,d);m.position.set(x,y+h/2,z);m.castShadow=true;g.add(m);return m}
+function mrsHip(g,w,d,h,col,x,y,z){const geo=new T.ConeGeometry(Math.SQRT1_2,1,4);geo.rotateY(Math.PI/4);const m=new T.Mesh(geo,mt(col,{flatShading:true}));m.scale.set(w,h,d);m.position.set(x,y+h/2+.012,z);m.castShadow=true;g.add(m);return m}
 const mrsGlass=()=>mt(0x7fa6c4,{roughness:.08,metalness:.35});
 function mrsWinZ(g,x,y,z,w,h,fc){box(w+.16,h+.16,.06,mt(fc==null?0xffffff:fc),x,y,z+.02,g);box(w,h,.08,mrsGlass(),x,y,z+.04,g);box(w+.3,.08,.2,mt(fc==null?0xffffff:fc),x,y-h/2-.08,z+.1,g)}
 function mrsWinX(g,x,y,z,w,h,fc){box(.06,h+.16,w+.16,mt(fc==null?0xffffff:fc),x-.02,y,z,g);box(.08,h,w,mrsGlass(),x-.04,y,z,g);box(.2,.08,w+.3,mt(fc==null?0xffffff:fc),x-.1,y-h/2-.08,z,g)}
