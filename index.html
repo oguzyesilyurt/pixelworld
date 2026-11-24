@@ -9993,6 +9993,146 @@ function closeStyl86(){$('styl').classList.remove('on');uiPC=!!(['menu','pc','na
   const w=el('div','ss86');b.appendChild(w);const a=SS.sel&&ssAds().find(q=>q.id===SS.sel);if(a)ssDetail(w,a);else{SS.sel=null;ssTop(w);ssList(w)}if(!a)b.scrollTop=0;pnxDom(b)}}
 function ssTop(w){const t=el('div','mt');[['car','🚗 Araba'],['boat','⛵ Tekne']].forEach(q=>{const x=el('button',SS.mode===q[0]?'on':'',q[1]);x.onclick=()=>{SS.mode=q[0];SS.sel=null;phoneApp('sari73')};t.appendChild(x)});w.appendChild(t)}
 window.__ss={S:SS,ads:ssAds,shot:carShot,get Q(){return CSQ.length}};
+/* ---------- v89 · Emlak uygulaması: render görselli ilanlar, filtre/sıralama, detay, hesaplayıcı, favoriler ---------- */
+(function(){const st=document.createElement('style');st.textContent=`
+.es89{font-family:Trebuchet MS,sans-serif;color:#1f2430;container-type:inline-size}
+.es89 .hd{display:flex;align-items:center;gap:8px;margin:0 0 8px;color:#fff}.es89 .hd b{flex:1;font-size:16px}.es89 .hd small{opacity:.8;font-size:12px}
+.es89 .hd button{border:0;border-radius:10px;background:#ffffff22;color:#fff;padding:6px 10px;font:inherit;cursor:pointer}
+.es89 .fl{display:flex;gap:6px;overflow-x:auto;margin:0 0 7px;scrollbar-width:none;align-items:center}.es89 .fl::-webkit-scrollbar{display:none}
+.es89 .fl button{flex:none;border:1px solid #ffb34766;background:transparent;color:#ffe2b0;border-radius:999px;padding:6px 11px;font:12.5px Trebuchet MS;cursor:pointer;white-space:nowrap}
+.es89 .fl button.on{background:#ffb347;color:#2a1a10;border-color:#ffb347;font-weight:700}
+.es89 select,.es89 input[type=number]{flex:1 1 0;min-width:0;border:1px solid #ffb34766;background:#1d1a26;color:#ffe2b0;border-radius:10px;padding:7px 8px;font:12.5px Trebuchet MS;box-sizing:border-box}
+.es89 .lbl{font-size:11.5px;color:#ffe2b0aa;margin:0 0 4px}
+.es89 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.es89 .ad{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 3px 12px rgba(0,0,0,.18);cursor:pointer;min-width:0;position:relative}
+.es89 .ad.mine{outline:3px solid #3fb950}
+.es89 .im{aspect-ratio:2/1;background:linear-gradient(180deg,#bfe0f6,#e9f2e2);background-size:cover;background-position:center;position:relative}
+.es89 .im.ld::after,.es89 .big.ld::after{content:'🏠';position:absolute;inset:0;display:grid;place-items:center;font-size:40px;opacity:.3}
+.es89 .bdg{position:absolute;left:8px;top:8px;border-radius:8px;padding:3px 8px;font-size:11px;font-weight:700;color:#fff}.es89 .bdg.k{background:#c8322a}.es89 .bdg.s{background:#2a6fb0}.es89 .bdg.m{background:#3fb950;left:auto;right:44px}
+.es89 .fv{position:absolute;right:8px;top:6px;border:0;background:#fffd;border-radius:50%;width:32px;height:32px;font-size:17px;cursor:pointer;color:#9aa3b2;line-height:1}.es89 .fv.on{color:#f4b400}
+.es89 .bx{padding:9px 11px 11px}.es89 .pr{font-size:17px;font-weight:700;color:#1f2430}.es89 .pr small{font-size:12px;font-weight:400;color:#6a7385}
+.es89 .nm{font-size:13.5px;margin:2px 0 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.es89 .lc{font-size:12px;color:#6a7385}
+.es89 .ic{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}.es89 .ic span{font-size:11.5px;background:#f0f2f7;border-radius:7px;padding:2px 7px;white-space:nowrap}
+.es89 .ic span.y{background:#e3f6e8;color:#13843a}
+.es89 .em{color:#ffe2b0;opacity:.8;font-size:13px;padding:10px 2px}
+.es89 .bk{border:0;background:#ffffff22;color:#fff;border-radius:10px;padding:7px 12px;font:bold 13px Trebuchet MS;cursor:pointer;margin:0 0 8px}
+.es89 .big{width:100%;aspect-ratio:16/10;border-radius:14px;background:linear-gradient(180deg,#bfe0f6,#e9f2e2);background-size:cover;background-position:center;position:relative}
+.es89 .gal{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0 10px}.es89 .gal button{border:2px solid transparent;border-radius:10px;padding:0;aspect-ratio:16/10;background:#dfe5ee center/cover;cursor:pointer;position:relative}
+.es89 .gal button.on{border-color:#ffb347}.es89 .gal button span{position:absolute;left:3px;bottom:2px;background:#fffe;border-radius:5px;padding:0 5px;color:#1f2430!important;font:bold 10.5px Trebuchet MS}
+.es89 .ttl{font-size:16px;font-weight:700;color:#fff}.es89 .pz{font-size:21px;font-weight:700;color:#ffd27a;margin:2px 0 8px}
+.es89 .card{background:#fff;border-radius:14px;padding:10px 12px;margin:0 0 8px;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.12)}.es89 h4{margin:0 0 6px;font-size:14px}
+.es89 .sp{display:grid;grid-template-columns:1fr 1fr;gap:3px 12px}.es89 .sp div{display:flex;justify-content:space-between;gap:6px;border-bottom:1px dashed #e4e7ee;padding:3px 0;min-width:0}.es89 .sp span{color:#6a7385}.es89 .sp b{text-align:right}
+.es89 .ft{display:flex;flex-wrap:wrap;gap:6px}.es89 .ft span{font-size:12px;border-radius:8px;padding:3px 8px;background:#f0f2f7}.es89 .ft span.no{opacity:.45;text-decoration:line-through}
+.es89 .map{display:flex;gap:10px;align-items:center}.es89 .map svg{width:150px;flex:none;border-radius:10px}.es89 .map .dl{font-size:12px;line-height:1.6;color:#3a4152}
+.es89 .calc .row{display:flex;justify-content:space-between;gap:8px;padding:3px 0;border-bottom:1px dashed #e4e7ee}.es89 .calc input[type=range]{width:100%;accent-color:#2a6fb0}
+.es89 .calc .vb{display:flex;gap:6px;margin:6px 0}.es89 .calc .vb button{flex:1;border:1px solid #2a6fb0;background:#fff;color:#2a6fb0!important;border-radius:10px;padding:6px;font:bold 12px Trebuchet MS;cursor:pointer}.es89 .calc .vb button.on{background:#2a6fb0;color:#fff!important}.es89 .fv{color:#9aa3b2!important}.es89 .fv.on{color:#f4b400!important}.es89 .acts button,.es89 .bk,.es89 .hd button{color:#fff!important}.es89 .fl button{color:#ffe2b0!important}.es89 .fl button.on{color:#2a1a10!important}
+.es89 .calc .big2{font-size:18px;font-weight:700;color:#2a6fb0}.es89 .warn{color:#c5221f}
+.es89 .acts{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:4px 0 10px}.es89 .acts button{border:0;border-radius:12px;padding:11px 8px;font:bold 13px Trebuchet MS;cursor:pointer;color:#fff;background:#3a3f4f}
+.es89 .acts .pri{background:#13843a}.es89 .acts .blu{background:#2a6fb0}.es89 .acts .wide{grid-column:1/-1}
+.es89 .own{margin-top:12px}.es89 .own h3{color:#fff}
+@container (max-width:420px){.es89 .grid{grid-template-columns:1fr}.es89 .map svg{width:120px}}`;document.head.appendChild(st)})();
+const ES={deal:'all',ilce:'all',min:'',max:'',garden:false,pool:false,fav:false,sort:'p',sel:null,view:'on'};
+function esFav(){let o=[];try{o=JSON.parse(localStorage.getItem('pw_est89_'+(me?me.key:''))||'[]')}catch(e){}return Array.isArray(o)?o:[]}
+function esFavSet(a){try{localStorage.setItem('pw_est89_'+(me?me.key:''),JSON.stringify(a))}catch(e){}}
+/* --- ilan özellikleri --- */
+function esInfo(L){const t=L.n+' '+(L.age||'');const rm=(/(\d\+\d)/.exec(L.n)||[])[1]||({S:'1+1',M:'2+1',L:'3+1'})[L.lay]||'2+1';
+  let m2=0;const mm=/(\d{2,4}) m²(?! bahçe)/.exec(L.age||'');if(mm)m2=+mm[1];if(!m2)m2=({S:55,M:95,L:L.villa?220:150})[L.lay]||90;
+  const gm=/(\d{2,4}) m² bahçe/.exec(t),fk=/(\d+)\. kat/.exec(L.age||''),yr=(/((?:19|20)\d\d)/.exec(L.age||'')||[])[1];
+  const vil=!!L.villa,two=/dubleks|2 katlı/i.test(t);
+  return {rm:rm,m2:m2,garden:!!L.garden||vil,gm:gm?+gm[1]:0,pool:/havuz/i.test(t),balcony:!vil||/teras|balkon/i.test(t),elev:/asansör|rezidans|site/i.test(t),site:/site|rezidans/i.test(t),furn:L.deal==='kira',
+    kat:fk?fk[1]+'. kat':vil?(two?'Müstakil · 2 kat':'Müstakil · tek kat'):'Ara kat',floorN:fk?+fk[1]:0,yr:yr?+yr:null,heat:vil?'Yerden ısıtma':yr&&+yr<1995?'Kombi (eski)':'Doğalgaz kombi',
+    tower:/rezidans/i.test(t)||(fk&&+fk[1]>=12),bina:(/(\d{4}) yapımı/.exec(L.age||'')||[])[1]}}
+function esPrice(L){return L.deal==='kira'?L.rent:L.price}
+const esFmt=n=>Math.round(n).toLocaleString('tr-TR');
+/* --- dış cephe modeli --- */
+function esApt(g,I,L){const r=mulberry([...L.id].reduce((a,c)=>a*31+c.charCodeAt(0),7)>>>0),fl=I.tower?Math.max(10,Math.min(22,I.floorN+3)):Math.max(3,Math.min(8,(I.floorN||2)+2)),fh=2.9,H=fl*fh,w=10,d=9;
+  const cols=I.tower?[0xdfe6ee,0xc9d4e0]:L.style==='klasik'?[0xf0e2c4,0xe8d2b0,0xf4ead6]:[0xf4f4f2,0xe8e8ea,0xf2efe8],wc=cols[Math.floor(r()*cols.length)];
+  box(w,H,d,mt(wc),0,H/2,0,g);box(w+.3,.3,d+.3,mt(0x5a5a62),0,H+.15,0,g);box(w,.5,d,mt(0x8a8a90),0,.25,0,g);
+  if(I.tower){for(let i=1;i<fl;i++)box(w+.06,.18,d+.06,mt(0x9aa6b4),0,i*fh,0,g);box(w-.6,H-1.2,.06,mrsGlass(),0,H/2+.6,d/2+.02,g);box(.06,H-1.2,d-.6,mrsGlass(),-w/2-.02,H/2+.6,0,g);box(2.4,1.2,2.4,mt(0x6a7484),2,H+.9,-1,g)}
+  else for(let i=0;i<fl;i++){const y=i*fh+1.6;[-3,0,3].forEach(x=>{if(i===0&&x===0)return;mrsWinZ(g,x,y,d/2,1.3,1.3,L.style==='klasik'?0x8a5a32:0xffffff)});[-2.4,1.6].forEach(z=>mrsWinX(g,-w/2,y,z,1.3,1.3,0xffffff));
+    if(i>0&&I.balcony){[-3,3].forEach(x=>{box(2.6,.14,1.1,mt(0xffffff),x,y-1.05,d/2+.55,g);box(2.6,.7,.05,mt(L.style==='klasik'?0x6a4a2a:0x3a3a40,L.style==='klasik'?{}:{}),x,y-.65,d/2+1.08,g);if(r()<.5)mrsBush(g,x+.9,d/2+.75,.3,0xd84a6a).position.y=y-.75})}}
+  if(!I.tower)mrsDoor(g,0,d/2,0x3a3a40,2.3);else box(3,2.6,.1,mrsGlass(),0,1.3,d/2+.06,g);
+  if(I.pool){box(6,.06,3.2,mt(0xd8c8a8),0,.03,d/2+4.2,g);box(4.8,.12,2.2,mt(0x3a9ad8,{roughness:.05}),0,.08,d/2+4.2,g)}
+  for(let i=0;i<5;i++)mrsBush(g,-6+i*3,d/2+2.2+(I.pool?5:0),.8,0x3d7a3a);mrsTree(g,-7,2,.9);mrsTree(g,7,-2,.8,0x5a9a4a)}
+function esBuild(L,g){const I=esInfo(L);try{if(L.id==='mrs_ev'){const S=mrsS();if(S&&MRS_BUILD[S.model]){MRS_BUILD[S.model](g);return}}
+  if(L.villa){const k=L.id==='krb1'?'old':/havuz/i.test(L.n+L.age)?'villa':/dubleks|teras/i.test(L.n+L.age)?'dubleks':L.style==='modern'?'kiremit':(L.id.length%2?'tekkat':'tas');if(k==='old')mrsOld(g);else MRS_BUILD[k](g);return}}catch(e){}
+  esApt(g,I,L)}
+/* --- render: ana renderer + render hedefi, sahneyi otomatik çerçevele, dataURL önbellek --- */
+const ESHOT={},ESQ=[];let ESR=null;
+function esShot(L,view,w,h){const ck=L.id+'|'+view+'|'+w+(L.id==='mrs_ev'?'|'+((mrsS()||{}).model||''):'');if(ESHOT[ck])return ESHOT[ck];
+  if(!ESR){const s=new T.Scene();s.background=new T.Color(0xa8d0ec);s.add(new T.HemisphereLight(0xffffff,0x6a8a5a,.9));const dl=new T.DirectionalLight(0xfff2dc,1);dl.position.set(-12,22,14);s.add(dl);
+    const gr=new T.Mesh(new T.CircleGeometry(400,48),new T.MeshStandardMaterial({color:0x8ab86a,roughness:1}));gr.rotation.x=-Math.PI/2;s.add(gr);const rd=new T.Mesh(new T.PlaneGeometry(800,4),new T.MeshStandardMaterial({color:0x6a6a72,roughness:1}));rd.rotation.x=-Math.PI/2;rd.position.set(0,.01,14);s.add(rd);
+    ESR={s:s,c:new T.PerspectiveCamera(30,1,.5,400),rts:{}}}
+  const rk=w+'x'+h;let rt=ESR.rts[rk];if(!rt){rt=ESR.rts[rk]=new T.WebGLRenderTarget(w,h);rt.texture.encoding=renderer.outputEncoding}
+  const g=new T.Group(),W0=W;ESR.s.add(g);try{esBuild(L,g)}finally{W=W0}g.updateMatrixWorld(true);
+  const bb=new T.Box3().setFromObject(g),ct=bb.getCenter(new T.Vector3()),sz=bb.getSize(new T.Vector3());const dir={on:[-.62,.42,.72],yan:[-1,.28,.12],kus:[-.35,1.25,.55]}[view]||[-.62,.42,.72];
+  const v=new T.Vector3(dir[0],dir[1],dir[2]).normalize(),tv=Math.tan(T.MathUtils.degToRad(15)),hor=Math.hypot(sz.x,sz.z)*.5,ver=view==='kus'?Math.max(sz.y,Math.hypot(sz.x,sz.z))*.55:sz.y*.5+1,dist=Math.max(ver/tv,hor/(tv*w/h))*1.12+hor*.5;
+  ESR.c.aspect=w/h;ESR.c.position.copy(ct).addScaledVector(v,dist);ESR.c.lookAt(ct.x,ct.y,ct.z);ESR.c.far=dist*8;ESR.c.updateProjectionMatrix();
+  const oc=renderer.getClearColor(new T.Color()).getHex(),oa=renderer.getClearAlpha(),buf=new Uint8Array(w*h*4);renderer.setRenderTarget(rt);renderer.clear();renderer.render(ESR.s,ESR.c);renderer.readRenderTargetPixels(rt,0,0,w,h,buf);renderer.setRenderTarget(null);renderer.setClearColor(oc,oa);
+  ESR.s.remove(g);g.traverse(o=>{if(o.geometry&&o.geometry.dispose)o.geometry.dispose()});
+  const cv=document.createElement('canvas');cv.width=w;cv.height=h;const x=cv.getContext('2d'),im=x.createImageData(w,h);for(let y=0;y<h;y++)im.data.set(buf.subarray((h-1-y)*w*4,(h-y)*w*4),y*w*4);x.putImageData(im,0,0);return ESHOT[ck]=cv.toDataURL('image/jpeg',.86)}
+function esImg(elm,L,view,w,h){const ck=L.id+'|'+view+'|'+w+(L.id==='mrs_ev'?'|'+((mrsS()||{}).model||''):'');elm.classList.add('ld');const set=u=>{elm.style.backgroundImage='url("'+u+'")';elm.classList.remove('ld')};if(ESHOT[ck]){set(ESHOT[ck]);return}
+  ESQ.push({L:L,view:view,w:w,h:h,set:set});if(ESQ.length===1)setTimeout(esRun,30)}
+function esRun(){const j=ESQ.shift();if(!j)return;try{j.set(esShot(j.L,j.view,j.w,j.h))}catch(e){showErrOnce(e)}if(ESQ.length)setTimeout(esRun,16)}
+/* --- mini İzmir haritası --- */
+const ES_MAP={cigli:[38,30,'Çiğli'],bostanli:[96,40,'Bostanlı'],karsiyaka:[84,30,'Karşıyaka'],bornova:[166,56,'Bornova'],merkez:[138,72,'Halkapınar'],alsancak:[112,78,'Alsancak'],karabaglar:[112,118,'Karabağlar'],menemen:[22,10,'Menemen']};
+function esMapSvg(d){let s='<svg viewBox="0 0 200 140"><rect width="200" height="140" fill="#eef1e6"/><path d="M0 52 C40 46 70 62 100 58 C125 55 135 60 146 62 C140 66 120 66 96 68 C70 70 30 64 0 74Z" fill="#a9d2f3"/>'+
+  '<path d="M10 100 Q60 90 100 96 T200 92" stroke="#fff" stroke-width="4" fill="none"/><path d="M60 0 Q70 60 120 140" stroke="#fff" stroke-width="3" fill="none"/>';
+  Object.keys(ES_MAP).forEach(k=>{const p=ES_MAP[k],on=k===d;const rt=p[0]>140;s+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="'+(on?6:3)+'" fill="'+(on?'#d93025':'#8a93a5')+'"'+(on?' stroke="#fff" stroke-width="2"':'')+'/><text text-anchor="'+(rt?'end':'start')+'" x="'+(p[0]+(rt?-1:1)*(on?8:5))+'" y="'+(p[1]+3)+'" font-size="'+(on?10:7.5)+'" font-family="Trebuchet MS" font-weight="'+(on?700:400)+'" fill="'+(on?'#1f2430':'#6a7385')+'">'+p[2]+'</text>'});
+  return s+'<text x="40" y="64" font-size="7" fill="#5a8ab8" font-style="italic">İzmir Körfezi</text></svg>'}
+/* --- liste --- */
+function esCard(L,fav,root,only){const I=esInfo(L),mine=isMine(L.id),c=el('div','ad'+(mine?' mine':''));const im=el('div','im');c.appendChild(im);esImg(im,L,'on',480,240);
+  im.appendChild(el('span','bdg '+(L.deal==='kira'?'k':'s'),L.deal==='kira'?'KİRALIK':'SATILIK'));if(mine)im.appendChild(el('span','bdg m','🔑 Senin'));
+  const f=el('button','fv'+(fav?' on':''),fav?'★':'☆');f.title='Favori';f.onclick=e=>{e.stopPropagation();const a=esFav();esFavSet(fav?a.filter(x=>x!==L.id):a.concat([L.id]));toast(fav?'☆ Favorilerden çıkarıldı':'⭐ Favorilere eklendi');estateView(root,only)};im.appendChild(f);
+  const bx=el('div','bx');const pr=el('div','pr',esFmt(esPrice(L))+' 🪙');if(L.deal==='kira')pr.appendChild(el('small','',' / hafta'));bx.appendChild(pr);bx.appendChild(el('div','nm',(L.villa?'🏡 ':'🏢 ')+L.n));bx.appendChild(el('div','lc','📍 '+(DNAME[L.d]||L.d)+' · '+I.kat));
+  const ic=el('div','ic');[['📐 '+I.m2+' m²'],['🛏️ '+I.rm]].concat(I.garden?[['🌳 Bahçe','y']]:[],I.pool?[['🏊 Havuz','y']]:[],I.balcony?[[L.villa?'🌇 Teras':'🪟 Balkon']]:[]).forEach(q=>ic.appendChild(el('span',q[1]||'',q[0])));bx.appendChild(ic);c.appendChild(bx);
+  c.onclick=()=>{ES.sel=L.id;ES.view='on';estateView(root,only)};return c}
+function esList(w,root,only){const hd=el('div','hd');hd.appendChild(el('b','','🏠 Ege Emlak'));hd.appendChild(el('small','','🪙 '+esFmt(coins)));if(root===$('styl')){const x=el('button','','✖');x.onclick=estateClose;hd.appendChild(x)}w.appendChild(hd);
+  const r1=el('div','fl');[['all','Tümü'],['sat','Satılık'],['kira','Kiralık']].forEach(q=>{const b=el('button',ES.deal===q[0]?'on':'',q[1]);b.onclick=()=>{ES.deal=q[0];estateView(root,only)};r1.appendChild(b)});
+  [['garden','🌳 Bahçeli'],['pool','🏊 Havuzlu'],['fav','⭐ Favoriler']].forEach(q=>{const b=el('button',ES[q[0]]?'on':'',q[1]);b.onclick=()=>{ES[q[0]]=!ES[q[0]];estateView(root,only)};r1.appendChild(b)});w.appendChild(r1);
+  const r2=el('div','fl');const sel=(opts,val,fn)=>{const s=document.createElement('select');opts.forEach(o=>{const op=document.createElement('option');op.value=o[0];op.textContent=o[1];if(o[0]===val)op.selected=true;s.appendChild(op)});s.onchange=()=>fn(s.value);return s};
+  const ds=[...new Set(LIST.map(L=>L.d))];r2.appendChild(sel([['all','📍 Tüm ilçeler']].concat(ds.map(d=>[d,DNAME[d]||d])),ES.ilce,v=>{ES.ilce=v;estateView(root,only)}));
+  r2.appendChild(sel([['p','Fiyat ↑'],['pd','Fiyat ↓'],['m2','m² ↓'],['wk','İşe yakın'],['sea','Denize yakın']],ES.sort,v=>{ES.sort=v;estateView(root,only)}));w.appendChild(r2);
+  w.appendChild(el('div','lbl','Fiyat aralığı (satılıkta toplam, kiralıkta haftalık 🪙)'));const r3=el('div','fl');
+  const num=(k,ph)=>{const i=document.createElement('input');i.type='number';i.min=0;i.step=ES.deal==='kira'?50:5000;i.placeholder=ph;i.value=ES[k];['keydown','keyup','keypress'].forEach(t=>i.addEventListener(t,e=>e.stopPropagation()));i.onchange=()=>{ES[k]=i.value;estateView(root,only)};return i};
+  r3.appendChild(num('min','En az'));r3.appendChild(num('max','En çok'));if(ES.min||ES.max){const b=el('button','','✕ Temizle');b.onclick=()=>{ES.min='';ES.max='';estateView(root,only)};r3.appendChild(b)}w.appendChild(r3);
+  const fav=new Set(esFav()),mn=+ES.min||0,mx=+ES.max||Infinity;
+  let L=LIST.filter(x=>(ES.deal==='all'||x.deal===ES.deal)&&(ES.ilce==='all'||x.d===ES.ilce)&&(!ES.garden||esInfo(x).garden)&&(!ES.pool||esInfo(x).pool)&&(!ES.fav||fav.has(x.id))&&esPrice(x)>=mn&&esPrice(x)<=mx);
+  const srt={p:(a,b)=>esPrice(a)-esPrice(b),pd:(a,b)=>esPrice(b)-esPrice(a),m2:(a,b)=>esInfo(b).m2-esInfo(a).m2,wk:(a,b)=>a.work-b.work,sea:(a,b)=>a.sea-b.sea}[ES.sort];if(ES.sort==='p'||ES.sort==='pd')L.sort((a,b)=>(a.deal===b.deal?0:a.deal==='kira'?-1:1)||srt(a,b));else L.sort(srt);
+  w.appendChild(el('div','lbl',L.length+' ilan'));if(!L.length)w.appendChild(el('div','em',ES.fav?'Henüz favori ilan yok. Karttaki ☆ ile ekle.':'Bu filtrelere uyan ilan yok.'));
+  const g=el('div','grid');L.forEach(x=>g.appendChild(esCard(x,fav.has(x.id),root,only)));w.appendChild(g);
+  try{const O=ownedList();if(O.length){const b2=el('div','own');b2.appendChild(el('h3','','🔑 Evlerim · kiraya ver'));b2.appendChild(el('div','sub','Toplanan kira: '+LSTAT.paid+' · toplam net gelir: '+LSTAT.net.toLocaleString('tr-TR')+'🪙'));O.forEach(x=>leaseCard(b2,x));w.appendChild(b2)}}catch(e){}}
+/* --- detay --- */
+function esDone(L,root,only){HOME.own[L.id]=true;sfx('coin');refreshSigns();notify('Tapu 🏠','Tebrikler! '+L.n+' artık senin. Evi döşemek için içeride "🛋️ Evi düzenle"yi kullan.',[{t:'Tamam',fn:()=>{}}]);estateView(root,only);moveOffer(L)}
+function esDetail(w,L,root,only){const I=esInfo(L),mine=isMine(L.id),fav=esFav().indexOf(L.id)>=0;
+  const top=el('div','hd');const bk=el('button','bk','◀ İlanlar');bk.style.margin='0';bk.onclick=()=>{ES.sel=null;estateView(root,null)};top.appendChild(bk);top.appendChild(el('b',''));
+  const fb=el('button','',fav?'★ Favori':'☆ Favori');fb.onclick=()=>{const a=esFav();esFavSet(fav?a.filter(x=>x!==L.id):a.concat([L.id]));estateView(root,only)};top.appendChild(fb);if(root===$('styl')){const x=el('button','','✖');x.onclick=estateClose;top.appendChild(x)}w.appendChild(top);
+  const big=el('div','big');w.appendChild(big);esImg(big,L,ES.view,640,400);
+  const gal=el('div','gal');[['on','Ön cephe'],['yan','Yan'],['kus','Kuşbakışı']].forEach(v=>{const b=el('button',ES.view===v[0]?'on':'');esImg(b,L,v[0],240,150);b.appendChild(el('span','',v[1]));b.onclick=()=>{ES.view=v[0];big.classList.add('ld');esImg(big,L,v[0],640,400);gal.querySelectorAll('button').forEach(z=>z.classList.toggle('on',z===b))};gal.appendChild(b)});w.appendChild(gal);
+  w.appendChild(el('div','ttl',(L.villa?'🏡 ':'🏢 ')+L.n));const pz=el('div','pz',esFmt(esPrice(L))+' 🪙'+(L.deal==='kira'?' / hafta':''));w.appendChild(pz);
+  const sp=el('div','card');sp.appendChild(el('h4','','📋 Özellikler'));const g=el('div','sp');[['İlan tipi',L.deal==='kira'?'Kiralık':'Satılık'],['Oda',I.rm],['Brüt alan',I.m2+' m²'],['Kat',I.kat],['Bina yaşı',I.yr?(2026-I.yr)+' yıl ('+I.yr+')':'—'],['Isınma',I.heat],['Eşya',I.furn?'Eşyalı':'Boş'],['Tarz',L.style==='modern'?'Modern':'Klasik']].forEach(q=>{const d=el('div');d.appendChild(el('span','',q[0]));d.appendChild(el('b','',q[1]));g.appendChild(d)});sp.appendChild(g);
+  const ft=el('div','ft');ft.style.marginTop='8px';[['🌳 Bahçe'+(I.gm?' '+I.gm+' m²':''),I.garden],['🏊 Havuz',I.pool],[L.villa?'🌇 Teras':'🪟 Balkon',I.balcony],['🛗 Asansör',I.elev],['🏘️ Site içi',I.site]].forEach(q=>ft.appendChild(el('span',q[1]?'':'no',q[0])));sp.appendChild(ft);w.appendChild(sp);
+  const lc=el('div','card');lc.appendChild(el('h4','','🗺️ Konum · '+(DNAME[L.d]||L.d)));const mp=el('div','map');const sv=el('div');sv.innerHTML=esMapSvg(L.d);mp.appendChild(sv.firstChild);
+  const dl=el('div','dl');dl.innerHTML=[['🏢 İşe',L.work*1000],['🌊 Denize',L.sea],['🏥 Hastaneye',L.hosp],['☕ Kafelere',L.cafe]].map(t=>t[0]+' <b>'+fmtM(t[1])+'</b>').join('<br>');mp.appendChild(dl);lc.appendChild(mp);w.appendChild(lc);
+  const cc=el('div','card calc');w.appendChild(cc);
+  if(L.deal==='kira'){cc.appendChild(el('h4','','🧮 Kira hesaplayıcı'));[['Haftalık kira',esFmt(L.rent)+' 🪙'],['Aylık (≈4 hafta)',esFmt(L.rent*4)+' 🪙'],['Depozito (2 kira)',esFmt(L.rent*2)+' 🪙'],['Taşınırken ödenecek',esFmt(L.rent*3)+' 🪙']].forEach(q=>{const r=el('div','row');r.appendChild(el('span','',q[0]));r.appendChild(el('b','',q[1]));cc.appendChild(r)});
+    const sal=salary67(),pct=Math.round(L.rent*10/7/sal*100);cc.appendChild(el('div',pct>45?'warn':'sub','Kira, maaşının %'+pct+'\'i'+(pct>45?' · bütçeyi zorlar ⚠️':' ✅')))}
+  else{let dp=.2,n=LOANT67.konut[2][1];const draw=()=>{cc.innerHTML='';cc.appendChild(el('h4','','🧮 Konut kredisi hesaplayıcı'));const down=Math.round(L.price*dp/500)*500,P=L.price-down,mx=maxLoan67('konut');
+      const t=el('div','');t.innerHTML='Peşinat: <b>%'+Math.round(dp*100)+' · '+esFmt(down)+' 🪙</b>';cc.appendChild(t);const s=document.createElement('input');s.type='range';s.min=20;s.max=90;s.step=5;s.value=Math.round(dp*100);s.oninput=()=>{dp=+s.value/100;draw()};cc.appendChild(s);
+      const vb=el('div','vb');LOANT67.konut[2].forEach(v=>{const b=el('button',v===n?'on':'',v+' hafta');b.onclick=()=>{n=v;draw()};vb.appendChild(b)});cc.appendChild(vb);
+      const o=loanOffer67('konut',P,n);[['Kredi tutarı',esFmt(P)+' 🪙'],['Haftalık taksit',esFmt(o.inst)+' 🪙'],['Aylık (≈4 hafta)',esFmt(o.inst*4)+' 🪙'],['Toplam geri ödeme',esFmt(o.total+down)+' 🪙']].forEach((q,i)=>{const r=el('div','row');r.appendChild(el('span','',q[0]));r.appendChild(el('b',i===1?'big2':'',q[1]));cc.appendChild(r)});
+      const pct=Math.round(o.inst*10/7/salary67()*100);cc.appendChild(el('div',pct>60||P>mx?'warn':'sub',P>mx?'Bankanın sana verebileceği en fazla kredi: '+esFmt(mx)+' 🪙 · peşinatı artır':'Taksit maaşının %'+pct+'\'i'+(pct>60?' · banka reddeder ⚠️':' ✅')))};draw()}
+  const ac=el('div','acts');const add=(t,cls,fn)=>{const b=el('button',cls,t);b.onclick=fn;ac.appendChild(b);return b};
+  add('👀 Evi gez','blu',()=>goHome(L.id));
+  if(mine){if(HOME.cur!=='ev_p_'+L.id)add('🚚 Buraya taşın','pri',()=>moveOffer(L));else add('🏡 Burada oturuyorsun','',()=>{});
+    add(HOME.rent===L.id?'Kirayı bitir':'Sat (%90)','wide',()=>{if(HOME.rent===L.id){HOME.rent=null;toast('Kira sözleşmesi bitti 📄')}else{delete HOME.own[L.id];coins+=Math.round(L.price*.9);toast('Evi sattın · +'+esFmt(L.price*.9)+' 🪙')}refreshSigns();estateView(root,only)})}
+  else if(L.deal==='kira')add('🔑 Kirala · '+esFmt(L.rent*3)+' 🪙','pri',()=>rentHome(L,root,only));
+  else{add('💰 Peşin al','pri',()=>buyHome(L,false,root,only));add('🏦 Krediyle al','wide',()=>loanForm67('konut',L.price,()=>esDone(L,root,only),L.n))}
+  w.appendChild(ac);w.appendChild(el('div','lbl',(I.furn?'Eşyalı · ':'')+'İlan no '+L.id.toUpperCase()+' · '+(L.age||'')))}
+estateView=function(root,only){if(!root)return;estCss();root.innerHTML='';const w=el('div','es89');root.appendChild(w);const sel=ES.sel||only;const L=sel&&lById(sel);
+  if(L)esDetail(w,L,root,only);else{ES.sel=null;esList(w,root,only)}const key=(L?L.id:'list');if(ES._last!==key){ES._last=key;try{root.scrollTop=0}catch(e){}}try{pnxDom(root)}catch(e){}};
+{const _eo=estateOpen;estateOpen=function(only){ES.sel=only||null;return _eo.apply(this,arguments)}}
+window.__es={ES:ES,info:esInfo,shot:esShot,get Q(){return ESQ.length}};
 initMenu();
 resize();applyTime(1);frame();
 }catch(err){const e=document.getElementById('err');e.style.display='block';e.textContent='Hata: '+(err&&err.stack||err)}
