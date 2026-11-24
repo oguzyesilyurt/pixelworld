@@ -10896,6 +10896,47 @@ function walkOut100(){try{player.scale.x=1}catch(e){}const I=curI;if(I&&I.cab100
 {const _ld=load25;load25=function(x){const r=_ld.apply(this,arguments);try{if(x&&x.x100&&x.x100.st)BF100.st=x.x100.st}catch(e){}return r}}
 ACH.push(['bf','🖤','Kara Cuma avcısı','Kara Cuma\'da indirimli ürün kap','bf',1]);
 window.__m100={score:styleScore100,isBF:isBF100,bf:BF100,pick:fitPick100,F:FIT100,stock:bfStock100,disc:bfDisc100,set day(v){HOME.day=v}};
+/* ================= v101: evInfo(id) · ev tipi (daire/müstakil/villa), bölge, kapı, iç mekân · lobi sadece dairede · villa geniş iç mekân + bahçe kapısı ================= */
+/* villa düzeni: geniş tek kat (salon + açık mutfak, 2 yatak odası, çalışma odası, banyo) */
+LAYOUTS.V={w:26,d:16,door:3,spawn:[3,-6.4],
+  walls:[[-5,-8,-5,3,[[-4.6,-3.4],[-.2,1]]],[-13,-2,-5,-2,[]],[-13,3,-5,3,[]],[-6.6,3,-6.6,8,[[3.6,4.8]]],[8,2,8,8,[[2.4,3.6]]],[8,2,13,2,[]]],
+  floors:[[5,-8,13,-1,'k'],[-13,3,-6.6,8,'b']],
+  fix:[['fridge',5.75,-7.6,0],['sink',7.0,-7.65,0],['stove',8.15,-7.65,0],['kettle',9.2,-7.65,0],['cmach',12.65,-6.4,3],['micro',12.65,-5.2,3],['dishw',12.65,-4.2,3],
+       ['tub',-11.6,3.7,0],['bsink',-9.4,3.45,0],['toilet',-8.2,3.55,0],['shower',-12.2,7.1,1],['washer',-7.4,7.4,3]],
+  furn:[['bed',-9.5,-6.1,0],['night',-11.4,-7.5,0],['night',-7.6,-7.5,0],['ward',-5.55,-5.6,3],['vanity',-12.1,-3.4,1],['bed2',-10.4,.4,1],['night',-12.5,-1,1],['desk',-7.6,2.2,2],
+       ['tv',1,-7.6,0],['rug',1,-5,0],['coffee',1,-5.1,0],['sofa',1,-2.8,2],['arm',-1.9,-5.1,1],['arm',3.9,-5.1,3],['p1',-2.8,-7.4,0],['p2',3.6,-7.4,0],['lamp',-2.8,-2.4,0],
+       ['dining',8.6,-1.2,0],['sofa2',0,4.4,0],['rug2',0,5.6,0],['shelf',2.4,7.5,2],['mus',4.8,7.5,2],['con',-3.6,6,1],['p0',12.4,7.4,0],['p3',-4.2,7.4,0],['desk',10.6,7.4,2],['p1',12.4,2.8,0]]};
+function evInfo(k){k=k||HOME.cur;if(k==='ev_cigli')return {tip:'daire',bolge:'cigli',kapi:{x:0,z:-10.4},ic:k,ad:'Çiğli · Yeşiltepe Evleri'};
+  if(k==='ev_karabaglar')return {tip:'mustakil',bolge:'karabaglar',kapi:{x:15.5,z:23.6},ic:k,ad:'Karabağlar · aile evi'};
+  if(k==='ev_koc_ust'||k==='ev_koc_alt')return {tip:'mustakil',bolge:'kocaeli',kapi:{x:15.5,z:23.6},ic:'ev_koc_ust',ad:'Kocaeli · ev'};
+  const L=lById(String(k).slice(5));if(!L)return {tip:'daire',bolge:'cigli',kapi:{x:0,z:-10.4},ic:'ev_cigli',ad:'Çiğli'};
+  const villa=L.villa==='yeni'||/villa/i.test(L.n),must=!villa&&(!!L.villa||!!L.garden),tip=villa?'villa':must?'mustakil':'daire';
+  let kapi={x:L.at[0],z:L.at[1]+1.4};if(L.vx!=null){kapi=villa?{x:L.vx-4.4,z:L.vz+4.9}:{x:L.vx-2.5,z:L.vz+5.4}}
+  return {tip:tip,bolge:L.d,kapi:kapi,ic:'ev_p_'+L.id,ad:homeName(k),L:L}}
+/* kapı konumu artık evInfo'dan: jumpInto, homeSpawn, nakliye */
+{const _ri=resInfo;resInfo=function(kind){try{const E=evInfo(kind);if(E)return {d:E.bolge,door:[E.kapi.x,E.kapi.z]}}catch(e){}return _ri.apply(this,arguments)}}
+/* lobi (asansör/merdiven) sadece daire */
+{const _ia=isApt74;isApt74=function(k){if(/^ev_p_/.test(k||'')){try{return evInfo(k).tip==='daire'}catch(e){}}return _ia.apply(this,arguments)}}
+/* villa: geniş iç mekân düzeni */
+{const _ho=homeOpts;homeOpts=function(kind){const o=_ho.apply(this,arguments);try{if(/^ev_p_/.test(kind)&&evInfo(kind).tip==='villa')o.lay='V'}catch(e){}return o}}
+/* müstakil/villa iç mekânında bahçeye çıkış */
+{const _int=interior;interior=function(kind){const I=_int.apply(this,arguments);try{if(I&&/^ev_p_/.test(kind)&&!I.ev101){I.ev101=1;const E=evInfo(kind);I.evTip=E.tip;if(E.tip!=='daire'&&E.L&&E.L.vx!=null){const L=E.L,hw=(I.w||20)/2,hd=(I.d||14)/2;
+    I.spots.push({x:hw-1.6,z:hd-1.4,r:1.8,t:E.tip==='villa'?'E: 🌳 Bahçeye çık · havuz':'E: 🌳 Bahçeye çık',fn:()=>{ret={d:E.bolge,x:E.tip==='villa'?L.vx-3:L.vx+3.2,z:E.tip==='villa'?L.vz+6.3:L.vz+6.4};leave()}})}}}catch(e){showErrOnce(e)}return I}}
+/* dünya: villa/müstakil evin kendi kapısı + villada bahçe kapısı */
+{const _es=estateSign;estateSign=function(L){_es.apply(this,arguments);try{if(L.vx==null)return;const k='ev_p_'+L.id,E=evInfo(k),own=()=>isMine(L.id)&&!leased95(L.id);
+    if(E.tip==='villa'){const d=new T.Group();d.position.set(L.vx-4.4,0,L.vz+4.06);W.add(d);box(1.2,2.4,.08,mt(0x3a2a20),0,1.2,0,d);box(.08,.08,.12,mt(0xc9a24a),.4,1.15,.06,d);box(1.6,.12,.8,mt(0x9a9690),0,.06,.5,d);
+      /* bahçe kapısı: çit sırasının solunda */const gx=L.vx-7.2,gz=L.vz+8.4,gate=new T.Group();gate.position.set(gx,0,gz);W.add(gate);[-.75,.75].forEach(s=>box(.16,1.4,.16,mt(0x2a2a30),s,.7,0,gate));const leaf=new T.Group();leaf.position.set(-.7,0,0);gate.add(leaf);box(1.4,1.1,.06,mt(0x3a3a40),.7,.65,0,leaf);for(let i=0;i<6;i++)box(.04,1,.04,mt(0x6a6a72),.15+i*.23,.65,.02,leaf);
+      C.spots.push({x:gx,z:gz+1.4,r:2,cond:own,t:'E: 🌳 Bahçe kapısı · havuz başına geç',fn:()=>{leaf.rotation.y=-1.3;setTimeout(()=>{leaf.rotation.y=0},2500);pl.x=L.vx-3;pl.z=L.vz+6.3;snapCam();toast('🌳 Bahçedesin · havuz başı')}})}
+    C.spots.push({x:E.kapi.x,z:E.kapi.z+.4,r:2,cond:own,get t(){return 'E: 🏡 '+(E.tip==='villa'?'Villana':'Evine')+' gir'+(HOME.cur===k?' · evin':'')},fn:()=>enter(k)})}catch(e){showErrOnce(e)}}}
+/* Çiğli bina girişi: oturmuyorsan "eski dairen" */
+{const _ed=endD;endD=function(){try{if(C&&C.name==='cigli'){const s=C.spots.find(q=>/Dairene çık/.test(q.t||''));if(s){delete s.t;Object.defineProperty(s,'t',{get(){return HOME.cur==='ev_cigli'?'E: Bina girişi · Dairene çık 🚪':'E: Bina girişi · eski dairen 🚪'},configurable:true})}}}catch(e){}return _ed.apply(this,arguments)}}
+/* Evlerim: eski (başlangıç) daire de listede, gidilebilir */
+{const _ev=evView;evView=function(root){_ev.apply(this,arguments);try{const base=homeOf(me.key);if(HOME.cur===base)return;const w=root.querySelector('.ev95'),c=el('div','hc');const im=el('div','im','🏢');im.appendChild(el('span','st bo','⚪ Eski dairen · boş'));c.appendChild(im);
+  const bx=el('div','bx');bx.appendChild(el('div','nm',homeName(base)));bx.appendChild(el('div','ad','📍 '+(DNAME[distOf(base)]||distOf(base))+' · başlangıç evin'));const bt=el('div','bt');
+  const b1=el('button','blu','🚪 İçeri gir');b1.onclick=()=>ev95In(base);const b2=el('button','','🧭 Git');b2.onclick=()=>ev95Go({d:distOf(base)});const b3=el('button','pri w','🏠 Buraya geri taşın');b3.onclick=()=>{homeSet(base);toast('🏠 Eski dairene geri taşındın');evView(root)};
+  [b1,b2,b3].forEach(b=>bt.appendChild(b));bx.appendChild(bt);c.appendChild(bx);const last=w.lastElementChild;w.insertBefore(c,last)}catch(e){showErrOnce(e)}}}
+/* migrasyon: cur geçerli ve sahip olunan ev olmalı (homeFix95 + villa kapısı) */
+window.__ev101={info:evInfo,get cur(){return HOME.cur}};
 /* ================= v90: bahçe & tarım görsel yenileme — tekrarsız çim, sürülmüş toprak, taş yol, lamba, bank, 3 evreli instanced bitkiler, rüzgâr, hasat animasyonu ================= */
 const U90={t:{value:0}};
 function sway90(col,o,amp){const m=std(col,Object.assign({roughness:.75},o||{}));const A=(amp||.03).toFixed(3);
