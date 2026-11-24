@@ -1427,7 +1427,7 @@ function buildMerkez(){
     door(-26.4,16.4,'tursucu','Turşucu');door(-21.6,16.4,'tatli','Fıstık Sarma');
     C.spots.push({x:-36,z:16.4,r:2,t:'E: Baharatçı 🌶️',fn:()=>openMenu('Baharatçı',[{n:'Pul biber',p:15,h:0,m:4},{n:'Kekik',p:12,h:0,m:3}])},{x:-31.2,z:16.4,r:2,t:'E: Kuruyemişçi 🥜',fn:()=>openMenu('Kuruyemiş',[{n:'Karışık çerez',p:25,h:10,m:6},{n:'Leblebi',p:15,h:8,m:4}])},
       {x:-16.8,z:16.4,r:2,t:'E: Kahveci ☕',fn:()=>openMenu('Kahveci',MENU_CAFE)},{x:-12,z:16.4,r:2,t:'E: Kuaför Nur · saçını yaptır 💇',fn:()=>openStyle('kuafor')})});
-  safe('aspava',()=>aspava(-20,37));door(-20,41.6,'aspava','ASPAVA');
+  safe('aspava',()=>aspava(-20,37));door(-20,41.6,'aspava','ASPAVA');safe('balon',()=>tubeMan(-12.8,41.6,{cols:[0xf4f4f2]}));
   safe('kafe',()=>cafeTerrace(38,29.6));
   // Birlik Parkı
   {const px=-60,pz=36;ground(px,pz,24,24,repeatMat(grassTex,3,3,1),.06);const ring=new T.Mesh(new T.RingGeometry(6,8,40),walkMat);ring.rotation.x=-Math.PI/2;ring.position.set(px,.08,pz);W.add(ring);
@@ -2183,7 +2183,7 @@ function buildCigli(){
   const rs=buildRoads([{ctrl:cigliLoop(),width:6,center:true,closed:true},{ctrl:[[-24,-4],[-12,-4],[2,-4],[14,-4],[30,-4],[46,-4],[60,-4],[72,-4]],width:4,from:0,to:0}]);
   zebra(rs[0],pathU(rs[0].curve,-24,10));
   ground(0,-12,30,20,repeatMat(paverTex,30/5,20/5,.9),.045);
-  building2({x:0,z:-17,w:12,d:11,floors:12,pi:2,name:'YEŞİLTEPE EVLERİ'});entrance(0,-17,12,11);door(0,-10.4,'ev_cigli','Bina girişi · Dairene çık');safe('otopark',cigliParking);
+  building2({x:0,z:-17,w:12,d:11,floors:12,pi:2,name:'YEŞİLTEPE EVLERİ'});entrance(0,-17,12,11);door(0,-10.4,'ev_cigli','Bina girişi · Dairene çık');safe('balon',()=>tubeMan(4.2,-9.6,{cols:[0xf4c51e]}));safe('otopark',cigliParking);
   [[-12,-36,12,11,14,0],[2,-36,12,11,16,1],[16,-36,12,11,12,3],[24,-22,11,12,15,4],[-8,11,12,10,3,1],[6,11,12,10,4,0],
    [-10,28,12,10,3,5],[6,28,12,10,3,2],[22,28,12,10,3,4],[40,-30,12,11,18,1],[40,26,12,11,5,5]
   ].forEach(b=>building2({x:b[0],z:b[1],w:b[2],d:b[3],floors:b[4],pi:b[5]}));
@@ -2203,7 +2203,7 @@ function buildKarabaglar(){
   const rs=buildRoads([{ctrl:coastCtrl(),width:6,center:true},{ctrl:[[-27,31],[-10,31],[8,31],[26,31],[40,31],[62,31],[230,31]],width:4,from:0},{ctrl:[[-27,-39.5],[-12,-39.5],[4,-39.5],[20,-39.5],[30,-41],[38,-49],[52,-51],[230,-51]],width:5,from:0}]);zebra(rs[0],.5);
   house({x:18,z:17,w:10,d:9,floors:2,wall:'#e8d5b5',seed:31});door(15.5,22.8,'ev_karabaglar','Eve gir');
   [[30,-4,6,7,4,2],[44,6,6,6,3,3],[56,22,7,6,4,4],[40,44,6,6,3,5],[-8,44,6,6,3,0],[2,-10,6,6,3,1]].forEach(b=>building2({x:b[0],z:b[1],w:b[2],d:b[3],floors:b[4],pi:b[5]}));
-  lake();ferryBoat();safe('park',krbParking);safe('ekler',karabaglarExtras);safe('stad',()=>{stadiumExt(8,-58,'sk');stadPlaza(8,-58,'sk');stadFans(8,-58,'sk');ground(36,-39.5,12,6,repeatMat(paverTex,12/5,6/5,.9),.06);dirSign(-20,-35.5,0,[['🏟️ STAD →','#c8222a'],['🚋 TRAMVAY ↑','#2f8a3a']]);dirSign(-20,27.2,0,[['🏟️ STADYUM ↓','#c8222a'],['🏠 Çiço\'nun evi →','#1d4fb8']]);tramStop(-6,35.6,Math.PI,'Karabağlar')});
+  lake();ferryBoat();safe('park',krbParking);safe('ekler',karabaglarExtras);safe('stad',()=>{stadiumExt(8,-58,'sk');stadPlaza(8,-58,'sk');stadFans(8,-58,'sk');ground(36,-39.5,12,6,repeatMat(paverTex,12/5,6/5,.9),.06);dirSign(-20,-35.5,0,[['🏟️ STAD →','#c8222a'],['🚋 TRAMVAY ↑','#2f8a3a']]);dirSign(-20,27.2,0,[['🏟️ STADYUM ↓','#c8222a'],['🏠 Çiço\'nun evi →','#1d4fb8']]);tramStop(-6,35.6,Math.PI,'Karabağlar')});safe('balon',()=>tubeMan(24,-43.7,{cols:[0xc8222a,0xf4c51e],scale:2.5}));
   scatter(120,-24,77,-46,57,['round','pine','blossom','round','olive','cypress','olive'],.8,1.4);palms(-36,40);lampsAlong(rs[0],13,-1);benches();
   addNpc({shirt:0xe9dccb,pants:0x4a4a52,hair:0x2b1d17,long:true,label:'Çiço'},prom(-34,40),1.9,.3,'cicom');addNpc({shirt:0x1d2a4a,pants:0x2a3a6a,hair:0x4a2c1a,scale:.75},prom(-34,40),2.6,.7);
   C.carSpot={x:-12,z:27.9,a:0};C.spawn=[-6,26.6];C.label='Karabağlar Mahallesi';endD()}
@@ -3613,7 +3613,7 @@ function buildKarsiyaka(){newD('karsiyaka',1560,0);terrain();
     ['Kitapçı','#2a6fb0','#ffffff','#e8eef4',[{n:'Roman',p:40,h:0,m:10},{n:'Dergi',p:15,h:0,m:4}]],['Çiçekçi','#3a8a4a','#ffffff','#e6f0e4',[{n:'Buket (sevgiliye)',p:60,h:0,m:12,g:'ogus'}]]];
   SH.forEach((s,i)=>{const x=9+i*8.6;shop(x,-2.6,7.6,s[0],s[1],s[2],s[3],700+i);C.boxes.push({x:x,z:-2.6,hx:3.8,hz:3.1});C.spots.push({x:x,z:2.1,r:2.6,t:'E: '+s[0]+' 🛍️',fn:()=>openMenu('Karşıyaka · '+s[0],s[4])})});
   [[12,7.4,'#2f8a3a'],[20.6,7.4,'#c8322a'],[38,7.4,'#2f8a3a'],[46.6,7.4,'#c8322a']].forEach(b=>bistroSet(b[0],b[1],b[2]));
-  stadiumExt(46,-46,'yk');stadPlaza(46,-46,'yk');stadFans(46,-46,'yk');ground(52,-27.5,24,6,repeatMat(paverTex,24/5,6/5,.9),.06);dirSign(-20,-23.5,0,[['🏟️ STAD →','#1f8a3a'],['🛍️ ÇARŞI ↑','#c8222a']]);dirSign(-20,14,0,[['🚋 TRAMVAY ↑','#2f8a3a'],['🏟️ STADYUM ↓','#1f8a3a']]);tramStop(8,22.4,Math.PI,'Karşıyaka Çarşı');
+  stadiumExt(46,-46,'yk');stadPlaza(46,-46,'yk');stadFans(46,-46,'yk');ground(52,-27.5,24,6,repeatMat(paverTex,24/5,6/5,.9),.06);dirSign(-20,-23.5,0,[['🏟️ STAD →','#1f8a3a'],['🛍️ ÇARŞI ↑','#c8222a']]);dirSign(-20,14,0,[['🚋 TRAMVAY ↑','#2f8a3a'],['🏟️ STADYUM ↓','#1f8a3a']]);tramStop(8,22.4,Math.PI,'Karşıyaka Çarşı');safe('balon',()=>tubeMan(61.5,-31.7,{cols:[0xc8222a,0x1f8a3a],scale:2.5}));
   [[-4,46,6,6,3,4],[62,22,7,6,4,1],[64,-12,6,6,3,0]].forEach((a,i)=>safe('bina',()=>building2({x:a[0],z:a[1],w:a[2],d:a[3],floors:a[4],pi:a[5],seed:220+i})));
   safe('galeri',()=>carGallery2(30,33,'Ege Otomotiv'));ferryBoat();parasol(-9.6,33.4,'#2f8a3a');parasol(-10,40,'#c8322a');
   vendorWrap(()=>midyeCart(-14,6),0,24);vendorWrap(()=>boyozCart(-14,12),0,24);simitCart(-10.5,28,0);
@@ -3877,6 +3877,27 @@ function hillFood(I){mallFloor(I,'Hilltown · 3. kat · Yemek katı');I.spots.pu
   [-9,-3,3,9,15].forEach(x=>[1.2,4.8].forEach(z=>{F(I,x,z,0,.75,.55,fTable(1.6,1.1,.85));chairsAround(I,x,z,1.6,1.1,[0xc9a24a,0x2b3a5a][k%2]);const busy2=k%3!==0;
     if(busy2){I.crowd.push(seatedNpc(W,x,z-1.05,0,looks[k%4],1))}else I.spots.push({x:x,z:z+1.9,r:1.8,t:'E: Masaya otur 🍽️',fn:()=>{const s={x:x,z:z+1.05,face:Math.PI,h:.53};walkTo(x,z+1.9,()=>startAct({name:'Yemek katında oturuyorsun',ic:'🍽️',dur:20,tm:2,seat:s,pose:'cook',per:{mood:.5,en:.4,soc:.3},end:()=>toast('Güzel bir mola 🍽️')}))}});k++}))}
 /* ---------- stad: yürüyen taraftarlar, davulcular, meşaleler, giriş kapısı ---------- */
+/* ---------- Gel gel balon adam (şişme reklam balonu) ---------- */
+const TMC={g:null,m:{}};
+function tmMat(c){return TMC.m[c]||(TMC.m[c]=new T.MeshStandardMaterial({color:c,roughness:.55}))}
+function tubeMan(x,z,o){o=o||{};const s=o.scale||1,cols=o.cols&&o.cols.length?o.cols:[0xf4c51e],N=6,H=.44;
+  if(!TMC.g)TMC.g={fan:new T.CylinderGeometry(.42,.48,.5,16),rim:new T.CylinderGeometry(.5,.5,.06,16),seg:new T.CylinderGeometry(.2,.2,H,12,1,true),joint:new T.SphereGeometry(.2,12,8),cap:new T.SphereGeometry(.2,12,8,0,Math.PI*2,0,Math.PI/2),arm:new T.CylinderGeometry(.06,.07,1.1,8),eye:new T.CircleGeometry(.045,10),mouth:new T.TorusGeometry(.085,.018,6,14,Math.PI)};
+  const G=TMC.g,root=new T.Group();root.position.set(x,0,z);root.scale.setScalar(s);root.rotation.y=o.face!=null?o.face:-Math.PI/4;W.add(root);
+  const mk=(geo,mat,par,px,py,pz)=>{const m=new T.Mesh(geo,mat);m.position.set(px||0,py||0,pz||0);m.castShadow=true;par.add(m);return m};
+  mk(G.fan,tmMat(0x1a1a1e),root,0,.25,0);mk(G.rim,tmMat(0x3a3a42),root,0,.5,0);
+  const segs=[];let par=root,py=.5;
+  for(let i=0;i<N;i++){const g=new T.Group();g.position.y=py;par.add(g);const mat=tmMat(cols[i%cols.length]);mk(G.joint,mat,g);mk(G.seg,mat,g,0,H/2,0);segs.push(g);par=g;py=H}
+  const top=segs[N-1],tc=tmMat(cols[(N-1)%cols.length]);mk(G.cap,tc,top,0,H,0);
+  const bm=new T.MeshBasicMaterial({color:0x111111,side:T.DoubleSide});TMC.m.face=TMC.m.face||bm;const fm=TMC.m.face;
+  [-1,1].forEach(sd=>mk(G.eye,fm,top,sd*.075,H*.72,.202));
+  const mo=mk(G.mouth,fm,top,0,H*.46,.2);mo.rotation.z=Math.PI;mo.castShadow=false;
+  const arms=[-1,1].map(sd=>{const p=new T.Group();p.position.set(sd*.19,H*.62,0);top.add(p);mk(G.arm,tc,p,0,.55,0);p.rotation.z=-sd*1.2;return p});
+  C.circles.push({x:x,z:z,r:.55*s});
+  const ph=Math.random()*100,sp=2.3+Math.random()*.9,cp=3.6+Math.random()*1.2;
+  C.anim.push(t=>{const tt=t+ph,cy=tt%cp;const bend=cy<.4?Math.sin(cy/.4*Math.PI):0;
+    for(let i=0;i<N;i++){const a=.05+i*.05,w=tt*sp+i*.6;segs[i].rotation.z=Math.sin(w)*a*(1-bend*.6);segs[i].rotation.x=Math.sin(w*.73+1.7)*a*.55+bend*(.12+i*.05)}
+    arms.forEach((p,k)=>{const sd=k?1:-1;p.rotation.z=-sd*(1.05+Math.sin(tt*sp*1.6+k*2.1)*.75)+bend*sd*.6;p.rotation.x=Math.sin(tt*sp*1.1+k)*.35})});
+  return root}
 function stadFans(x,z,id){const S=STAD[id],fz=z+15.2;
   stadEntrance(x,z,id);stadSurround(x,z,id);
   const walkers=[];for(let k=0;k<4;k++){const grp=[];for(let j=0;j<3;j++){const p=personOld({shirt:(j+k)%2?S.c1:S.c2,pants:0x23252b,hair:[0x1a1414,0x3b2416,0x6b3b1e][j%3]});W.add(p);grp.push(p)}walkers.push({g:grp,u:k/4,sp:.03+k*.006})}
