@@ -292,6 +292,15 @@ body.pick #hud,body.pick #topr,body.pick #actb,body.pick #bar,body.pick #where,b
 #homechip{display:none!important}
 #hx{font-size:11px;opacity:.85;display:none}#hx.on{display:block}
 #bldb{top:auto!important;left:max(10px,env(safe-area-inset-left,0px))!important;transform:none!important;bottom:calc(62px + env(safe-area-inset-bottom,0px))!important;border:1px solid rgba(255,255,255,.16)!important;background:rgba(22,18,36,.78)!important;border-radius:22px!important;font-family:inherit!important}
+/* v85 · telefon penceresi ekranın tam ortasında, her boyutta içeride */
+#phone{z-index:60!important;background:rgb(18,16,28)!important;left:50%!important;top:50%!important;right:auto!important;bottom:auto!important;transform:translate(-50%,-50%);width:min(380px,calc(100vw - 24px))!important;height:auto;max-height:calc(100vh - 24px)!important;max-height:calc(100dvh - 24px)!important;max-width:calc(100vw - 24px);box-sizing:border-box}
+#phone .ph{flex:none;min-width:0}#phone .ph b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#phbody{min-height:0;-webkit-overflow-scrolling:touch;overflow-wrap:anywhere;word-break:break-word}
+#phbody .row2,#phbody .card,#phbody .wid{flex-wrap:wrap;min-width:0;overflow-wrap:anywhere}#phbody .row2 span{min-width:0;flex:1 1 60%}
+#phbody .msg{max-width:85%;overflow-wrap:anywhere;white-space:normal}
+#phbody .apps{grid-template-columns:repeat(auto-fill,minmax(70px,1fr))}#phbody .apps .app{overflow-wrap:normal;word-break:normal;font-size:11.5px;letter-spacing:-.2px;min-width:0}
+#notif{max-width:calc(100vw - 20px);box-sizing:border-box;overflow-wrap:anywhere;word-break:break-word}#notif .a{flex-wrap:wrap}#notif .a button{min-width:0;white-space:normal}
+@media (max-height:500px){#phone{width:min(560px,calc(100vw - 24px))!important;max-height:calc(100vh - 16px)!important;max-height:calc(100dvh - 16px)!important;border-radius:20px}#phbody .apps{grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px 6px}}
 </style>
 </head>
 <body class="pick">
