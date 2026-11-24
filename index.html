@@ -1563,7 +1563,7 @@ function sph(r,c,x,y,z,g,sx,sy,sz){const m=new T.Mesh(new T.SphereGeometry(r,14,
 /* --- saksı bitkileri (yuvarlak top yerine yapraklar) --- */
 const H_LEAF=new T.SphereGeometry(1,10,6);
 function leaf(g,x,y,z,len,wid,ry,rx,c){const m=new T.Mesh(H_LEAF,mt(c));m.scale.set(wid,.025,len);m.position.set(x,y,z);m.rotation.set(rx,ry,0,'YXZ');m.castShadow=true;g.add(m);return m}
-function potBase(g,r,h,c){hCyl(r,r*.78,h,14,c,0,h/2,0,g);hCyl(r*1.06,r*1.06,.06,14,c,0,h-.03,0,g);hCyl(r*.93,r*.93,.02,14,0x4a3324,0,h-.01,0,g)}
+function potBase(g,r,h,c){hCyl(r,r*.78,h,14,c,0,h/2,0,g);hCyl(r*1.06,r*1.06,.06,14,c,0,h-.03,0,g);hCyl(r*.93,r*.93,.02,14,0x4a3324,0,h-.002,0,g)}
 function plantKind(g,k,s){s=s||1;const G=new T.Group();G.scale.setScalar(s);g.add(G);
   if(k===0){potBase(G,.3,.55,0xc8714a);for(let i=0;i<9;i++){const a=i/9*6.283+(i%2)*.3,h=.9+(i*37%5)*.12;const b=new T.Mesh(new T.ConeGeometry(.07,h,4),mt(i%3?0x2f6b35:0x3d7f3a));b.position.set(Math.cos(a)*.1,.55+h/2,Math.sin(a)*.1);b.rotation.set(Math.sin(a)*.12,a,Math.cos(a)*.12);b.scale.z=.35;b.castShadow=true;G.add(b)}}
   else if(k===1){potBase(G,.32,.5,0xe8e2d6);for(let i=0;i<7;i++){const a=i/7*6.283,t=.25+(i%3)*.12;hCyl(.012,.012,.5+t,4,0x3a6a2a,Math.cos(a)*.08,.75+t/2,Math.sin(a)*.08,G).rotation.set(Math.sin(a)*.4,0,-Math.cos(a)*.4);
@@ -1611,7 +1611,7 @@ const fDesk2=g=>{hBox(1.8,.06,.8,0xe9dfce,0,.78,0,g);[-.84,.84].forEach(s=>hBox(
 const fConsole2=g=>{fTV2(g);hBox(.4,.07,.3,0xf2f2f2,.75,.56,.05,g);[[-.2,.18],[.2,.18]].forEach(p=>hBox(.14,.04,.09,0x222,p[0],.55,p[1],g))};
 const fStereo2=g=>{hBox(.9,.6,.4,0x6a4a30,0,.3,0,g);hBox(.6,.12,.3,0x1e1e22,0,.66,0,g);hCyl(.13,.13,.01,20,0x111,0,.73,0,g);[-.75,.75].forEach(x=>{hBox(.38,.9,.36,0x2b2b30,x,.45,0,g);[.35,.7].forEach((y,i)=>hCyl(.1-.04*i,.1-.04*i,.03,14,0x111,x,y,.19,g).rotation.x=Math.PI/2)})};
 /* --- mutfak --- */
-function kBase(g,len,top){hBox(len,.86,.6,0xf3efe6,0,.45,0,g);hBox(len,.08,.02,0x2a2a2a,0,.03,.29,g);const n=Math.max(1,Math.round(len/.6));for(let i=0;i<n;i++){const x=-len/2+(i+.5)*len/n;hBox(len/n-.03,.74,.02,0xf8f4ec,x,.48,.305,g);hBox(.18,.02,.03,0xa0a0a8,x,.78,.32,g)}
+function kBase(g,len,top){hBox(len,.86,.6,0xf3efe6,0,.45,0,g);hBox(len,.08,.02,0x2a2a2a,0,.045,.298,g);const n=Math.max(1,Math.round(len/.6));for(let i=0;i<n;i++){const x=-len/2+(i+.5)*len/n;hBox(len/n-.03,.74,.02,0xf8f4ec,x,.48,.305,g);hBox(.18,.02,.03,0xa0a0a8,x,.78,.32,g)}
   hBox(len+.04,.05,.66,top||0x3a3a40,0,.905,0,g);hBox(len,.62,.02,0xdfe8ea,0,1.24,-.29,g);/* duvar dolabı */hBox(len,.7,.36,0xf3efe6,0,2.05,-.12,g);for(let i=0;i<n;i++){const x=-len/2+(i+.5)*len/n;hBox(len/n-.03,.64,.02,0xf8f4ec,x,2.05,.065,g)}}
 const fKCounter=len=>g=>{kBase(g,len);hCyl(.1,.1,.02,10,0xe0d0b0,-.2,.94,0,g)};
 const fSink=g=>{kBase(g,1.4);hBox(.62,.03,.42,0xd0d4da,0,.94,.02,g,{metalness:.6,roughness:.3});hBox(.56,.02,.36,0x9aa0a8,0,.93,.02,g);hCyl(.02,.02,.3,6,chromeM(),0,1.08,-.2,g);const sp=hCyl(.018,.018,.2,6,chromeM(),0,1.22,-.12,g);sp.rotation.x=Math.PI/2};
@@ -1622,7 +1622,7 @@ const fMicro=g=>{kBase(g,1.2);hBox(.56,.34,.4,0x2a2a30,-.2,1.1,-.04,g);hBox(.36,
 const fKettle=g=>{kBase(g,1.2);hCyl(.12,.14,.04,14,0x2a2a30,-.25,.95,0,g);hCyl(.1,.12,.26,14,0xe8e8ec,-.25,1.1,0,g);hCyl(.04,.1,.06,14,0xe8e8ec,-.25,1.26,0,g);hBox(.04,.18,.08,0x2a2a30,-.38,1.12,0,g);
   /* çaydanlık */hCyl(.13,.11,.2,12,0xd8322c,.25,1.03,0,g);hCyl(.08,.11,.14,12,0xd8322c,.25,1.2,0,g);[[.1,0xf3c33f],[-.05,0xf3c33f]].forEach((p,i)=>hCyl(.04,.03,.09,8,0xffffff,.55,.97,p[0],g))};
 const fCoffeeM=g=>{kBase(g,1.2);hBox(.3,.42,.32,0x1e1e22,-.2,1.13,-.04,g);hBox(.24,.08,.06,0x3a3a40,-.2,1.2,.14,g);hCyl(.04,.035,.08,8,0xffffff,-.2,.98,.06,g);hCyl(.12,.12,.32,10,0x7a4a2a,.3,1.08,0,g)};
-const fFridge2=g=>{hBox(.9,2.2,.7,0xe2e6ea,0,1.1,0,g,{metalness:.35,roughness:.35});hBox(.9,.02,.72,0x9aa,0,1.45,0,g);[[.36,1.8,.6],[.36,.75,.8]].forEach(p=>hBox(.04,p[2],.05,0x8a8e96,p[0],p[1],.37,g));hBox(.25,.18,.01,0xf4c542,-.15,1.7,.355,g)};
+const fFridge2=g=>{hBox(.9,2.2,.7,0xe2e6ea,0,1.1,0,g,{metalness:.35,roughness:.35});hBox(.91,.02,.72,0x9aa,0,1.45,0,g);[[.36,1.8,.6],[.36,.75,.8]].forEach(p=>hBox(.04,p[2],.05,0x8a8e96,p[0],p[1],.37,g));hBox(.25,.18,.01,0xf4c542,-.15,1.7,.355,g)};
 const fDishW=g=>{hBox(.6,.86,.6,0xdfe3e8,0,.45,0,g,{metalness:.3,roughness:.35});hBox(.56,.1,.02,0x2a2a30,0,.8,.305,g);hBox(.4,.03,.03,chromeM(),0,.68,.32,g);hBox(.62,.05,.66,0x3a3a40,0,.905,0,g)};
 /* --- banyo --- */
 const fShower=g=>{hBox(1.3,.12,1.3,0xf4f4f6,0,.06,0,g);[[.64,0,.02,1.3],[0,.64,1.3,.02]].forEach(p=>hBox(p[2]||1.3,2,p[3]||1.3,hGlass(),p[0],1.1,p[1],g));hBox(1.3,2,.02,0xe6eef2,0,1.1,-.64,g);
@@ -2465,7 +2465,7 @@ const sun=new T.DirectionalLight(0xff9a4d,1.3);sun.castShadow=true;sun.shadow.ma
 {const sc=sun.shadow.camera;sc.left=-50;sc.right=50;sc.top=50;sc.bottom=-50;sc.near=1;sc.far=260;sun.shadow.bias=-.0006;scene.add(sun);scene.add(sun.target)}
 iscene.add(new T.HemisphereLight(0xfff0dc,0x6a5a6a,.95));
 const isun=new T.DirectionalLight(0xffe2b0,.85);isun.position.set(-10,16,-4);isun.castShadow=true;isun.shadow.mapSize.set(1024,1024);
-{const sc=isun.shadow.camera;sc.left=-18;sc.right=18;sc.top=18;sc.bottom=-18;sc.near=1;sc.far=60;isun.shadow.bias=-.0008;iscene.add(isun)}
+{const sc=isun.shadow.camera;sc.left=-18;sc.right=18;sc.top=18;sc.bottom=-18;sc.near=1;sc.far=60;isun.shadow.bias=-.0005;isun.shadow.normalBias=.02;iscene.add(isun)}
 const TIMES={
  day:{bg:0x9ccfee,fog:0xb8d8ee,hs:0xbcd4e8,hg:0x6a7450,hi:.56,sc:0xfff0d8,si:.82,off:[-30,46,-12],sea:0x2f93d6,night:0},
  sunset:{bg:0xf4a373,fog:0xf6b186,hs:0xffcfa0,hg:0x6a4a6a,hi:.7,sc:0xff9a4d,si:1.3,off:[-46,22,-18],sea:0x3a78b8,night:.5},
