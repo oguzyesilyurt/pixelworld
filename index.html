@@ -9865,6 +9865,134 @@ openNav=function(){if(busy)return;const cp=document.querySelector('#nav .cp');cp
   const l=el('div','nvl');l.id='cpl';cp.appendChild(l);const p=el('div','nvp');cp.appendChild(p);NV.sel=null;nvRender();
   $('nav').classList.add('on');uiPC=true};
 window.__nav={get NV(){return NV},info:nvInfo,preview:nvPreview,go:nvGo};
+/* ---------- v88 · Sarı Site: ikinci el araba ilanları (render görsel, detay, ekspertiz, pazarlık) ---------- */
+(function(){const st=document.createElement('style');st.textContent=`
+.ss86{font-family:Trebuchet MS,sans-serif;color:#1f2430}
+.ss86 .mt{display:flex;gap:6px;margin:0 0 8px}.ss86 .mt button{flex:1;border:0;border-radius:12px;padding:9px;font:bold 13px Trebuchet MS;background:#2a2733;color:#f4d35e;cursor:pointer}.ss86 .mt button.on{background:#f4c21a;color:#1f2430}
+.ss86 .flt{display:flex;gap:6px;overflow-x:auto;margin:0 0 8px;scrollbar-width:none}.ss86 .flt::-webkit-scrollbar{display:none}
+.ss86 .flt button{flex:none;border:1px solid #f4c21a55;background:transparent;color:#f4d35e;border-radius:999px;padding:6px 11px;font:12.5px Trebuchet MS;cursor:pointer;white-space:nowrap}.ss86 .flt button.on{background:#f4c21a;color:#1f2430;border-color:#f4c21a}
+.ss86 .ad{display:flex;gap:10px;background:#fff;border-radius:14px;padding:8px;margin:0 0 8px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12);min-width:0}
+.ss86 .ad:active{transform:scale(.99)}
+.ss86 .im{flex:none;width:118px;height:76px;border-radius:10px;background:linear-gradient(180deg,#e9eef5,#cfd8e4);background-size:cover;background-position:center;position:relative;overflow:hidden}
+.ss86 .im.ld::after{content:'🚗';position:absolute;inset:0;display:grid;place-items:center;font-size:26px;opacity:.35}
+.ss86 .ad .tx{flex:1;min-width:0}.ss86 .ad b{display:block;font-size:13.5px;line-height:1.25}.ss86 .ad small{display:block;font-size:11.5px;color:#5a6272;margin-top:2px}
+.ss86 .pr{font-weight:700;color:#c47a00;font-size:14px;margin-top:3px}.ss86 .pr s{color:#99a;font-weight:400;font-size:11px;margin-left:4px}
+.ss86 .tg{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 6px;border-radius:6px;margin:3px 3px 0 0}
+.ss86 .tg.r{background:#fde4e2;color:#c5221f}.ss86 .tg.g{background:#e3f6e8;color:#13843a}.ss86 .tg.y{background:#fff4d6;color:#a16a00}.ss86 .tg.b{background:#e6eefc;color:#1a5fc8}
+.ss86 .bk{border:0;background:#2a2733;color:#f4d35e;border-radius:10px;padding:7px 12px;font:bold 13px Trebuchet MS;cursor:pointer;margin:0 0 8px}
+.ss86 .big{width:100%;aspect-ratio:16/10;border-radius:14px;background:linear-gradient(180deg,#eef2f8,#c9d3e0);background-size:cover;background-position:center;position:relative}
+.ss86 .big.ld::after{content:'🚗';position:absolute;inset:0;display:grid;place-items:center;font-size:44px;opacity:.3}
+.ss86 .gal{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0 10px}.ss86 .gal button{border:2px solid transparent;border-radius:10px;padding:0;aspect-ratio:16/10;background:#dfe5ee center/cover;cursor:pointer;position:relative;color:#1f2430;font:bold 10px Trebuchet MS}
+.ss86 .gal button.on{border-color:#f4c21a}.ss86 .gal button span{position:absolute;left:3px;bottom:2px;background:#fffe;border-radius:5px;padding:0 5px;color:#1f2430!important;font:bold 10.5px Trebuchet MS}
+.ss86 .card{font-size:13px;background:#fff;border-radius:14px;padding:10px 12px;margin:0 0 8px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.ss86 h4{margin:0 0 6px;font-size:14px}.ss86 .ttl{font-size:16px;font-weight:700;color:#fff;margin:0 0 2px}.ss86 .pz{font-size:20px;font-weight:700;color:#f4c21a;margin:0 0 8px}
+.ss86 .sp{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;font-size:12.5px}.ss86 .sp div{display:flex;justify-content:space-between;gap:6px;border-bottom:1px dashed #e4e7ee;padding:3px 0}.ss86 .sp span{color:#6a7385}
+.ss86 .sch{display:flex;gap:10px;align-items:center}.ss86 .sch svg{width:120px;flex:none}.ss86 .lg{font-size:11.5px;line-height:1.7}.ss86 .lg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.ss86 ul{margin:0;padding-left:18px;font-size:12.5px;line-height:1.5}.ss86 li.hd{color:#c5221f;font-weight:700}
+.ss86 .acts{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:4px 0 10px}.ss86 .acts button{border:0;border-radius:12px;padding:11px 8px;font:bold 13px Trebuchet MS;cursor:pointer;color:#fff;background:#3a3f4f}
+.ss86 .acts .buy{grid-column:1/-1;background:#13843a}.ss86 .acts .ex{background:#1a5fc8}.ss86 .acts button[disabled]{opacity:.45;cursor:default}
+.ss86 .chat{display:flex;flex-direction:column;gap:5px;margin:6px 0}.ss86 .chat div{max-width:85%;padding:6px 9px;border-radius:12px;font-size:12.5px}.ss86 .chat .s{align-self:flex-start;background:#eef1f6}.ss86 .chat .m{align-self:flex-end;background:#f4c21a}
+.ss86 .ofr{display:flex;gap:6px;flex-wrap:wrap}.ss86 .ofr button{flex:1;min-width:80px;border:0;border-radius:10px;padding:8px;font:bold 12.5px Trebuchet MS;cursor:pointer;background:#2a2733;color:#f4d35e}`;document.head.appendChild(st)})();
+/* --- araç render: ayrı sahne + render hedefi, sonuç dataURL olarak önbellekte --- */
+const CSHOT={},CSQ=[];let CSR=null;
+const CS_VIEWS={q:[4.6,2.5,5.2],on:[6.2,1.6,1.4],yan:[.2,1.3,7],arka:[-6.2,1.7,-1.4]};
+function carShotReady(key){if(PREMC[key])return true;try{const m=carShaderMat(key,0),u=m.uniforms;return ['tT','tR','tF','tS'].every(k=>u[k].value&&u[k].value.image&&(u[k].value.image.complete!==false))}catch(e){return true}}
+function carShot(key,view,w,h){const ck=key+'|'+view+'|'+w;if(CSHOT[ck])return CSHOT[ck];
+  if(!CSR){CSR={s:new T.Scene(),c:new T.PerspectiveCamera(26,1,.1,60),rts:{}};CSR.s.add(new T.HemisphereLight(0xffffff,0x8a8fa0,1.05));const d=new T.DirectionalLight(0xffffff,.85);d.position.set(4,8,6);CSR.s.add(d)}
+  const rk=w+'x'+h;let rt=CSR.rts[rk];if(!rt){rt=CSR.rts[rk]=new T.WebGLRenderTarget(w,h);rt.texture.encoding=renderer.outputEncoding}
+  const n0=carMeshes.length,g=car3d(key,CSR.s,0);carMeshes.length=n0;g.position.set(0,0,0);g.rotation.set(0,0,0);g.traverse(q=>{if(q.isSprite)q.visible=false});g.updateMatrixWorld(true);
+  const v=CS_VIEWS[view]||CS_VIEWS.q;CSR.c.aspect=w/h;CSR.c.fov=view==='yan'?24:26;CSR.c.position.set(v[0],v[1],v[2]);CSR.c.lookAt(0,.65,0);CSR.c.updateProjectionMatrix();
+  const oc=renderer.getClearColor(new T.Color()).getHex(),oa=renderer.getClearAlpha(),buf=new Uint8Array(w*h*4);renderer.setRenderTarget(rt);renderer.setClearColor(0x000000,0);renderer.clear();renderer.render(CSR.s,CSR.c);renderer.readRenderTargetPixels(rt,0,0,w,h,buf);renderer.setRenderTarget(null);renderer.setClearColor(oc,oa);
+  CSR.s.remove(g);const cv=document.createElement('canvas');cv.width=w;cv.height=h;const x=cv.getContext('2d'),im=x.createImageData(w,h);for(let y=0;y<h;y++)im.data.set(buf.subarray((h-1-y)*w*4,(h-y)*w*4),y*w*4);x.putImageData(im,0,0);
+  return CSHOT[ck]=cv.toDataURL()}
+/* görseli bir öğeye uygula (dokular yüklenene kadar bekle, kuyrukla sırayla çiz) */
+function carImg(elm,key,view,w,h){const ck=key+'|'+view+'|'+w;elm.classList.add('ld');const set=u=>{elm.style.backgroundImage='url("'+u+'"),linear-gradient(180deg,#eef2f8,#c9d3e0)';elm.classList.remove('ld')};if(CSHOT[ck]){set(CSHOT[ck]);return}
+  CSQ.push({elm:elm,key:key,view:view,w:w,h:h,set:set,t:0});if(CSQ.length===1)setTimeout(carImgRun,30)}
+function carImgRun(){const j=CSQ[0];if(!j)return;if(!carShotReady(j.key)&&j.t<40){j.t++;setTimeout(carImgRun,80);return}CSQ.shift();try{j.set(carShot(j.key,j.view,j.w,j.h))}catch(e){showErrOnce(e)}if(CSQ.length)setTimeout(carImgRun,16)}
+/* --- ilan üretimi --- */
+const SS_MODEL={gray_base:['Kordon','Kompakt 1.4','Hatchback'],gray_white:['Kordon','Kompakt 1.4 Comfort','Hatchback'],gray_black:['Kordon','Kompakt 1.6 Sport','Hatchback'],gray_yellow:['Kordon','Kompakt 1.4 Joy','Hatchback'],
+ blue_base:['Yamanlar','Trek 1.6','SUV'],blue_red:['Yamanlar','Trek 1.5 Turbo','SUV'],blue_green:['Yamanlar','Trek 2.0 4x4','SUV'],p_roadster:['Vento','Roadster Spyder','Cabrio'],p_gt:['Vento','GT Coupé','Coupé'],p_sedan:['Volta','Lüks Sedan EV','Sedan'],p_suvx:['Atlas','Lüks SUV','SUV']};
+const SS_COLOR={gray_base:'Gri',gray_white:'Beyaz',gray_black:'Siyah',gray_yellow:'Sarı',blue_base:'Lacivert',blue_red:'Kırmızı',blue_green:'Yeşil',p_roadster:'Kırmızı',p_gt:'Siyah',p_sedan:'Çelik mavi',p_suvx:'Beyaz'};
+const SS_PARTS=[['kaput','Kaput'],['tavan','Tavan'],['bagaj','Bagaj'],['ontampon','Ön tampon'],['arkatampon','Arka tampon'],['solon','Sol ön çamurluk'],['solonk','Sol ön kapı'],['solark','Sol arka kapı'],['solar','Sol arka çamurluk'],['sagon','Sağ ön çamurluk'],['sagonk','Sağ ön kapı'],['sagark','Sağ arka kapı'],['sagar','Sağ arka çamurluk']];
+const SS_FAULTS=[['Debriyaj balatası bitmek üzere',2200],['Şanzımanda vuruntu',6500],['Turbo yağ kaçırıyor',5400],['Silindir kapak contası sızdırıyor',4800],['Alt takım (salıncak) ses yapıyor',1800],['Klima kompresörü arızalı',3200],['Enjektör arızası',3900],['Motor takozu çatlak',1400]];
+const SS_VIS=['Lastikler yeni sayılır','Ön balatalar değişmeli','Sağ arka camda çizik','Akü 3 yaşında','Silecek motoru yavaş','Koltuklarda hafif yıpranma','Periyodik bakımları yetkili serviste','Kış lastiği hediye'];
+const SS_LOC=['Karşıyaka · Bostanlı','Bornova · Erzene','Çiğli · Ataşehir','Konak · Alsancak','Buca · Şirinyer','Karabağlar · Uzundere','Bayraklı · Mansuroğlu','Gaziemir · Sarnıç'];
+const SS_GAL=['Ege Otomotiv','Körfez Oto Galeri','Kordon Motors','Bornova Oto Plaza','Yamanlar Otomotiv'],SS_OWN=['Murat B.','Ayşe K.','Emre T.','Zeynep A.','Hakan Y.','Selin D.','Okan Ç.'];
+const SS={st:{},sold:{},F:'all',S:'p',sel:null,view:'q',mode:'car'};
+function ssBase(k){const c=CARLIST.find(q=>q[0]===k);if(c)return c[2];return PREMC[k]?PREMC[k][2]:12000}
+function ssAds(){const wk=Math.floor((HOME.day-1)/3),r=mulberry((wk*7919+1234)>>>0),L=[];const keys=CARLIST.map(c=>c[0]).concat(['p_roadster','p_gt','p_sedan','p_suvx']);
+  for(let i=0;i<14;i++){const k=keys[i<keys.length?i:Math.floor(r()*7)],id='c'+wk+'_'+i,age=1+Math.floor(r()*(PREMC[k]?6:13)),year=2026-age,km=Math.round((age*(9000+r()*14000)+r()*8000)/100)*100;
+    const parts={},real={},nDeg=r()<.3?1+Math.floor(r()*3):0,nBoya=Math.floor(r()*r()*5);
+    for(let j=0;j<nDeg;j++)real[SS_PARTS[Math.floor(r()*SS_PARTS.length)][0]]='deg';for(let j=0;j<nBoya;j++){const p=SS_PARTS[Math.floor(r()*SS_PARTS.length)][0];if(!real[p])real[p]=r()<.4?'lokal':'boya'}
+    const gal=r()<.5;Object.keys(real).forEach(p=>{if(!(r()<.3&&real[p]!=='deg'))parts[p]=real[p]});/* satıcı bazen boyayı yazmaz */
+    const base=ssBase(k),tram=nDeg?Math.round((base*(.06+r()*.22))/100)*100:(nBoya&&r()<.5?Math.round(base*.03*(1+r())/100)*100:0);
+    const hidden=r()<.38?SS_FAULTS[Math.floor(r()*SS_FAULTS.length)]:null,vis=[];for(let j=0;j<1+Math.floor(r()*2);j++){const v=SS_VIS[Math.floor(r()*SS_VIS.length)];if(vis.indexOf(v)<0)vis.push(v)}
+    const nd=Object.values(real).filter(v=>v==='deg').length,nb=Object.values(real).length-nd;
+    let price=base*Math.max(.32,1-age*.055)*Math.max(.55,1-km/520000)-tram*.9;price*=1-nd*.06-nb*.018;price*=gal?1.06:.97;price=Math.max(base*.22,price);price=Math.round(price/50)*50;
+    L.push({id:id,k:k,m:SS_MODEL[k]||['Araç',k,''],year:year,km:km,fuel:PREMC[k]?(k==='p_sedan'?'Elektrik':'Benzin'):(r()<.45?'Dizel':r()<.7?'Benzin':'Benzin & LPG'),gear:PREMC[k]||r()<.55?'Otomatik':'Manuel',color:SS_COLOR[k]||'—',
+      tram:tram,parts:parts,real:real,hidden:hidden,vis:vis,gal:gal,seller:gal?SS_GAL[Math.floor(r()*SS_GAL.length)]:SS_OWN[Math.floor(r()*SS_OWN.length)],loc:SS_LOC[Math.floor(r()*SS_LOC.length)],price:price,flex:gal?.07:.13,day:HOME.day-Math.floor(r()*12)})}
+  return L.filter(a=>!SS.sold[a.id])}
+function ssS(a){return SS.st[a.id]||(SS.st[a.id]={ex:false,deal:null,tries:0,angry:false})}
+function ssPrice(a){const s=ssS(a);return s.deal||a.price}
+const ssFmt=n=>Math.round(n).toLocaleString('tr-TR');
+function ssDmg(a){const s=ssS(a),P=s.ex?a.real:a.parts,nd=Object.values(P).filter(v=>v==='deg').length,nb=Object.values(P).length-nd;return {nd:nd,nb:nb,P:P}}
+/* --- üstten şema (SVG) --- */
+function ssSchema(P){const C={deg:'#e0484a',boya:'#f29a1a',lokal:'#f4d35e'},f=p=>C[P[p]]||'#dfe4ec';
+  const R=(p,x,y,w,h,rx)=>'<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="'+(rx||4)+'" fill="'+f(p)+'" stroke="#fff" stroke-width="2"><title>'+(SS_PARTS.find(q=>q[0]===p)||['',''])[1]+'</title></rect>';
+  return '<svg viewBox="0 0 120 230"><rect x="14" y="6" width="92" height="218" rx="30" fill="#c9d0dc"/>'+R('ontampon',22,6,76,14,7)+R('kaput',26,22,68,46,8)+R('tavan',30,98,60,62,6)+R('bagaj',28,176,64,30,8)+R('arkatampon',22,208,76,14,7)+
+   R('solon',8,24,16,40)+R('solonk',8,68,16,46)+R('solark',8,116,16,46)+R('solar',8,164,16,40)+R('sagon',96,24,16,40)+R('sagonk',96,68,16,46)+R('sagark',96,116,16,46)+R('sagar',96,164,16,40)+
+   '<rect x="30" y="72" width="60" height="22" rx="6" fill="#6b7d96"/><rect x="32" y="162" width="56" height="12" rx="5" fill="#6b7d96"/></svg>'}
+/* --- liste --- */
+function ssList(w){const fl=el('div','flt');[['all','Tümü'],['Hatchback','Hatchback'],['SUV','SUV'],['lux','Lüks'],['clean','Hasarsız'],['dmg','Hasarlı · fırsat']].forEach(q=>{const x=el('button',SS.F===q[0]?'on':'',q[1]);x.onclick=()=>{SS.F=q[0];phoneApp('sari73')};fl.appendChild(x)});w.appendChild(fl);
+  const sb=el('div','flt');[['p','Fiyat ↑'],['pd','Fiyat ↓'],['y','Yıl ↓'],['km','Km ↑']].forEach(q=>{const x=el('button',SS.S===q[0]?'on':'',q[1]);x.onclick=()=>{SS.S=q[0];phoneApp('sari73')};sb.appendChild(x)});w.appendChild(sb);
+  let L=ssAds().filter(a=>SS.F==='all'||(SS.F==='lux'?!!PREMC[a.k]:SS.F==='clean'?!a.tram&&!Object.keys(a.parts).length:SS.F==='dmg'?a.tram>0||ssDmg(a).nd>0:a.m[2]===SS.F&&!PREMC[a.k]));
+  L.sort((a,b)=>SS.S==='p'?ssPrice(a)-ssPrice(b):SS.S==='pd'?ssPrice(b)-ssPrice(a):SS.S==='y'?b.year-a.year:a.km-b.km);
+  if(!L.length)w.appendChild(el('div','card','Bu filtrede ilan yok.'));
+  L.forEach(a=>{const c=el('div','ad'),im=el('div','im');c.appendChild(im);carImg(im,a.k,'q',236,152);const tx=el('div','tx');tx.appendChild(el('b','',a.m[0]+' '+a.m[1]));
+    tx.appendChild(el('small','',a.year+' · '+ssFmt(a.km)+' km · '+a.fuel+' · '+a.gear));tx.appendChild(el('small','','📍 '+a.loc+' · '+(a.gal?'🏢 Galeri':'👤 Sahibinden')));
+    const d=ssDmg(a);if(a.tram)tx.appendChild(el('span','tg r','Tramer '+ssFmt(a.tram)));if(d.nd)tx.appendChild(el('span','tg r',d.nd+' değişen'));if(d.nb)tx.appendChild(el('span','tg y',d.nb+' boyalı'));if(!a.tram&&!d.nd&&!d.nb)tx.appendChild(el('span','tg g','Hatasız'));if(ssS(a).ex)tx.appendChild(el('span','tg b','Ekspertizli'));
+    const pr=el('div','pr',ssFmt(ssPrice(a))+' 🪙');if(ssS(a).deal){pr.appendChild(el('s','',ssFmt(a.price)))}tx.appendChild(pr);c.appendChild(tx);c.onclick=()=>{SS.sel=a.id;SS.view='q';phoneApp('sari73')};w.appendChild(c)})}
+/* --- detay --- */
+function ssDetail(w,a){const s=ssS(a),own=OWNCARS&&OWNCARS.indexOf(a.k)>=0;const bk=el('button','bk','◀ İlanlar');bk.onclick=()=>{SS.sel=null;phoneApp('sari73')};w.appendChild(bk);
+  const big=el('div','big');w.appendChild(big);carImg(big,a.k,SS.view,640,400);
+  const gal=el('div','gal');[['q','3/4'],['on','Ön'],['yan','Yan'],['arka','Arka']].filter(v=>v[0]!=='q'||SS.view==='q').slice(-3).forEach(v=>{const b=el('button',SS.view===v[0]?'on':'');carImg(b,a.k,v[0],236,152);b.appendChild(el('span','',v[1]));b.onclick=()=>{SS.view=v[0];big.classList.add('ld');carImg(big,a.k,v[0],640,400);gal.querySelectorAll('button').forEach(z=>z.classList.toggle('on',z===b))};gal.appendChild(b)});w.appendChild(gal);
+  w.appendChild(el('div','ttl',a.m[0]+' '+a.m[1]));const pz=el('div','pz',ssFmt(ssPrice(a))+' 🪙');w.appendChild(pz);if(s.deal)w.appendChild(el('div','sub','🤝 Anlaşılan fiyat · ilan fiyatı '+ssFmt(a.price)+' 🪙'));
+  const sp=el('div','card');sp.appendChild(el('h4','','📋 Araç bilgileri'));const g=el('div','sp');[['Marka',a.m[0]],['Model',a.m[1]],['Kasa',a.m[2]],['Yıl',a.year],['Km',ssFmt(a.km)],['Yakıt',a.fuel],['Vites',a.gear],['Renk',a.color]].forEach(q=>{const d=el('div');d.appendChild(el('span','',q[0]));d.appendChild(el('b','',String(q[1])));g.appendChild(d)});sp.appendChild(g);w.appendChild(sp);
+  const hc=el('div','card');hc.appendChild(el('h4','','💥 Hasar kaydı'));hc.appendChild(el('div','',a.tram?'Tramer (sigorta hasar) kaydı: '+ssFmt(a.tram)+' 🪙':'Tramer kaydı yok ✅'));
+  const sch=el('div','sch');const sv=el('div');sv.innerHTML=ssSchema(s.ex?a.real:a.parts);sch.appendChild(sv.firstChild);const lg=el('div','lg');const d=ssDmg(a);
+  lg.innerHTML='<div><i style="background:#e0484a"></i>Değişen</div><div><i style="background:#f29a1a"></i>Boyalı</div><div><i style="background:#f4d35e"></i>Lokal boyalı</div><div><i style="background:#dfe4ec"></i>Orijinal</div>';
+  const lst=Object.keys(d.P).map(p=>(SS_PARTS.find(q=>q[0]===p)||['',p])[1]+': '+({deg:'değişen',boya:'boyalı',lokal:'lokal boya'})[d.P[p]]);lg.appendChild(el('div','',lst.length?'• '+lst.join('\n• '):'Tüm parçalar orijinal'));lg.lastChild.style.cssText='margin-top:6px;white-space:pre-line;color:#3a4152';
+  sch.appendChild(lg);hc.appendChild(sch);hc.appendChild(el('div','sub',s.ex?'🔍 Ekspertiz raporuna göre (gerçek durum)':'Satıcının beyanı · ekspertizle doğrula'));w.appendChild(hc);
+  const fc=el('div','card');fc.appendChild(el('h4','','🔧 Arıza notları'));const ul=el('ul');a.vis.forEach(v=>ul.appendChild(el('li','',v)));if(s.ex){if(a.hidden)ul.appendChild(el('li','hd','⚠️ Ekspertiz: '+a.hidden[0]+' (tamiri ~'+ssFmt(a.hidden[1])+' 🪙)'));else ul.appendChild(el('li','','✅ Ekspertiz: mekanik olarak temiz'))}fc.appendChild(ul);w.appendChild(fc);
+  const sc=el('div','card');sc.appendChild(el('h4','',a.gal?'🏢 Galeri':'👤 Sahibinden'));sc.appendChild(el('div','',a.seller+' · 📍 '+a.loc));sc.appendChild(el('div','sub','İlan tarihi: Gün '+Math.max(1,a.day)+' · İlan no '+a.id.toUpperCase()));w.appendChild(sc);
+  const ch=el('div','card');ch.style.display='none';w.appendChild(ch);
+  const ac=el('div','acts'),call=el('button','','📞 Satıcıyı ara'),ex=el('button','ex',s.ex?'✅ Ekspertiz yapıldı':'🔍 Ekspertiz · '+ssFmt(ssExCost(a))+'🪙'),buy=el('button','buy',own?'Bu araç garajında var':'💳 Satın al · '+ssFmt(ssPrice(a))+' 🪙');
+  ex.disabled=s.ex;buy.disabled=own;call.disabled=s.angry||!!s.deal;if(s.angry)call.textContent='📵 Satıcı açmıyor';if(s.deal)call.textContent='🤝 Pazarlık yapıldı';
+  call.onclick=()=>ssHaggle(a,ch);ex.onclick=()=>ssExpert(a);buy.onclick=()=>ssBuy(a);ac.appendChild(call);ac.appendChild(ex);ac.appendChild(buy);w.appendChild(ac)}
+function ssExCost(a){return PREMC[a.k]?1500:450}
+function ssExpert(a){const s=ssS(a),c=ssExCost(a);if(s.ex)return;if(!canPay(c)){toast('Ekspertiz için '+c+'🪙 gerekli');return}pay(c);txNote67('🔍 Ekspertiz · '+a.m[0]+' '+a.m[1],'araç');s.ex=true;sfx('coin');
+  const hid=Object.keys(a.real).filter(p=>a.parts[p]!==a.real[p]).length;toast(a.hidden?'⚠️ Ekspertiz: '+a.hidden[0]+'!':hid?'🔍 Ekspertiz: ilanda yazmayan '+hid+' boyalı parça çıktı':'✅ Ekspertiz temiz çıktı');phoneApp('sari73')}
+function ssHaggle(a,box){const s=ssS(a);box.style.display='block';box.innerHTML='';box.appendChild(el('h4','','📞 '+a.seller));const cv=el('div','chat');box.appendChild(cv);const ofr=el('div','ofr');box.appendChild(ofr);
+  const say=(c,t)=>{cv.appendChild(el('div',c,t))};say('s',pick(['Alo, buyrun? İlan için mi aradınız?','Efendim, araba için mi?','Merhaba, '+a.m[1]+' hâlâ satılık evet.']));
+  const ex=s.ex&&(a.hidden||Object.keys(a.real).length>Object.keys(a.parts).length),dmg=ssDmg(a);
+  const tries=[[.05,'%5 indirim'],[.1,'%10 indirim'],[.18,'%18 indirim']];const go=(pct,lbl)=>{ofr.innerHTML='';s.tries++;const offer=Math.round(a.price*(1-pct)/50)*50;say('m','Son '+ssFmt(offer)+' 🪙 olur mu?'+(ex?' Ekspertizde sorun çıktı ama…':dmg.nd?' Değişen parçası var ama…':''));
+    let lim=a.flex+(ex?.1:0)+(dmg.nd?.03:0)+Math.min(.04,(HOME.day-a.day)*.004);setTimeout(()=>{if(pct<=lim){s.deal=offer;say('s',pick(['Tamam, anlaştık 🤝 Kaparo gerekmez, gelin alın.','Olsun bakalım, hayırlı olsun 🤝','Peki, sizin için olur 🤝']));sfx('coin');setTimeout(()=>phoneApp('sari73'),1300)}
+      else if(pct-lim>.08||s.tries>=3){s.angry=true;say('s',pick(['Kusura bakmayın, bu fiyata olmaz. İyi günler.','Bu fiyata veremem, başka alıcı var 😤']));setTimeout(()=>phoneApp('sari73'),1500)}
+      else{const cnt=Math.round(a.price*(1-lim*.7)/50)*50;say('s','O kadar olmaz… '+ssFmt(cnt)+' 🪙 son fiyat derim.');const y=el('button','','👍 '+ssFmt(cnt)+' kabul'),n=el('button','','Kapat');y.onclick=()=>{s.deal=cnt;sfx('coin');say('m','Tamam, anlaştık!');setTimeout(()=>phoneApp('sari73'),700)};n.onclick=()=>{box.style.display='none'};ofr.appendChild(y);ofr.appendChild(n)}},900)};
+  tries.forEach(t=>{const b=el('button','',t[1]);b.onclick=()=>go(t[0],t[1]);ofr.appendChild(b)});box.scrollIntoView({block:'nearest',behavior:'smooth'})}
+function ssBuy(a){const p=ssPrice(a),s=ssS(a);if(OWNCARS&&OWNCARS.indexOf(a.k)>=0)return;if(!canPay(p)){toast('Bu araç için bütçe yetmiyor 😕');return}
+  actionMenu('💳 '+a.m[0]+' '+a.m[1]+' · '+ssFmt(p)+' 🪙',[['✅','Onayla, noterde devri yap',()=>{closeStyl86();if(!canPay(p))return;pay(p);txNote67('🚗 2. el araç · '+a.m[0]+' '+a.m[1],'araç');if(!OWNCARS)OWNCARS=[curCarKey()];OWNCARS.push(a.k);SS.sold[a.id]=1;SS.sel=null;sfx('coin');emitSafe('car_bought');
+      try{memAdd('🚗',a.m[0]+' '+a.m[1]+' aldım ('+a.year+')')}catch(e){}setActiveCar(a.k);toast('🎉 Hayırlı olsun! '+a.m[0]+' '+a.m[1]);
+      if(a.hidden&&!s.ex)setTimeout(()=>notify('⚠️ Gizli arıza!','Yeni aracında '+a.hidden[0].toLowerCase()+' çıktı. Sanayide tamiri ~'+ssFmt(a.hidden[1])+'🪙.',[{t:'🔧 Tamir ettir',fn:()=>{if(!canPay(a.hidden[1])){toast('Tamir için '+a.hidden[1]+'🪙 gerekli');return}pay(a.hidden[1]);txNote67('🔧 Araç tamiri','araç');toast('🔧 Araç tamir edildi')}},{t:'Sonra',fn:()=>{mood=clamp(mood-6,0,100)}}]),6000);
+      if(phoneOpen())phoneApp('sari73')}],['✖','Vazgeç',()=>closeStyl86()]])}
+function closeStyl86(){$('styl').classList.remove('on');uiPC=!!(['menu','pc','nav'].some(i=>$(i).classList.contains('on')))}
+/* --- Sarı Site: üstte Araba / Tekne seçimi --- */
+{const _pa=phoneApp;phoneApp=function(id){if(id!=='sari73')return _pa.apply(this,arguments);
+  if(SS.mode==='boat'){_pa.apply(this,arguments);const b=$('phbody');const w=el('div','ss86');ssTop(w);b.insertBefore(w,b.firstChild);return}
+  $('phone').classList.add('on');$('phdot').style.display='none';const b=$('phbody');b.innerHTML='';$('phback').style.visibility='visible';$('phtitle').textContent='🟨 Sarı Site · Vasıta';
+  const w=el('div','ss86');b.appendChild(w);const a=SS.sel&&ssAds().find(q=>q.id===SS.sel);if(a)ssDetail(w,a);else{SS.sel=null;ssTop(w);ssList(w)}if(!a)b.scrollTop=0;pnxDom(b)}}
+function ssTop(w){const t=el('div','mt');[['car','🚗 Araba'],['boat','⛵ Tekne']].forEach(q=>{const x=el('button',SS.mode===q[0]?'on':'',q[1]);x.onclick=()=>{SS.mode=q[0];SS.sel=null;phoneApp('sari73')};t.appendChild(x)});w.appendChild(t)}
+window.__ss={S:SS,ads:ssAds,shot:carShot,get Q(){return CSQ.length}};
 initMenu();
 resize();applyTime(1);frame();
 }catch(err){const e=document.getElementById('err');e.style.display='block';e.textContent='Hata: '+(err&&err.stack||err)}
