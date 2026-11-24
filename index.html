@@ -10800,6 +10800,102 @@ rideEnd=function(d,x,z){const Rr=RIDE;RIDE=null;rideUI(false);if(!Rr)return;try{
 window.__r99={scene:(k,dur)=>{const key='rest_x72ride',o=INT[key];if(o){if(o.G&&o.G.parent)o.G.parent.remove(o.G);delete INT[key]}RIDE72={dest:'alsancak',how:{bus:'ESHOT otobüsü',havas:'Havaş',metro:'Metro',izban:'İZBAN · Metro',tram:'Tramvay',taxi:'Taksi'}[k],icon:'🧪',cost:0,kind:k==='taxi'?'taxi':k==='bus'||k==='havas'?'bus':'rail',from:activeD.name,paid:1};if(mode==='world')ret={d:activeD.name,x:pl.x,z:pl.z};enter(key)},
   car:(hn,dn)=>{RIDE={host:'test',hn:hn};RS99.car={hn:hn,dn:dn};const k='rest_x99car',o=INT[k];if(o){if(o.G&&o.G.parent)o.G.parent.remove(o.G);delete INT[k]}if(mode==='world')ret={d:activeD.name,x:pl.x,z:pl.z};enter(k)},end:(d)=>rideEnd(d),get RS(){return RS99},get R97(){return R97},mp:d=>mpEvent(d),
   plane:()=>{const o=INT.ucak;if(o){if(o.G&&o.G.parent)o.G.parent.remove(o.G);delete INT.ucak}TRIP={dest:Object.keys(DEST)[0],stage:'board'};if(mode==='world')ret={d:activeD.name,x:pl.x,z:pl.z};enter('ucak')},get FLY(){return FLY}};
+/* ================= v100: AVM etkinlikleri · Kara Cuma (ayda bir), deneme kabini (perde + ayna + beden), kombin puanı (renk uyumu + tarz) ================= */
+/* --- kombin puanı --- */
+function hsl100(c){const o={h:0,s:0,l:0};try{new T.Color(c).getHSL(o)}catch(e){}return o}
+function neutral100(c){const o=hsl100(c);return o.s<.2||o.l<.16||o.l>.88||(o.h>.05&&o.h<.16&&o.s<.5&&o.l>.55)||(o.h>.55&&o.h<.7&&o.l<.3)}
+function hueD100(a,b){const d=Math.abs(hsl100(a).h-hsl100(b).h);return Math.min(d,1-d)}
+function styleScore100(L){L=L||me.look;const top=L.top||'tisort',sh=L.shirt!=null?L.shirt:0xf2f2f2,pa=L.pants!=null?L.pants:0x3b5b9b,so=L.shoes!=null?L.shoes:0x1b1b1f;const dress=top==='elbise';
+  const cols=dress?[sh,so]:[sh,pa,so].concat(top==='ceket'&&L.jacket!=null&&L.jacket!==sh?[L.jacket]:[]);const nn=cols.filter(c=>!neutral100(c));let color,ct;
+  if(nn.length===0){color=2.3;ct='sade & dengeli'}else if(nn.length===1){color=2.9;ct='tek vurgu rengi'}
+  else if(nn.length===2){const d=hueD100(nn[0],nn[1]);if(d<.02&&!dress){color=1.9;ct='renkler fazla aynı'}else if(d<.1){color=2.8;ct='ton ton uyumlu'}else if(d>.42){color=2.6;ct='zıt renk uyumu'}else if(d>.28&&d<.38){color=2.2;ct='canlı üçlü'}else{color=1.4;ct='renkler çatışıyor'}}
+  else{const ok=nn.every(c=>hueD100(c,nn[0])<.1);color=ok?2.4:1.1;ct=ok?'tek renk ailesi':'çok fazla renk'}
+  if(!dress&&Math.abs(hsl100(so).l-hsl100(pa).l)<.08&&!neutral100(so))color+=.2;
+  const PN=n=>(PANTS.find(p=>p[1]===pa)||['?'])[0];const pn=PN();let tz=.8,tn='günlük';
+  if(top==='gomlek'){tz=['Siyah','Bej','Gri','Beyaz'].includes(pn)?1.5:pn==='Kot'?1.1:.7;tn=tz>1.2?'klasik şık':'smart casual'}
+  else if(top==='ceket'){tz=['Siyah','Gri','Bej'].includes(pn)?1.6:pn==='Kot'?1.2:.8;tn='şık'}
+  else if(top==='tisort'){tz=pn==='Kot'?1.3:['Siyah','Haki','Bej'].includes(pn)?1:.8;tn='rahat'}
+  else if(top==='hoodie'||top==='zip'){tz=['Kot','Siyah','Gri'].includes(pn)?1.3:.6;tn='sportif'}
+  else if(dress){tz=1.4;tn='feminen'}
+  if((top==='tisort'||top==='hoodie'||top==='zip')&&so===0xf2f2f2)tz+=.3;if((top==='ceket'||top==='gomlek')&&(so===0x1b1b1f||so===0x6a4428))tz+=.35;if(dress&&(so===0xe87aa8||so===0xc8322a||so===0xf2f2f2))tz+=.3;
+  const acc=['neck','headSun','sun','phone'].filter(k=>L[k]).length,ac=acc===0?0:acc<=2?.45:.15;const tot=color+Math.min(2,tz)+ac;const stars=clamp(Math.round(tot/5.1*5*2)/2,1,5);
+  return {stars:stars,color:ct,tarz:tn,acc:acc}}
+function starStr100(s){let o='';for(let i=1;i<=5;i++)o+=s>=i?'★':s>=i-.5?'⯪':'☆';return o}
+/* stil ekranında yıldız satırı */
+{const _sr=styRender;styRender=function(){_sr.apply(this,arguments);try{if(!STY||!['cloth','gardirop','ayakkabi'].includes(STY.kind))return;const S=styleScore100(STY.cur),d=$('styl'),f=d.querySelector('.foot');const r=el('div','');r.id='sty100';r.style.cssText='margin-top:10px;padding:8px 10px;border-radius:10px;background:rgba(255,179,71,.12);font-size:13px';
+  r.innerHTML='<b style="color:#ffd24a;font-size:18px;letter-spacing:2px">'+starStr100(S.stars)+'</b> <span style="opacity:.85">'+S.stars.toFixed(1)+' · '+S.color+' · '+S.tarz+(S.acc?' · '+S.acc+' aksesuar':'')+'</span>';d.insertBefore(r,f)}catch(e){showErrOnce(e)}}}
+/* onaylanan kombin: yüksek puan mood artırır */
+{const _sc=styClose;styClose=function(){let acc=null;try{if(STY&&me&&JSON.stringify(me.look)!==JSON.stringify(STY.base)&&['cloth','gardirop','ayakkabi'].includes(STY.kind))acc=styleScore100(me.look)}catch(e){}const r=_sc.apply(this,arguments);
+  if(acc){if(acc.stars>=4){mood=clamp(mood+(acc.stars-3)*5,0,100);setTimeout(()=>toast('⭐ Kombin puanın '+acc.stars.toFixed(1)+' '+starStr100(acc.stars)+' · çok şık! Ruh hâlin yükseldi'),900)}else if(acc.stars<=2)setTimeout(()=>toast('🤔 Kombin puanı '+acc.stars.toFixed(1)+' · '+acc.color),900)}return r}}
+/* PixelGram: şık kombin daha çok beğeni */
+{const _pp=pgPost;pgPost=function(){const r=_pp.apply(this,arguments);try{const p=SOC.posts[0],S=styleScore100(me.look),bonus=Math.round(Math.max(0,S.stars-2.5)*9+(S.stars>=4.5?14:0));p.style=S.stars;if(bonus>0)setTimeout(()=>{p.lk+=bonus;try{pgNotify('⭐ Kombinin çok beğenildi · +'+bonus+' beğeni')}catch(e){}},6500)}catch(e){}return r}}
+/* --- Kara Cuma: her ayın 24'ü (30 günlük oyun ayı) --- */
+const BF100={st:{},done:{}};function isBF100(d){return ((d==null?HOME.day:d)%30)===24}
+function bfH100(s){let h=0;for(const c of String(s))h=(h*31+c.charCodeAt(0))|0;return Math.abs(h+HOME.day*97)}
+function bfDisc100(name){return 30+(bfH100(name)%5)*10}
+function bfStock100(key){if(BF100.st[key]==null)BF100.st[key]=1+bfH100(key)%5;return BF100.st[key]}
+{const _nd=newDay;newDay=function(){const r=_nd.apply(this,arguments);try{BF100.st={};if(isBF100())setTimeout(()=>notify('🖤 KARA CUMA!','Bugün tüm AVM\'lerde %30–70 indirim! Kapılar 10:00\'da açılıyor · stoklar sınırlı 🛍️',[{t:'Hemen git 🏃',fn:()=>{try{phoneApp('nav')}catch(e){}}},{t:'Tamam',fn:()=>{}}]),4000);else if(isBF100(HOME.day+1))setTimeout(()=>notify('🖤 Yarın Kara Cuma','AVM\'lerde dev indirim günü yarın. Erken gidenler kuyrukta önde! ⏰',[{t:'👍',fn:()=>{}}]),4500)}catch(e){}return r}}
+/* satın alma menüsü: indirimli fiyat + sınırlı stok */
+function mallShopOf100(title){return Object.keys(SHOPS).find(k=>SHOPS[k].n===title)}
+{const _om=openMenu;openMenu=function(title,items){try{const sid=mallShopOf100(title);if(isBF100()&&sid&&GT>=10*60){const L=items.map(it=>{const key=sid+'|'+it.n,st=bfStock100(key),d=bfDisc100(key),p=Math.max(1,Math.round(it.p*(100-d)/100));return Object.assign({},it,{p:p,d:(st<=0?'❌ Tükendi':'🖤 %'+d+' indirim'+(st<=2?' · Son '+st+' adet!':' · '+st+' adet')),bf:key,p0:it.p})});
+  const r=_om.call(this,'🖤 Kara Cuma · '+title,L);try{$('mnc').textContent='Kara Cuma indirimi · stoklar tükeniyor · cüzdan '+coins+' 🪙'}catch(e){}return r}}catch(e){showErrOnce(e)}return _om.apply(this,arguments)}}
+{const _b=buy;buy=function(it){if(it&&it.bf){const st=bfStock100(it.bf);if(st<=0){toast('❌ Tükendi! Başka biri kaptı 😩');return}const c0=coins;const r=_b.apply(this,arguments);if(coins<c0){BF100.st[it.bf]=st-1;toast('🖤 '+it.n+' · %'+bfDisc100(it.bf)+' indirimle '+it.p+'🪙 (normal '+it.p0+'🪙)'+(st-1<=1?' · '+(st-1?'son 1 adet kaldı':'son ürünü sen aldın!'):''));emitSafe('bf')}return r}return _b.apply(this,arguments)}}
+/* gün içinde diğer müşteriler de alır */
+setInterval(()=>{try{if(!me||!isBF100()||GT<10*60)return;const ks=Object.keys(BF100.st);if(ks.length&&Math.random()<.25){const k=ks[(Math.random()*ks.length)|0];if(BF100.st[k]>0)BF100.st[k]--}}catch(e){}},4000);
+/* giyim (stil ekranı) fiyatlarına da indirim */
+{const _sp=styPrice;styPrice=function(k){const p=_sp.apply(this,arguments);try{if(p&&isBF100()&&GT>=10*60&&STY&&STY.shop&&mallShopOf100(STY.shop.n))return Math.round(p*(100-bfDisc100(STY.shop.n+'|'+k))/100)}catch(e){}return p}}
+/* AVM'de kuyruk: 10:00'dan önce mağaza önlerinde NPC sırası, açılışta koşuşturma */
+function bfQueue100(A){if(!A||!/^mall_/.test(A.name)||A.bf100===HOME.day)return;A.bf100=HOME.day;const doors=A.spots.filter(s=>/içeri gir/.test(s.t||'')&&/^E: /.test(s.t)).slice(0,4);const Q=[];
+  doors.forEach((s,j)=>{const n=4+((j*3+HOME.day)%4);for(let i=0;i<n;i++){const p=person(Object.assign({},LOOK38[(i*3+j)%8]));p.position.set(s.x+(i%2?.35:-.35),0,s.z+1.4+i*.85);p.rotation.y=Math.PI;A.G.add(p);Q.push({p:p,door:s,run:0,d:i*.12+Math.random()*.3})}});
+  if(!Q.length)return;const sg=labelSprite('🖤 KARA CUMA · 10:00');sg.scale.set(4,1,1);sg.position.set(0,6,-14);A.G.add(sg);A.bfQ=Q;A.bfS=sg;let said=0;
+  A.anim.push(t=>{if(!A.bfQ)return;const open=GT>=10*60||!isBF100();if(!open){A.bfQ.forEach((q,i)=>{q.p.position.y=Math.abs(Math.sin(t*2+i))*.04;if(Math.random()<.002)try{say(q.p,pick(['Açılsın artık! ⏰','İlk ben gireceğim 😤','%70 indirim varmış!','Sıra kimde?']),1.6)}catch(e){}});return}
+    if(!said){said=1;try{toast('🏃 Kapılar açıldı! Kara Cuma koşuşturması başladı');if(typeof SFX97!=='undefined')SFX97.chant()}catch(e){}}
+    let alive=0;A.bfQ.forEach(q=>{if(!q.p.parent)return;q.run+=1/60;if(q.run<q.d){alive++;return}const dx=q.door.x-q.p.position.x,dz=q.door.z-.8-q.p.position.z,dd=Math.hypot(dx,dz);if(dd<.4){q.p.parent.remove(q.p);return}alive++;const sp=Math.min(dd,.16);q.p.position.x+=dx/dd*sp;q.p.position.z+=dz/dd*sp;q.p.rotation.y=Math.atan2(dx,dz);walkAnim(q.p,true,t*2)});
+    if(!alive){A.bfQ=null;if(A.bfS&&A.bfS.parent)A.bfS.parent.remove(A.bfS)}})}
+{const _sd=setDistrict;setDistrict=function(n){const r=_sd.apply(this,arguments);try{if(isBF100()&&GT<10*60+30)bfQueue100(activeD)}catch(e){showErrOnce(e)}return r}}
+setInterval(()=>{try{if(me&&mode==='world'&&activeD&&isBF100()&&GT<10*60)bfQueue100(activeD)}catch(e){}},2000);
+/* açılıştan önce mağazaya giriş: kuyruğa gir */
+{const _e=enter;enter=function(kind){if(typeof kind==='string'&&/^shop_/.test(kind)&&mode==='world'&&activeD&&/^mall_/.test(activeD.name)&&isBF100()&&GT<10*60){
+    actionMenu('🖤 Kara Cuma · kapılar 10:00\'da açılıyor',[['🧍','Kuyruğa gir ('+Math.round(10*60-GT)+' dk)',()=>{startAct({name:'🧍 Kara Cuma kuyruğundasın',ic:'🖤',dur:6,tm:4,pose:'phone',per:{fun:-.2},end:()=>{GT=Math.max(GT,10*60);setTimeout(()=>{toast('🏃 Kapılar açıldı, içeri dalıyorsun!');_e(kind)},1200)}})}],['❌','Vazgeç',()=>{}]]);return}return _e.apply(this,arguments)}}
+/* --- deneme kabini: kıyafet seç → kabine gir → perde → aynada dön → Al / Başka beden / Çıkar --- */
+const FIT100={};
+function fitCab100(I){if(I.cab100)return I.cab100;const g=new T.Group();g.position.set(-5.5,0,-4.6);I.G.add(g);const wood=std(0x6a4a30);
+  [-1,1].forEach(s=>{const w=new T.Mesh(new T.BoxGeometry(.08,2.6,1.2),std(0xefe6d8));w.position.set(s*.95,1.3,.6);g.add(w)});const rod=new T.Mesh(new T.CylinderGeometry(.02,.02,1.9,6),std(0xc9a24a,{metalness:.6}));rod.rotation.z=Math.PI/2;rod.position.set(0,2.45,1.2);g.add(rod);
+  const cm=std(0xc43f7a,{roughness:.9});const cur=[-1,1].map(s=>{const c=new T.Mesh(new T.BoxGeometry(.95,2.3,.05),cm);c.position.set(s*.47,1.27,1.2);g.add(c);return c});const mr=new T.Mesh(new T.PlaneGeometry(.7,1.6),new T.MeshStandardMaterial({color:0xcfe6f5,metalness:.85,roughness:.08}));mr.position.set(0,1.3,.07);g.add(mr);
+  I.cab100={g:g,cur:cur,set:k=>{cur.forEach((c,i)=>{const s=i?1:-1;c.scale.x=1-k*.82;c.position.x=s*(.47+k*.39)})}};I.cab100.set(1);return I.cab100}
+function fitPrice100(s,L,base){let c=0;['top','shirt','pants','shoes'].forEach(k=>{if(L[k]!==base[k]&&!OWN.has(k+':'+L[k]))c+=styPrice(k==='shirt'&&L.top!==base.top?'top':k)||0});['neck','headSun','sun','phone'].forEach(k=>{if(L[k]&&!base[k]&&!OWN.has(k+':true'))c+=60});if(c&&isBF100()&&GT>=600&&mallShopOf100(s.n))c=Math.round(c*(100-bfDisc100(s.n+'|kabin'))/100);return c}
+function fitPick100(s){if(busy)return;const I=curI;const base=curLook(),cur=Object.assign({},base);FIT100.s=s;FIT100.base=base;FIT100.cur=cur;FIT100.tab='top';uiPC=true;fitRender100()}
+function fitRender100(){const d=$('styl'),F=FIT100,s=F.s,cur=F.cur;d.innerHTML='';d.classList.add('on');d.appendChild(el('h3','','👗 Deneme kabini · '+s.n));d.appendChild(el('div','sub','Kıyafetleri seç, kabine gir, aynada gör'+(isBF100()&&GT>=600&&mallShopOf100(s.n)?' · 🖤 Kara Cuma indirimi':'')));
+  const tabs=[['top','Üst'],['shirt','Renk'],['pants','Alt'],['shoes','Ayakkabı'],['acc','Aksesuar']],tb=el('div','stabs');tabs.forEach(x=>{const b=el('button',F.tab===x[0]?'on':'',x[1]);b.onclick=()=>{F.tab=x[0];fitRender100()};tb.appendChild(b)});d.appendChild(tb);
+  const g=el('div','sopts');let opts=[];const k=F.tab;
+  if(k==='top')opts=TOPS.map(t=>({v:t[0],n:t[1],ic:t[2]}));else if(k==='shirt')opts=(s.cols||[]).map((c,i)=>({v:c,n:'Mağaza '+(i+1),sw:c})).concat(TOPCOL.slice(0,6).map(t=>({v:t[1],n:t[0],sw:t[1]})));
+  else if(k==='pants')opts=PANTS.map(t=>({v:t[1],n:t[0],sw:t[1]}));else if(k==='shoes')opts=SHOES.map(t=>({v:t[1],n:t[0],sw:t[1]}));else opts=[['neck','Kolye','📿'],['headSun','Saçta gözlük','🕶️'],['sun','Güneş gözlüğü','😎'],['phone','Telefon','📱']].map(a=>({k:a[0],n:a[1]+(cur[a[0]]?' ✓':''),ic:a[2],tog:1}));
+  opts.forEach(o=>{const on=o.tog?!!cur[o.k]:cur[k]===o.v,b=el('button','sopt'+(on?' on':''));if(o.sw!=null){const sw=el('span','sw');sw.style.background=hex(o.sw);b.appendChild(sw)}else b.appendChild(el('span','ic',o.ic));b.appendChild(document.createTextNode(o.n));
+    const own=o.tog?OWN.has(o.k+':true')||F.base[o.k]:OWN.has(k+':'+o.v)||F.base[k]===o.v;if(own)b.appendChild(el('div','pr','✓ sende var'));b.onclick=()=>{if(o.tog)cur[o.k]=!cur[o.k];else{cur[k]=o.v;if(k==='top'&&o.v==='ceket')cur.jacket=cur.shirt}fitRender100()};g.appendChild(b)});d.appendChild(g);
+  const S=styleScore100(cur),pr=fitPrice100(s,cur,F.base);const r=el('div','');r.style.cssText='margin-top:10px;padding:8px 10px;border-radius:10px;background:rgba(255,179,71,.12);font-size:13px';r.innerHTML='<b style="color:#ffd24a;font-size:18px;letter-spacing:2px">'+starStr100(S.stars)+'</b> '+S.stars.toFixed(1)+' · '+S.color+' · '+S.tarz+'<br>Seçimin: '+(pr?pr+'🪙':'hepsi sende var');d.appendChild(r);
+  const f=el('div','foot');f.appendChild(el('b','',''));const no=el('button','no','Vazgeç'),ok=el('button','ok','🚪 Kabine gir');no.onclick=()=>{d.classList.remove('on');uiPC=false};ok.onclick=()=>{d.classList.remove('on');uiPC=false;fitEnter100()};f.appendChild(no);f.appendChild(ok);d.appendChild(f)}
+function fitComment100(S){const I=curI;const lines=S.stars>=4.5?['Vay! Bu çok yakıştı 😍','Bunu kesin almalısın!','Mankenden daha güzel duruyor 🔥']:S.stars>=3.5?['Güzel olmuş 👍','Bence alabilirsin','Renkleri hoş 😊']:S.stars>=2.5?['Fena değil ama…','Başka renk dene bence 🤔','Hmm, emin olamadım']:['Bu olmamış galiba 😅','Renkler birbirini tutmuyor','Diğerini dene bence'];
+  let who=null;try{if(OG.where==='comp'&&OG.p&&I&&OG.p.parent===I.G)who=OG.p}catch(e){}if(who){setTimeout(()=>{say(who,pick(lines),3);try{BONDS.ogus.v=clamp(BONDS.ogus.v+2,0,100)}catch(e){}},700);return PN()}
+  try{const r=Object.values(MP.rem).find(q=>q.loc===myLoc()&&q.p);if(r){setTimeout(()=>say(r.p,pick(lines),3),700);mpEmit('fit100',{to:r.id,stars:S.stars});return r.n}}catch(e){}return null}
+function fitEnter100(){const I=curI;if(!I)return;const cab=fitCab100(I),F=FIT100;F.size=F.size||'M';const inX=-5.5,inZ=-4.05;
+  walkTo(inX,-3.1,()=>{pl.x=inX;pl.z=inZ;let t=0;const seq=(look,after)=>{let k0=0;const iv=setInterval(()=>{t+=.05;k0+=.05;if(k0<.5){cab.set(Math.max(0,1-k0*2))}
+        else if(k0<1.3){if(!F.sw){F.sw=1;applyLook(look);player.position.set(pl.x,0,pl.z)}}else if(k0<1.8)cab.set(Math.min(1,(k0-1.3)*2));else if(k0<3.8){pl.face+=Math.PI*2*.05/2}else{clearInterval(iv);F.sw=0;pl.face=Math.atan2(-7-pl.x,-.4-pl.z);player.rotation.y=pl.face;after&&after()}},50)};
+    say(player,'Bir deneyeyim 👀',1.6);seq(F.cur,()=>fitDecide100())})}
+function fitDecide100(){const F=FIT100,s=F.s,S=styleScore100(F.cur),pr=fitPrice100(s,F.cur,F.base);const who=fitComment100(S);try{sfx('blip')}catch(e){}
+  const fitTxt={S:'dar geldi',M:'tam oldu',L:'biraz bol',XL:'çok bol'}[F.size];actionMenu('🪞 Aynada · '+starStr100(S.stars)+' '+S.stars.toFixed(1)+' · '+S.tarz+' · beden '+F.size+' ('+fitTxt+')'+(who?' · '+who+' yorum yaptı':''),[
+    ['🛍️','Al'+(pr?' · '+pr+'🪙':' (zaten sende)'),()=>{if(pr&&!canPay(pr)){toast('Yeterli 🪙 yok 😕');return fitDecide100()}if(pr)pay(pr);const L=F.cur;['top:'+L.top,'shirt:'+L.shirt,'pants:'+L.pants,'shoes:'+L.shoes].forEach(x=>OWN.add(x));['neck','headSun','sun','phone'].forEach(k=>{if(L[k])OWN.add(k+':true')});
+      mood=clamp(mood+8+(S.stars>=4?(S.stars-3)*5:0),0,100);try{txNote67('👗 '+s.n,'alışveriş')}catch(e){}memAdd('👗',s.n+'\'dan yeni kombin ('+S.stars.toFixed(1)+'★)');toast('🛍️ Aldın! '+(pr?'−'+pr+'🪙 · ':'')+'gardıroba eklendi');try{saveGame()}catch(e){}
+      if(S.stars>=4)setTimeout(()=>notify('📸 PixelGram','Bu kombin paylaşılmayı hak ediyor! Fotoğraf çekip paylaşalım mı?',[{t:'Paylaş ⭐',fn:()=>{try{pgPost(null,0,'Yeni kombin ✨ '+s.n+' '+starStr100(S.stars))}catch(e){}}},{t:'Sonra',fn:()=>{}}]),1500);walkOut100()}],
+    ['📏','Başka beden',()=>actionMenu('📏 Beden seç',['S','M','L','XL'].map(z=>['📏',z+(z===F.size?' ✓':''),()=>{F.size=z;const I=curI,cab=I.cab100;let k0=0;const iv=setInterval(()=>{k0+=.05;if(k0<.4)cab.set(1-k0*2.5);else if(k0<.9){player.scale.x=z==='S'?.96:z==='L'?1.04:z==='XL'?1.08:1}else if(k0<1.3)cab.set((k0-.9)*2.5);else{clearInterval(iv);cab.set(1);toast('📏 '+z+' beden · '+{S:'biraz dar 😬',M:'tam oturdu ✨',L:'biraz bol',XL:'çok bol 🙃'}[z]);fitDecide100()}},50)}]))],
+    ['↩️','Çıkar',()=>{applyLook(F.base);player.position.set(pl.x,0,pl.z);toast('Kıyafetleri askıya geri astın');walkOut100()}]])}
+function walkOut100(){try{player.scale.x=1}catch(e){}const I=curI;if(I&&I.cab100)I.cab100.set(1);pl.z=-3.1;player.position.set(pl.x,0,pl.z)}
+/* giyim mağazalarındaki kabin noktası yeni akışa bağlanır */
+{const _int=interior;interior=function(kind){const I=_int.apply(this,arguments);try{if(I&&/^shop_/.test(kind)&&!I.fit100){const s=SHOPS[kind.slice(5)];if(s&&s.th==='cloth'){I.fit100=1;I.spots.forEach(p=>{if(/Deneme kabini/.test(p.t||'')){p.t='E: 👗 Deneme kabini · kıyafet seç, aynada dene';p.fn=()=>fitPick100(s)}});I.spots.push({x:-6.4,z:-1.6,r:1.4,t:'E: ⭐ Kombinimi puanla',fn:()=>{const S=styleScore100(me.look);toast('⭐ '+starStr100(S.stars)+' '+S.stars.toFixed(1)+' · '+S.color+' · '+S.tarz)}})}}}catch(e){showErrOnce(e)}return I}}
+{const _me=mpEvent;mpEvent=function(d){if(d&&d.k==='fit100'){if(d.to===MP.id)toast('👗 '+(d.fn||'Arkadaşın')+' deneme kabininde · kombin '+starStr100(d.stars));return}return _me.apply(this,arguments)}}
+{const _sv=save25;save25=function(){const o=_sv.apply(this,arguments);try{o.x100={st:BF100.st}}catch(e){}return o}}
+{const _ld=load25;load25=function(x){const r=_ld.apply(this,arguments);try{if(x&&x.x100&&x.x100.st)BF100.st=x.x100.st}catch(e){}return r}}
+ACH.push(['bf','🖤','Kara Cuma avcısı','Kara Cuma\'da indirimli ürün kap','bf',1]);
+window.__m100={score:styleScore100,isBF:isBF100,bf:BF100,pick:fitPick100,F:FIT100,stock:bfStock100,disc:bfDisc100,set day(v){HOME.day=v}};
 /* ================= v90: bahçe & tarım görsel yenileme — tekrarsız çim, sürülmüş toprak, taş yol, lamba, bank, 3 evreli instanced bitkiler, rüzgâr, hasat animasyonu ================= */
 const U90={t:{value:0}};
 function sway90(col,o,amp){const m=std(col,Object.assign({roughness:.75},o||{}));const A=(amp||.03).toFixed(3);
