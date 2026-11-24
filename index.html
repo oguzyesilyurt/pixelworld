@@ -9692,8 +9692,23 @@ setInterval(saveGame,5000);addEventListener('beforeunload',saveGame);addEventLis
 #vcall .cbt button{border:0;border-radius:999px;padding:12px 18px;font:inherit;font-weight:700;cursor:pointer;color:#fff;min-width:104px}
 #vcall .ok{background:#2fb35a}#vcall .no{background:#e0484a}
 #vcall .vend{width:54px;height:54px;min-width:0!important;padding:0!important;border-radius:50%!important;font-size:22px}
-@media (max-width:600px){#vcall{right:50%;top:auto;bottom:12px;transform:translate(50%,130%)}#vcall.in{transform:translate(50%,0)}#vcall.in.ring{animation:none}#vcall .vlog{max-height:30vh}}`;document.head.appendChild(st);
-const d=document.createElement('div');d.id='vcall';document.body.appendChild(d)})();
+@media (max-width:600px){#vcall{right:50%;top:auto;bottom:12px;transform:translate(50%,130%)}#vcall.in{transform:translate(50%,0)}#vcall.in.ring{animation:none}#vcall .vlog{max-height:30vh}}
+/* v86 · arama paneli: sabit üst bilgi, kayan balonlar, kayan seçenekler */
+#vcall{max-height:calc(100vh - 16px);max-height:calc(100dvh - 16px);overflow:hidden;touch-action:pan-y}
+#vcall>*{flex:none}
+#vcall .vlog{flex:1 1 auto!important;min-height:60px;max-height:none;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+#vcall .vop{flex:0 0 auto!important;max-height:40vh;max-height:40dvh;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:2px 2px 2px 0}
+#vcall .vop button{width:100%;flex:none;white-space:normal;overflow-wrap:anywhere;line-height:1.3;box-sizing:border-box}
+#vcall .vb{overflow-wrap:anywhere;white-space:normal}
+@media (max-width:600px){#vcall{max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px)}}
+@media (max-height:520px){#vcall{top:50%;bottom:auto;right:max(8px,env(safe-area-inset-right,0px));width:min(340px,48vw);padding:12px 10px 10px;border-radius:24px;transform:translate(130%,-50%)}#vcall.in{transform:translate(0,-50%)}#vcall.in.ring{animation:vcsh 1.3s ease-in-out .5s infinite}
+ #vcall .vnotch{margin:-4px auto 6px;height:4px;width:60px}#vcall .cav{width:62px;height:62px;font-size:30px;margin:0 auto 6px}
+ #vcall.talk .cav{width:34px;height:34px;font-size:18px;margin:0 auto 2px}#vcall .cnm{font-size:16px}#vcall.talk .cnm{font-size:13px}#vcall .cst{font-size:11px;margin-top:1px}
+ #vcall .vlog{margin:6px 0 4px;gap:4px;min-height:40px}#vcall .vb{font-size:12px;padding:5px 8px;border-radius:12px}
+ #vcall .vop{gap:4px;max-height:40vh;max-height:40dvh}#vcall .vop button{font-size:12px;padding:6px 9px;border-radius:10px}
+ #vcall .cbt{margin-top:6px;gap:8px}#vcall .cbt button{padding:8px 12px;min-width:84px;font-size:13px}#vcall .vend{width:38px;height:38px;font-size:16px}}`;document.head.appendChild(st);
+const d=document.createElement('div');d.id='vcall';document.body.appendChild(d);
+['pointerdown','pointermove','pointerup','touchstart','touchmove','touchend','wheel','mousedown'].forEach(t=>d.addEventListener(t,e=>e.stopPropagation(),{passive:true}))})();
 let VC=null;const VCLOG=[];
 /* kişi → karakter portresi */
 function vcChar(c){const k=me&&me.key;if(c==='P')return k==='yegen'?'abla':COUPLE[k];if(c==='S')return {kiz:'abla',sen:'abla',abla:'kiz',esi:'sen',yegen:'kiz',almira:'kiz',berke:'sen'}[k];return null}
@@ -9724,10 +9739,10 @@ function vcall(c,inc,node){if(VC||!me)return false;if(!contacts().some(q=>q[0]==
     else if(why==='noans'){VCLOG.unshift([c,'noans',HOME.day,hhmm(GT),0]);toast('📵 '+cName(c)+' şu an açmadı')}
     if(VCLOG.length>20)VCLOG.length=20};
   V.finish=finish;
-  const bub=(who,txt)=>{const m=el('div','vb '+who,pnx(fillC(txt)));log.appendChild(m);log.scrollTop=log.scrollHeight;return m};
+  const bub=(who,txt)=>{const m=el('div','vb '+who,pnx(fillC(txt)));log.appendChild(m);log.scrollTop=log.scrollHeight;requestAnimationFrame(()=>{log.scrollTop=log.scrollHeight});return m};
   const gain=()=>{const bb=BONDS[bkey(c)];if(bb)bb.v=clamp(bb.v+4,0,100);NEED.soc=clamp(NEED.soc+5,0,100);mood=clamp(mood+2,0,100)};
   const them=(txt,cb)=>{V.busy=true;const ty=bub('th ty','• • •');setTimeout(()=>{if(V.end)return;ty.remove();bub('th',txt);try{sfx('blip')}catch(e){}V.busy=false;cb&&cb()},700+Math.min(900,txt.length*18))};
-  const opts=(L)=>{op.innerHTML='';L.forEach(o=>{const x=el('button','',pnx(fillC(o[0])));x.onclick=()=>talk(o);op.appendChild(x)});log.scrollTop=log.scrollHeight};
+  const down=()=>requestAnimationFrame(()=>{log.scrollTop=log.scrollHeight});const opts=(L)=>{op.innerHTML='';op.scrollTop=0;L.forEach(o=>{const x=el('button','',pnx(fillC(o[0])));x.onclick=()=>talk(o);op.appendChild(x)});down()};
   const more=()=>{const D2=dlg(c),k=pick(D2.open),nd=D2.n[k],L=[];if(nd&&V.n<8)L.push(['Başka ne var? 😊',nd.in,'@'+k]);if(V.n<6)L.push(pick(vcOpenL(c)));L.push(pick(VC_BYE));opts(L)};
   const talk=(o)=>{if(V.busy||V.end)return;op.innerHTML='';V.n++;bub('me',o[0]);
     them(o[1],()=>{gain();const nx=o[2];if(nx==='@bye'){setTimeout(()=>finish('talk'),900);return}
