@@ -11144,6 +11144,47 @@ vcall=function(c,inc,node){if(VC||!me)return false;if(!contacts().some(q=>q[0]==
 {const _sv=save25;save25=function(){const o=_sv.apply(this,arguments);try{o.x103=CALL103}catch(e){}return o}}
 {const _ld=load25;load25=function(x){const r=_ld.apply(this,arguments);try{if(x&&x.x103&&x.x103.f)CALL103=x.x103}catch(e){}return r}}
 window.__call103={get V(){return VC},tree:ctree103,mem:cmem103,get M(){return CALL103},set M(v){CALL103=v}};
+/* ================= v104: taşınma kolileri · çarpışma kutusu, kapı önü 1.5 birim boş, "Koli aç" / "Kolilerin hepsini aç" (eşyalar otomatik yerleşir) ================= */
+const KOLI104={W:.55,D:.45,H:.4,CX:.62,CZ:.54};
+function door104(I){const s=(I.spots||[]).find(q=>/Dışarı çık|koridoruna dön/.test(q.t||''));return s?{x:s.x,z:-I.d/2+.3}:{x:I.spawn[0],z:I.spawn[1]-1}}
+function free104(I,x,z,hx,hz,ign){if(Math.abs(x)>I.bx-hx+.2||Math.abs(z)>I.bz-hz+.2)return false;for(const b of I.boxes){if(ign&&ign.indexOf(b)>=0)continue;if(Math.abs(b.x-x)<b.hx+hx+.12&&Math.abs(b.z-z)<b.hz+hz+.12)return false}
+  const d=door104(I);/* kapı önü: kapıdan içeri 1.5 birimlik koridor boş kalsın */if(Math.abs(x-d.x)<.95+hx&&z-hz<d.z+1.5+.35)return false;if(Math.hypot(x-d.x,z-d.z)<1.5+Math.max(hx,hz))return false;
+  const sp=I.spawn;if(Math.hypot(x-sp[0],z-sp[1])<.9+Math.max(hx,hz))return false;return true}
+/* n koli için küme yeri: sütun × satır, 2'li istif */
+function cluster104(I,n){const cells=Math.ceil(n/2),cols=Math.min(3,cells),rows=Math.ceil(cells/cols),hx=cols*KOLI104.CX/2,hz=rows*KOLI104.CZ/2,sp=I.spawn,C=[];
+  for(let z=-I.bz+hz;z<=I.bz-hz;z+=.25)for(let x=-I.bx+hx;x<=I.bx-hx;x+=.25)C.push([x,z]);C.sort((a,b)=>Math.hypot(a[0]-sp[0]-1.5,a[1]-sp[1]-1.5)-Math.hypot(b[0]-sp[0]-1.5,b[1]-sp[1]-1.5));
+  for(const c of C)if(free104(I,c[0],c[1],hx+.05,hz+.05))return {x:c[0],z:c[1],cols:cols,rows:rows,hx:hx,hz:hz};return {x:sp[0]+2,z:sp[1]+2,cols:cols,rows:rows,hx:hx,hz:hz}}
+function cellPos104(K,i){const cell=(i/2)|0,col=cell%K.cols,row=(cell/K.cols)|0;return {cell:cell,x:K.x-K.hx+KOLI104.CX*(col+.5),z:K.z-K.hz+KOLI104.CZ*(row+.5),y:.2+(i%2)*(KOLI104.H+.01)}}
+function koliMesh104(){const b=new T.Group();const m=new T.Mesh(new T.BoxGeometry(KOLI104.W,KOLI104.H,KOLI104.D),std(0xc8955a));m.castShadow=true;b.add(m);const tp=new T.Mesh(new T.BoxGeometry(KOLI104.W+.01,.02,.08),std(0xd8c8a0));tp.position.y=KOLI104.H/2+.01;b.add(tp);
+  const lb=new T.Mesh(new T.BoxGeometry(.16,.1,.005),std(0xf4f0e6));lb.position.set(.12,.05,KOLI104.D/2+.003);b.add(lb);return b}
+/* hücre çarpışma kutusu: hücrede koli kalmayınca silinir */
+function cellBox104(I,K,cell,on){K.cb=K.cb||{};if(on){if(K.cb[cell])return;const p=cellPos104(K,cell*2),b={x:p.x,z:p.z,hx:KOLI104.W/2+.04,hz:KOLI104.D/2+.04,koli104:1};I.boxes.push(b);K.cb[cell]=b}else{const b=K.cb[cell];if(b){I.boxes=I.boxes.filter(q=>q!==b);delete K.cb[cell]}}}
+/* açılan koliden çıkan eşyaları boş yere yerleştir */
+function autoPlace104(I,key){if(!FURN[key])return false;const i=DEPO.indexOf(key);if(i<0)return false;let f=null;try{f=HF(I,key,0,0,0)}catch(e){return false}if(!f||!f.b){return true}
+  const sp=I.spawn,C=[];for(let z=-I.bz+f.b.hz;z<=I.bz-f.b.hz;z+=.4)for(let x=-I.bx+f.b.hx;x<=I.bx-f.b.hx;x+=.4)C.push([x,z]);C.sort((a,b)=>Math.hypot(a[0],a[1])-Math.hypot(b[0],b[1]));
+  for(const c of C){if(free104(I,c[0],c[1],f.b.hx,f.b.hz,[f.b])){f.g.position.set(c[0],0,c[1]);try{buildFix(f)}catch(e){f.b.x=c[0];f.b.z=c[1]}DEPO.splice(DEPO.indexOf(key),1);return true}}
+  removeFurn(I,f);return false}
+/* yeni evde koliler (eski unpackSetup74 yerine) */
+unpackSetup74=function(I){const n=MOVE74.unpack;if(!n)return;const K=cluster104(I,n);I.k104=K;const bx=[];for(let i=0;i<n;i++){const b=koliMesh104(),p=cellPos104(K,i);b.position.set(p.x,p.y,p.z);b.rotation.y=(i%3-1)*.06;I.G.add(b);bx.push({m:b,cell:p.cell});cellBox104(I,K,p.cell,true)}I.ubx74=bx;
+  const per=Math.ceil(((MOVE74.mk||[]).length||0)/Math.max(1,n));
+  const openOne=()=>{const it=I.ubx74.pop();if(!it)return;if(it.m.parent)it.m.parent.remove(it.m);if(!I.ubx74.some(q=>q.cell===it.cell))cellBox104(I,K,it.cell,false);MOVE74.unpack=Math.max(0,MOVE74.unpack-1);
+    let placed=0;const mk=MOVE74.mk||[];for(let k=0;k<per&&mk.length;k++){const key=mk.shift();if(autoPlace104(I,key))placed++}mood=clamp(mood+3,0,100);return placed};
+  const done=()=>{if(MOVE74.unpack>0)return;const left=(MOVE74.mk||[]).length;toast('🏠 Bütün koliler açıldı · eşyalar yerleşti'+(left?' · '+left+' parça depoda (Evi düzenle → Depo)':''));memAdd('🏠','Yeni evimdeki son koliyi açtım');try{saveGame()}catch(e){}};
+  const sx=K.x,sz=clamp(K.z+K.hz+.9,-I.bz+.4,I.bz-.4);
+  I.spots.push({x:sx,z:sz,r:1.9,cond:()=>MOVE74.unpack>0&&!ACT.on,get t(){return 'E: 📦 Koli aç ('+MOVE74.unpack+' kaldı)'},fn:()=>{const top=I.ubx74[I.ubx74.length-1];if(!top)return;startAct({name:'📦 Koli açıyorsun, eşyaları yerleştiriyorsun',ic:'📦',dur:3.5,tm:3,pose:'cook',faceTo:top.m.position,
+      tick:(dt)=>{const t=top.m.children[1];if(t)t.rotation.x=Math.min(1.4,(t.rotation.x||0)+dt*1.4)},end:()=>{const p=openOne();toast('📦 Koli açıldı'+(p?' · '+p+' eşya yerleşti':' · '+pick(['Mutfak eşyaları çıktı 🍽️','Kitaplar yerine kondu 📚','Kıyafetler dolaba 👕','Fotoğraf çerçeveleri 🖼️'])));done()}})}},
+    {x:sx+1.3,z:sz,r:1.6,cond:()=>MOVE74.unpack>1&&!ACT.on,t:'E: 📦 Kolilerin hepsini aç',fn:()=>{const n0=MOVE74.unpack;let acc=0,placed=0;startAct({name:'📦 Bütün kolileri açıyorsun ('+n0+')',ic:'📦',dur:Math.max(3,n0*1.6),tm:3,pose:'cook',faceTo:{x:K.x,z:K.z},
+      tick:(dt)=>{acc+=dt;if(acc>1.5&&I.ubx74.length>1){acc=0;placed+=openOne()}},end:()=>{while(I.ubx74.length)placed+=openOne();toast('📦 '+n0+' koli açıldı · '+placed+' eşya yerleşti');done()}})}})};
+/* nakliye başlarken taşınan eşyaların listesi (koli açılınca bunlar yerleşir) */
+{const _ms=moveSeq;moveSeq=function(L){const r=_ms.apply(this,arguments);try{if(CUT&&CUT.keys)MOVE74.mk=CUT.keys.slice()}catch(e){}return r}}
+/* eski evde kolileme: koliler kapıyı kapatmayan bir kümede durur, çarpışma kutusu alır */
+setInterval(()=>{try{const I=curI;if(!I||!I.box74||!I.box74.length||!MOVE74.plan)return;const need=Math.max(3,Math.ceil(((typeof packFurnList74==='function'?packFurnList74().length:6))/2));
+  if(!I.pk104||I.pk104.n<need){I.boxes=I.boxes.filter(b=>!b.koli104);I.box74.forEach(m=>{m.userData.k104=-1});I.pk104=Object.assign(cluster104(I,need),{n:need})}
+  const K=I.pk104;I.box74.forEach((m,i)=>{if(m.userData.k104===i)return;const p=cellPos104(K,i);m.position.set(p.x,p.y,p.z);m.userData.k104=i;cellBox104(I,K,p.cell,true)})}catch(e){}},400);
+/* taşınma bitince eski evdeki koliler ve kutuları kaldırılır */
+setInterval(()=>{try{const M=MOVE74.last;if(!M||!M.from||M.cl104===M.day+'|'+M.to||CUT)return;if(HOME.cur!==M.to)return;const I=INT[M.from];M.cl104=M.day+'|'+M.to;if(!I)return;
+  (I.box74||[]).forEach(m=>{if(m.parent)m.parent.remove(m)});I.box74=[];I.boxes=I.boxes.filter(b=>!b.koli104);I.pk104=null}catch(e){}},1000);
+window.__k104={old:k=>{const I=INT[k];return I?{n:(I.box74||[]).length,c:I.boxes.filter(b=>b.koli104).length}:null},door:door104,free:free104,cluster:cluster104,get MOVE(){return MOVE74}};
 /* ================= v90: bahçe & tarım görsel yenileme — tekrarsız çim, sürülmüş toprak, taş yol, lamba, bank, 3 evreli instanced bitkiler, rüzgâr, hasat animasyonu ================= */
 const U90={t:{value:0}};
 function sway90(col,o,amp){const m=std(col,Object.assign({roughness:.75},o||{}));const A=(amp||.03).toFixed(3);
