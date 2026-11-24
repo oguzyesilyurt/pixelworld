@@ -3148,7 +3148,7 @@ function goalsView(root){root.innerHTML='';root.appendChild(el('h3','','🎯 Gü
 const DATES=[{d:'alsancak',ic:'🌅',n:'Kordon\'da gün batımı yürüyüşü'},{d:'bostanli',ic:'🌊',n:'Bostanlı sahilinde dondurma'},{d:'mall_forum',ic:'🎬',n:'Forum Bornova\'da sinema'},{d:'cigli',ic:'🍢',n:'Gastronomi sokağında akşam yemeği'},{d:'mall_mavibahce',ic:'🛍️',n:'Mavibahçe\'de alışveriş'}];
 function ogView(root){root.innerHTML='';const w=el('div','wid');w.appendChild(el('b','','💙 Oğuz'));w.appendChild(el('div','','Bağınız %'+Math.round(BONDS.ogus.v)+' · '+(OG.where==='comp'?(OG.arriveT>0?'Yolda, geliyor 🚶‍♂️':'Yanında 💞'):'Evde 🏠')));root.appendChild(w);
   const r=el('div');r.style.cssText='display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px';const add=(t,fn,pri)=>{const b=el('button','btn'+(pri?' pri':''),t);b.onclick=fn;r.appendChild(b)};
-  add('📞 Ara',()=>{if(!cdOk('call',20)){toast('Az önce konuştunuz 📞');return}NEED.soc=clamp(NEED.soc+12,0,100);BONDS.ogus.v=clamp(BONDS.ogus.v+5,0,100);toast('📞 Oğuz: "'+pick(['Sesini duymak iyi geldi 💙','Akşama ne yapıyoruz?','Seni çok özledim 🥺'])+'"')});
+  add('📞 Ara',()=>vcallOut('P'));
   add('💬 Mesaj',()=>{chatWho='ogus';phoneApp('chat')});if(OG.where!=='comp')add('🚶 Buluşalım',()=>{compOn();ogView(root)},true);else add('🏠 Eve dönsün',()=>{compOff(false);ogView(root)});root.appendChild(r);
   root.appendChild(el('h3','','💡 Randevu fikirleri'));DATES.forEach(d=>{const c=el('div','row2');c.appendChild(el('span','',d.ic+' '+d.n+(DATE&&DATE.d===d.d?' · aktif ✓':'')));const b=el('button','btn pri','Gidelim');
     b.onclick=()=>{DATE={d:d.d,n:d.n,t:0};compOn();setQuest('💙 Randevu: '+d.n+' (arabaya binip git)');toast('Randevu planlandı 💙 '+d.n);$('phone').classList.remove('on')};c.appendChild(b);root.appendChild(c)})}
@@ -3976,7 +3976,7 @@ function partnerInfo(){const k=me&&me.key;return {kiz:['Oğuz','💙'],sen:['Den
 function dlg(c){return DLG[(me&&me.key==='yegen'&&c==='P')?'A':c]}
 function partnerView(root){const P=partnerInfo();root.innerHTML='';const w=el('div','wid');w.appendChild(el('b','',P[1]+' '+P[0]));w.appendChild(el('div','','Bağınız %'+Math.round(BONDS.ogus.v)));root.appendChild(w);
   const r=el('div');r.style.cssText='display:flex;gap:8px;flex-wrap:wrap';const add=(t,fn,pri)=>{const b=el('button','btn'+(pri?' pri':''),t);b.onclick=fn;r.appendChild(b)};
-  add('📞 Ara',()=>{if(!cdOk('callP',20)){toast('Az önce konuştunuz 📞');return}NEED.soc=clamp(NEED.soc+12,0,100);BONDS.ogus.v=clamp(BONDS.ogus.v+5,0,100);toast('📞 '+P[0]+': "'+pick(me.key==='yegen'?['Oğlum, akşam yemeğe geç kalma 💛','Ödevlerini yaptın mı? 📚','Seni çok seviyorum 💛']:['Sesini duymak iyi geldi '+P[1],'Akşama ne yapıyoruz?','Seni özledim 🥺'])+'"')});
+  add('📞 Ara',()=>vcallOut('P'));
   add('💬 Mesaj',()=>{chatWho='P';phoneApp('chat')});if(me.key!=='yegen')add('💐 Çiçek gönder (80🪙)',()=>{if(!canPay(80)){toast('Yeterli 🪙 yok');return}pay(80);BONDS.ogus.v=clamp(BONDS.ogus.v+15,0,100);mood=clamp(mood+6,0,100);emitSafe('flowers');
     setTimeout(()=>{addMsg('P','in',pick(['Çiçekler geldi! 😍 Çok mutlu oldum','Ayy bu ne güzel sürpriz 💐 Seni seviyorum','Masama koydum, herkes soruyor 😊']));if(!SET.mute)notify(P[1]+' '+P[0],'Çiçeklerin teslim edildi 💐 Çok mutlu oldu!',[{t:'❤️',fn:()=>{}}])},4000);toast('💐 Çiçekçi yola çıktı')},true);root.appendChild(r)}
 /* ---------- karakter şifreleri ---------- */
@@ -9660,6 +9660,94 @@ function loadGame(k){try{const S=readSaveSafe(k||'kiz');if(!S)return;SAVE=S;
   if(S.own)S.own.forEach(x=>OWN.add(x));
   if(S.furn)Object.keys(S.furn).forEach(k=>{if(INT[k])restoreFurn(INT[k],S.furn[k])});if(S.x)load25(S.x)}catch(er){SAVE=null}}
 setInterval(saveGame,5000);addEventListener('beforeunload',saveGame);addEventListener('pagehide',saveGame);document.addEventListener('visibilitychange',()=>{if(document.hidden)saveGame()});
+/* ---------- v84 · sesli arama: kenardan kayan telefon, konuşma balonları, seçmeli diyalog ---------- */
+(function(){const st=document.createElement('style');st.textContent=`
+#vcall{position:fixed;right:18px;top:50%;z-index:113;width:min(320px,88vw);max-height:88vh;display:none;flex-direction:column;border-radius:36px;padding:22px 16px 16px;text-align:center;color:#fff;background:linear-gradient(180deg,#2a1f4a,#171226);border:1px solid rgba(255,255,255,.12);box-shadow:0 24px 70px rgba(0,0,0,.55),inset 0 0 0 6px #0c0916;box-sizing:border-box;transform:translate(130%,-50%);transition:transform .45s cubic-bezier(.2,.9,.25,1.15)}
+#vcall.on{display:flex}#vcall.in{transform:translate(0,-50%)}
+#vcall.in.ring{animation:vcsh 1.3s ease-in-out .5s infinite}
+@keyframes vcsh{0%,58%,100%{transform:translate(0,-50%) rotate(0)}62%{transform:translate(-4px,-50%) rotate(-2.5deg)}66%{transform:translate(4px,-50%) rotate(2.5deg)}70%{transform:translate(-4px,-50%) rotate(-2deg)}74%{transform:translate(4px,-50%) rotate(2deg)}78%{transform:translate(0,-50%) rotate(0)}}
+#vcall .vnotch{width:86px;height:6px;border-radius:6px;background:#0c0916;margin:-10px auto 12px;flex:none}
+#vcall .cav{width:92px;height:92px;margin:2px auto 10px;border-radius:50%;display:grid;place-items:center;font-size:46px;background:radial-gradient(circle at 35% 30%,#7a6bd8,#3b2f7a);background-size:cover;background-position:center;animation:scnr 1.4s ease-in-out infinite;flex:none}
+#vcall.talk .cav{width:54px;height:54px;font-size:28px;margin:0 auto 6px;animation:none}
+#vcall .cnm{font-size:21px;font-weight:700}#vcall.talk .cnm{font-size:16px}#vcall .cst{opacity:.7;font-size:13px;margin-top:3px;font-variant-numeric:tabular-nums}
+#vcall .vlog{flex:1;min-height:150px;max-height:40vh;overflow:auto;margin:10px 0 6px;padding:4px 2px;display:flex;flex-direction:column;gap:6px}
+#vcall .vb{max-width:82%;padding:8px 11px;border-radius:16px;font-size:14px;line-height:1.35;text-align:left;animation:vbin .25s ease-out}
+#vcall .vb.th{align-self:flex-start;background:rgba(255,255,255,.12);border-bottom-left-radius:4px}
+#vcall .vb.me{align-self:flex-end;background:#6b5bd6;border-bottom-right-radius:4px}
+#vcall .vb.ty{opacity:.7;letter-spacing:2px}
+@keyframes vbin{from{opacity:0;transform:translateY(6px) scale(.96)}to{opacity:1;transform:none}}
+#vcall .vop{display:flex;flex-direction:column;gap:6px}
+#vcall .vop button{border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.07);color:#fff;border-radius:14px;padding:9px 12px;font:inherit;font-size:14px;cursor:pointer;text-align:left}
+#vcall .vop button:hover{border-color:#ffb347;background:rgba(255,179,71,.14)}
+#vcall .cbt{display:flex;gap:12px;justify-content:center;margin-top:14px;flex:none}
+#vcall .cbt button{border:0;border-radius:999px;padding:12px 18px;font:inherit;font-weight:700;cursor:pointer;color:#fff;min-width:104px}
+#vcall .ok{background:#2fb35a}#vcall .no{background:#e0484a}
+#vcall .vend{width:54px;height:54px;min-width:0!important;padding:0!important;border-radius:50%!important;font-size:22px}
+@media (max-width:600px){#vcall{right:50%;top:auto;bottom:12px;transform:translate(50%,130%)}#vcall.in{transform:translate(50%,0)}#vcall.in.ring{animation:none}#vcall .vlog{max-height:30vh}}`;document.head.appendChild(st);
+const d=document.createElement('div');d.id='vcall';document.body.appendChild(d)})();
+let VC=null;const VCLOG=[];
+/* kişi → karakter portresi */
+function vcChar(c){const k=me&&me.key;if(c==='P')return k==='yegen'?'abla':COUPLE[k];if(c==='S')return {kiz:'abla',sen:'abla',abla:'kiz',esi:'sen',yegen:'kiz',almira:'kiz',berke:'sen'}[k];return null}
+function vcImg(c){const ck=vcChar(c);if(!ck||!CH[ck])return null;const key='ch_vc_'+ck;if(!PORT[key]||PORT[key].length<3000){try{PORT[key]=portrait(lookOf(ck))}catch(e){return null}}return PORT[key].length<3000?null:PORT[key]}
+function vcIcon(c){const q=contacts().find(x=>x[0]===c);return q?q[2]:'📞'}
+/* aramaya özel açılış cümleleri; sonrası mesaj ağaçlarından (DLG: dinner, when, how…) ilerler */
+const VC_OPEN={P:[['Alo, naber? 👋','Aa sen misin! İyiyim aşkım, sesini duyunca daha da iyi oldum 🥰','day'],['Akşam ne yapıyoruz?','Film mi, dışarı mı? 😊','plan2'],['Seni özledim 🥺','Ben de seni çok özledim! Gel hemen sarılayım 🤗','meet']],
+ S:[['Alo, naber? 👋','İyiyim canım, sen nasılsın? 😊','how'],['Akşam size geleyim mi?','Gel gel, sofraya bir tabak daha 🍽️','dinner'],['Kahve içelim mi? ☕','Olur! Çayı da demledim 🫖','when']],
+ A:[['Alo anne, naber? 👋','İyiyim {c}, sen nasılsın? 💛','how'],['Seni özledim anne 🥺','Ben de seni {c}, gel bir gün 💛','borek'],['Ne pişirdin?','Taze fasulye yaptım 🫘','eat2']]};
+const VC_HI=['Alo? 😊','Efendim? 💛','Alo, buyur 📞'],VC_BYE=[['Hadi kapatıyorum, görüşürüz 👋','Görüşürüz, öptüm 😘','@bye'],['Sonra yine ararım 📞','Tamam, bekliyorum 💛','@bye']];
+function vcOpenL(c){return (VC_OPEN[(me&&me.key==='yegen'&&c==='P')?'A':c]||dlg(c).start).slice(0,3)}
+function vcFmt(t){t=Math.floor(t);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')}
+function vcBox(){const b=$('vcall');b.innerHTML='';b.className='on';void b.offsetWidth;requestAnimationFrame(()=>requestAnimationFrame(()=>b.classList.add('in')));return b}
+function vcHide(){const b=$('vcall');b.classList.remove('in','ring');setTimeout(()=>{if(!VC){b.className='';b.innerHTML=''}},460)}
+function vcRingOn(){const ring=()=>{try{sfx('bell')}catch(e){}try{navigator.vibrate&&navigator.vibrate([300,200,300])}catch(e){}};ring();return setInterval(ring,2600)}
+/* c: P/S/A · inc: gelen arama · node: arayanın açtığı konu (DLG.n anahtarı) */
+function vcall(c,inc,node){if(VC||!me)return false;if(!contacts().some(q=>q[0]===c))return false;
+  const b=vcBox(),av=el('div','cav'),img=vcImg(c);if(img){av.style.backgroundImage='url("'+img+'")'}else av.textContent=vcIcon(c);
+  b.appendChild(el('div','vnotch'));b.appendChild(av);b.appendChild(el('div','cnm',pnx(cName(c))));const st=el('div','cst',inc?'📞 arıyor…':'📞 aranıyor…');b.appendChild(st);
+  const log=el('div','vlog'),op=el('div','vop'),bt=el('div','cbt');b.appendChild(bt);
+  const V={c:c,inc:inc,t0:0,tm:null,rt:null,busy:false,n:0,end:null};VC=V;
+  const stopRing=()=>{if(V.rt){clearInterval(V.rt);V.rt=null}clearTimeout(V.to);b.classList.remove('ring')};
+  const finish=(why)=>{if(V.end)return;V.end=why;stopRing();if(V.tm)clearInterval(V.tm);if(VC===V)VC=null;vcHide();
+    const dur=V.t0?(performance.now()-V.t0)/1000:0;
+    if(why==='talk'){VCLOG.unshift([c,inc?'in':'out',HOME.day,hhmm(GT),dur]);CHT[c].log.push([inc?'in':'out','📞 Sesli arama · '+vcFmt(dur)]);toast('📞 Görüşme bitti · '+vcFmt(dur))}
+    else if(why==='miss'){VCLOG.unshift([c,'miss',HOME.day,hhmm(GT),0]);CHT[c].log.push(['in','📵 Cevapsız arama']);const bb=BONDS[bkey(c)];if(bb)bb.v=clamp(bb.v-3,0,100);
+      toast('📵 Cevapsız arama · '+cName(c));notify('📵 Cevapsız arama',cName(c)+' seni aradı · bağınız biraz azaldı',[{t:'📞 Geri ara',fn:()=>vcallOut(c)},{t:'Tamam',fn:()=>{}}])}
+    else if(why==='noans'){VCLOG.unshift([c,'noans',HOME.day,hhmm(GT),0]);toast('📵 '+cName(c)+' şu an açmadı')}
+    if(VCLOG.length>20)VCLOG.length=20};
+  V.finish=finish;
+  const bub=(who,txt)=>{const m=el('div','vb '+who,pnx(fillC(txt)));log.appendChild(m);log.scrollTop=log.scrollHeight;return m};
+  const gain=()=>{const bb=BONDS[bkey(c)];if(bb)bb.v=clamp(bb.v+4,0,100);NEED.soc=clamp(NEED.soc+5,0,100);mood=clamp(mood+2,0,100)};
+  const them=(txt,cb)=>{V.busy=true;const ty=bub('th ty','• • •');setTimeout(()=>{if(V.end)return;ty.remove();bub('th',txt);try{sfx('blip')}catch(e){}V.busy=false;cb&&cb()},700+Math.min(900,txt.length*18))};
+  const opts=(L)=>{op.innerHTML='';L.forEach(o=>{const x=el('button','',pnx(fillC(o[0])));x.onclick=()=>talk(o);op.appendChild(x)});log.scrollTop=log.scrollHeight};
+  const more=()=>{const D2=dlg(c),k=pick(D2.open),nd=D2.n[k],L=[];if(nd&&V.n<8)L.push(['Başka ne var? 😊',nd.in,'@'+k]);if(V.n<6)L.push(pick(vcOpenL(c)));L.push(pick(VC_BYE));opts(L)};
+  const talk=(o)=>{if(V.busy||V.end)return;op.innerHTML='';V.n++;bub('me',o[0]);
+    them(o[1],()=>{gain();const nx=o[2];if(nx==='@bye'){setTimeout(()=>finish('talk'),900);return}
+      if(nx&&nx[0]==='@'){const nd=dlg(c).n[nx.slice(1)];if(nd){opts(nd.o);return}}
+      const nd=nx&&dlg(c).n[nx];if(nd)them(nd.in,()=>opts(nd.o));else more()})};
+  const start=()=>{stopRing();b.classList.add('talk');st.textContent='🟢 00:00';V.t0=performance.now();V.tm=setInterval(()=>{st.textContent='🟢 '+vcFmt((performance.now()-V.t0)/1000)},500);
+    b.insertBefore(log,bt);b.insertBefore(op,bt);bt.innerHTML='';const x=el('button','no vend','✖');x.title='Kapat';x.onclick=()=>finish('talk');bt.appendChild(x);
+    const nd=node&&dlg(c).n[node];
+    if(inc){bub('me','Alo? 📞');if(nd)them(nd.in,()=>opts(nd.o));else them(pick(['Alo, naber? Sesini duymak istedim 😊','Müsait misin? 💛']),()=>opts(vcOpenL(c)))}
+    else them(pick(VC_HI),()=>opts(vcOpenL(c)))};
+  if(inc){b.classList.add('ring');V.rt=vcRingOn();const ans=el('button','ok','📞 Kabul'),rej=el('button','no','Reddet');bt.appendChild(ans);bt.appendChild(rej);
+    ans.onclick=start;rej.onclick=()=>finish('miss');V.to=setTimeout(()=>{if(!V.t0&&!V.end)finish('miss')},20000)}
+  else{const x=el('button','no','Vazgeç');x.onclick=()=>finish('cancel');bt.appendChild(x);try{sfx('blip')}catch(e){}
+    const bb=BONDS[bkey(c)],okA=(bb?bb.v:60)>15&&!(GT<7*60&&rnd()<.6);V.to=setTimeout(()=>{if(V.end)return;if(okA)start();else finish('noans')},1800+rnd()*1200)}
+  return true}
+function vcallOut(c){c=ckey(c);if(VC){toast('📞 Zaten bir görüşmedesin');return}if(mode==='drive'){toast('🚗 Sürerken arama yapma, önce park et');return}
+  if(phoneOpen())$('phone').classList.remove('on');vcall(c,false)}
+/* rehber + son aramalar */
+function callsView(root){root.innerHTML='';root.appendChild(el('h3','','📇 Rehber'));contacts().forEach(q=>{const r=el('div','row2'),bb=BONDS[bkey(q[0])];r.appendChild(el('span','',q[2]+' '+q[1]+(bb?' · bağ %'+Math.round(bb.v):'')));
+    const x=el('button','btn pri','📞 Ara');x.onclick=()=>vcallOut(q[0]);r.appendChild(x);root.appendChild(r)});
+  root.appendChild(el('h3','','🕘 Son aramalar'));if(!VCLOG.length)root.appendChild(el('div','sub','Henüz arama yok.'));
+  VCLOG.forEach(l=>{const r=el('div','row2');r.appendChild(el('span','',(l[1]==='in'?'↙️ ':l[1]==='out'?'↗️ ':'📵 ')+cName(l[0])+' · Gün '+l[2]+' '+l[3]+(l[4]?' · '+vcFmt(l[4]):l[1]==='miss'?' · cevapsız':' · açmadı')));
+    if(l[1]==='miss'||l[1]==='noans'){const x=el('button','btn','Geri ara');x.onclick=()=>vcallOut(l[0]);r.appendChild(x)}root.appendChild(r)})}
+APPS.splice(1,0,['calls','📞','Telefon','#2fb35a,#7ae09a']);
+{const _pa=phoneApp;phoneApp=function(id){if(id!=='calls')return _pa.apply(this,arguments);$('phone').classList.add('on');$('phdot').style.display='none';const b=$('phbody');b.innerHTML='';$('phback').style.visibility='visible';$('phtitle').textContent='📞 Telefon';callsView(b);pnxDom(b)}}
+/* karakterler de arasın: rastgele mesajların bir kısmı sesli arama olarak gelir */
+{const _rm=randomMessage;randomMessage=function(){if(me&&!SET.mute&&!VC&&!SCN_UI&&mode!=='drive'&&rnd()<.35){const cs=contacts().map(q=>q[0]).filter(c=>c!=='P'||!partnerNear());if(cs.length){const c=pick(cs),D2=dlg(c);if(vcall(c,true,pick(D2.open)))return}}return _rm.apply(this,arguments)}}
+window.__vc={call:vcall,out:vcallOut,get VC(){return VC},log:VCLOG};
+{const _sf=scnFree;scnFree=function(){return !VC&&_sf.apply(this,arguments)}}
 initMenu();
 resize();applyTime(1);frame();
 }catch(err){const e=document.getElementById('err');e.style.display='block';e.textContent='Hata: '+(err&&err.stack||err)}
