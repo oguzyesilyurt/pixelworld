@@ -1500,14 +1500,14 @@ function buildRender(){const d=$('styl');d.innerHTML='';d.classList.add('on','bl
   if(BUILD.tab==='sel'){const f=BUILD.sel;d.appendChild(el('div','sub',f?('Seçili: '+(f.name||'eşya')):'Bir eşyaya tıkla'));const g=el('div','sopts');
     [['⟲','Sola döndür (Q)',()=>buildRot(-1)],['⟳','Sağa döndür (E)',()=>buildRot(1)],['📦','Depoya kaldır',()=>buildStore()],['💰','Sat (%50)',()=>buildSell()]].forEach(a=>{const b=el('button','sopt');b.appendChild(el('span','ic',a[0]));b.appendChild(document.createTextNode(a[1]));b.onclick=a[2];if(!f)b.disabled=true,b.style.opacity=.4;g.appendChild(b)});d.appendChild(g)}
   else if(BUILD.tab==='depo'){depoRender(d)}
-  else if(BUILD.tab==='reno'){renoRender(d)}else{bldStore(d)}try{renoHi(curI)}catch(e){}
+  else if(BUILD.tab==='reno'){renoRender(d)}else{bldStore(d)}try{renoHi(curI)}catch(e){}try{topFix(curI)}catch(e){}
   const ft=el('div','foot');ft.appendChild(el('b','','🪙 '+coins));const ok=el('button','ok','Bitti ✓');ok.onclick=buildClose;ft.appendChild(ok);d.appendChild(ft)}
 function buildRot(k){const f=BUILD.sel;if(!f)return;f.q=((f.q+k)%4+4)%4;f.g.rotation.y=f.q*Math.PI/2;const q=buildClamp(f,f.g.position.x,f.g.position.z);f.g.position.x=q[0];f.g.position.z=q[1];buildFix(f)}
 function buildSell(){const f=BUILD.sel;if(!f)return;if(f.g.parent)f.g.parent.remove(f.g);f.g.visible=false;f.sold=true;curI.boxes=curI.boxes.filter(b=>b!==f.b);(f.spots||[]).forEach(o=>{curI.spots=curI.spots.filter(s=>s!==o.sp)});
   const r=Math.round((f.price||60)/2);coins+=r;toast((f.name||'Eşya')+' satıldı · +'+r+'🪙');BUILD.sel=null;buildRender()}
 function buildBuy(c){if(!canPay(c[1])){toast('Yeterli 🪙 yok');return}pay(c[1]);const x=Math.max(-curI.bx+1,Math.min(curI.bx-1,camT.x/.6)),z=Math.max(-curI.bz+1,Math.min(curI.bz-1,camT.z/.6));
   const f=HF(curI,c[8],x,z,0);if(BUILD.sel)BUILD.sel.g.scale.setScalar(1);BUILD.sel=f;BUILD.tab='sel';toast(c[0]+' alındı 🛒 Fareyle sürükleyip yerleştir');sfx('coin');buildRender()}
-function buildFix(f){if(f.b){f.b.x=f.g.position.x;f.b.z=f.g.position.z;const sw=f.q%2!==0;f.b.hx=sw?f.hz:f.hx;f.b.hz=sw?f.hx:f.hz}moveSpots(f)}
+function buildFix(f){try{topFix(curI)}catch(e){}if(f.b){f.b.x=f.g.position.x;f.b.z=f.g.position.z;const sw=f.q%2!==0;f.b.hx=sw?f.hz:f.hx;f.b.hz=sw?f.hx:f.hz}moveSpots(f)}
 const _rc=new T.Raycaster(),_pl=new T.Plane(new T.Vector3(0,1,0),0),_hp=new T.Vector3(),_nd=new T.Vector2();
 function floorAt(e){const r=dom.getBoundingClientRect();_nd.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);_rc.setFromCamera(_nd,cam);return _rc.ray.intersectPlane(_pl,_hp)?_hp:null}
 function pickFurn(p){let b=null,bd=1e9;homeFurn(curI).forEach(f=>{const dx=Math.abs(p.x-f.g.position.x),dz=Math.abs(p.z-f.g.position.z),sw=f.q%2!==0,hx=(sw?f.hz:f.hx)||.5,hz=(sw?f.hx:f.hz)||.5;
@@ -1515,7 +1515,7 @@ function pickFurn(p){let b=null,bd=1e9;homeFurn(curI).forEach(f=>{const dx=Math.
 dom.addEventListener('pointerdown',e=>{if(!BUILD.on||!isHome())return;const p=floorAt(e);if(!p)return;const f=pickFurn(p);if(BUILD.sel&&BUILD.sel!==f){BUILD.sel.g.scale.setScalar(1);buildFix(BUILD.sel)}
   const was0=BUILD.sel;BUILD.sel=f;if(f&&f===was0){BUILD.drag=true;BUILD.off={x:f.g.position.x-p.x,z:f.g.position.z-p.z};if(f.b)f.b.x=9999}else if(!f)BUILD.pan={x:p.x,z:p.z};else toast('✔️ '+(f.name||'Eşya')+' seçildi · şimdi sürükleyerek taşı');BUILD.tab='sel';buildRender()});
 dom.addEventListener('pointermove',e=>{if(!BUILD.on||!BUILD.drag||!BUILD.sel)return;const p=floorAt(e);if(!p)return;const f=BUILD.sel,I=curI;
-  {const q=buildClamp(f,Math.round((p.x+BUILD.off.x)*4)/4,Math.round((p.z+BUILD.off.z)*4)/4);f.g.position.x=q[0];f.g.position.z=q[1]}});
+  {const q=buildClamp(f,Math.round((p.x+BUILD.off.x)*4)/4,Math.round((p.z+BUILD.off.z)*4)/4);f.g.position.x=q[0];f.g.position.z=q[1];if(FTOP[f.key])f.g.position.y=topY(I,f)}});
 addEventListener('pointerup',()=>{if(BUILD.drag&&BUILD.sel){BUILD.drag=false;buildFix(BUILD.sel)}});
 addEventListener('keydown',e=>{if(!BUILD.on)return;if(e.code==='KeyQ')buildRot(-1);if(e.code==='KeyE'){buildRot(1);e.stopImmediatePropagation()}if(e.code==='Escape')buildClose()},true);
 function buildTick(t){document.body.classList.toggle('bmode',!!BUILD.on);if(BUILD.on&&!isHome())buildClose();const b=document.getElementById('bldb');if(b)b.style.display=isHome()&&!BUILD.on?'block':'none';if(BUILD.on&&BUILD.sel)BUILD.sel.g.scale.setScalar(1+.03*Math.sin(t*6))}
@@ -1680,7 +1680,7 @@ Object.assign(USE,{
 USE.BED=['😴 Uyu / şekerleme',()=>actionMenu('🛏️ Yatak',[['😴','Sabaha kadar uyu',()=>sleep()],['💤','Kısa şekerleme',()=>busyDo('20 dakikalık şekerleme 💤',()=>{mood=clamp(mood+8,0,100)})]])];
 /* ---------- yerleşim ---------- */
 function HF(I,key,x,z,q){const f0=FURN[key],pw=W;if(I.G)W=I.G;F(I,x,z,q,f0[4],f0[5],f0[3]());W=pw;const f=I.furn[I.furn.length-1];f.name=f0[0];f.price=f0[1];f.key=key;
-  if(f0[6]&&USE[f0[6]]){const u=USE[f0[6]],dz=f0[7]||1.2,a=q*Math.PI/2,ox=dz*Math.sin(a),oz=dz*Math.cos(a);const sp={x:x+ox,z:z+oz,r:1.7,get t(){return f.broken?'E: ⚠️ '+(f.name||'Eşya')+' arızalı':'E: '+u[0]},fn:()=>{if(f.broken){brokenMenu(f);return}u[1]()}};I.spots.push(sp);f.spots=[{sp:sp,dx:ox,dz:oz,q0:q}]}return f}
+  if(f0[6]&&USE[f0[6]]){const u=USE[f0[6]],dz=f0[7]||1.2,a=q*Math.PI/2,ox=dz*Math.sin(a),oz=dz*Math.cos(a);const sp={x:x+ox,z:z+oz,r:1.7,get t(){return f.broken?'E: ⚠️ '+(f.name||'Eşya')+' arızalı':'E: '+u[0]},fn:()=>{if(f.broken){brokenMenu(f);return}u[1]()}};I.spots.push(sp);f.spots=[{sp:sp,dx:ox,dz:oz,q0:q}]}if(typeof FTOP!=='undefined'&&FTOP[key])f.g.position.y=topY(I,f);return f}
 function wallSeg(I,x0,z0,x1,z1,wm,gaps){const H=1.4,tm=mt(0xf3ecdc);const horiz=Math.abs(z1-z0)<.01,a=horiz?x0:z0,b=horiz?x1:z1;let cuts=[[a,b]];
   (gaps||[]).forEach(gp=>{const nc=[];cuts.forEach(c=>{if(gp[1]<=c[0]||gp[0]>=c[1]){nc.push(c);return}if(gp[0]>c[0])nc.push([c[0],gp[0]]);if(gp[1]<c[1])nc.push([gp[1],c[1]])});cuts=nc});
   cuts.forEach(c=>{const L=c[1]-c[0];if(L<.05)return;const m=(c[0]+c[1])/2;if(horiz){box(L,H,.14,wm,m,H/2,z0);box(L+.02,.06,.2,tm,m,H+.03,z0);I.boxes.push({x:m,z:z0,hx:L/2,hz:.12})}
@@ -3744,7 +3744,7 @@ function importSave(){const i=document.createElement('input');i.type='file';i.ac
 let lastH=-1,LAST_I27=null;
 function life27(dt,t,inI){lookTick(dt);petsTick(dt,t);if(mode==='world'&&dog&&dog.visible)dogFollow(dt,t);
   if(inI&&curI&&curI.heightAt&&!ACT.on&&!curI.match)player.position.y=curI.heightAt(pl.x,pl.z);
-  if(inI&&curI&&curI.tick&&!curI.agents)curI.tick(dt,t);
+  if(inI&&curI&&curI.tick&&!curI.agents)curI.tick(dt,t);if(inI)miniTubeTick(t);
   selFlashTick(t);
   if(curI!==LAST_I27){LAST_I27=curI;try{onEnter33(curI)}catch(e){}try{onEnter34(curI)}catch(e){}try{onEnter35(curI)}catch(e){}try{onEnter36(curI)}catch(e){}try{onEnter37(curI)}catch(e){}try{onEnter38(curI)}catch(e){}try{onEnter39(curI)}catch(e){}try{onEnter46(curI)}catch(e){}if(curI&&curI.name==='mall_hilltown2')emitSafe('hill2');if(curI&&curI.name==='mall_hilltown3')emitSafe('hill3');if(curI&&curI.name==='of1')recep(curI);if(curI&&curI.stad&&!(ACT.on)){curI.passed=false;const gb=curI.boxes.find(b=>b.x===-26.4&&b.z===15);if(gb){gb.hx=5;gb.hz=.3}curI.G.traverse(o=>{if(o.isMesh&&o.position.x===-26.4&&o.position.z===15.2)o.visible=true})}
     if(curI&&curI.family){const F2=curI.fam,mine=me&&me.key;Object.entries({abla:F2.abla,esi:F2.eniste,yegen:F2.yegen}).forEach(([k,a])=>{a.char=k})}}}
@@ -4648,6 +4648,29 @@ addVar('lsofa','L Koltuk Takımı','🛋️',420,FCOL,fLSofa,2.05,1.25,'SOFA',1.
 addVar('sofac','Üçlü Kanepe','🛋️',180,FCOL,fSofa2,1.55,.6,'SOFA',1.2,'sofa',null,'Oturma');addVar('armc','Berjer','💺',95,FCOL,fArm,.6,.55,'SOFA',1,'arm',null,'Oturma');
 addVar('gpc','Oyun Bilgisayarı Seti (2 ekran)','🖥️',950,[['Mavi LED',0x3aa0ff],['Mor LED',0x9a5aff],['Kırmızı LED',0xff3a4a],['Yeşil LED',0x3aff8a],['Pembe LED',0xff5ab0],['Beyaz LED',0xf0f0ff]],c=>fGamePC(c,2),1.05,.6,'PC',1.3,'desk',null,'Oyun & PC');
 addVar('gpc3','Yayıncı Seti (3 ekran)','🎥',1500,[['Mavi LED',0x3aa0ff],['Mor LED',0x9a5aff],['Kırmızı LED',0xff3a4a],['Turkuaz LED',0x3af0e0]],c=>fGamePC(c,3),1.05,.6,'PC',1.3,'desk',null,'Oyun & PC');
+/* ---------- mini gel gel balon (masa üstü süs) ---------- */
+const FTOP={};const MTG={};
+function fMiniTube(cols){return g=>{cols=Array.isArray(cols)?cols:[cols];const N=5,H=.056,R=.026;
+  if(!MTG.seg)Object.assign(MTG,{base:new T.CylinderGeometry(.045,.05,.035,14),rim:new T.CylinderGeometry(.05,.05,.008,14),seg:new T.CylinderGeometry(R,R,H,10,1,true),joint:new T.SphereGeometry(R,10,6),cap:new T.SphereGeometry(R,10,6,0,Math.PI*2,0,Math.PI/2),arm:new T.CylinderGeometry(.007,.009,.13,6),eye:new T.CircleGeometry(.0065,8),mouth:new T.TorusGeometry(.011,.0028,5,10,Math.PI)});
+  const mk=(geo,mat,par,px,py,pz)=>{const m=new T.Mesh(geo,mat);m.position.set(px||0,py||0,pz||0);m.castShadow=true;par.add(m);return m};
+  mk(MTG.base,tmMat(0x1a1a1e),g,0,.0175,0);mk(MTG.rim,tmMat(0x3a3a42),g,0,.036,0);
+  const segs=[];let par=g,py=.038;for(let i=0;i<N;i++){const s2=new T.Group();s2.position.y=py;par.add(s2);const mat=tmMat(cols[i%cols.length]);mk(MTG.joint,mat,s2);mk(MTG.seg,mat,s2,0,H/2,0);segs.push(s2);par=s2;py=H}
+  const top=segs[N-1],tc=tmMat(cols[(N-1)%cols.length]);mk(MTG.cap,tc,top,0,H,0);
+  const fm=TMC.m.face||(TMC.m.face=new T.MeshBasicMaterial({color:0x111111,side:T.DoubleSide}));
+  [-1,1].forEach(sd=>{const e=mk(MTG.eye,fm,top,sd*.01,H*.72,R+.0015);e.castShadow=false});const mo=mk(MTG.mouth,fm,top,0,H*.42,R+.001);mo.rotation.z=Math.PI;mo.castShadow=false;
+  const arms=[-1,1].map(sd=>{const a=new T.Group();a.position.set(sd*.024,H*.62,0);top.add(a);mk(MTG.arm,tc,a,0,.065,0);a.rotation.z=-sd*1.2;return a});
+  g.userData.tm={segs:segs,arms:arms,ph:Math.random()*100,sp:2.6+Math.random()*.9,cp:3.4+Math.random()*1.2}}}
+function miniTubeTick(t){if(mode!=='int'||!curI||!curI.furn)return;for(const f of curI.furn){const m=f.g.userData.tm;if(!m||f.sold||!f.g.visible)continue;
+  const tt=t+m.ph,cy=tt%m.cp,bend=cy<.4?Math.sin(cy/.4*Math.PI):0;
+  for(let i=0;i<m.segs.length;i++){const a=.06+i*.06,w=tt*m.sp+i*.6;m.segs[i].rotation.z=Math.sin(w)*a*(1-bend*.6);m.segs[i].rotation.x=Math.sin(w*.73+1.7)*a*.55+bend*(.12+i*.06)}
+  m.arms.forEach((p,k)=>{const sd=k?1:-1;p.rotation.z=-sd*(1.05+Math.sin(tt*m.sp*1.6+k*2.1)*.75)+bend*sd*.6;p.rotation.x=Math.sin(tt*m.sp*1.1+k)*.35})}}
+const _trc=new T.Raycaster(),_tdn=new T.Vector3(0,-1,0),_tor=new T.Vector3();
+function topY(I,f){const ms=[];(I.furn||[]).forEach(o=>{if(o===f||o.sold||!o.g.visible||FTOP[o.key]||!o.g.parent)return;o.g.updateMatrixWorld(true);o.g.traverse(c=>{if(c.isMesh&&!c.isSprite)ms.push(c)})});
+  _tor.set(f.g.position.x,1.3,f.g.position.z);if(f.g.parent&&f.g.parent.matrixWorld){const e=f.g.parent.matrixWorld.elements;_tor.x+=e[12];_tor.z+=e[14];_tor.y+=e[13]}
+  _trc.set(_tor,_tdn);_trc.far=1.3;const h=_trc.intersectObjects(ms,false).find(r=>r.point.y-((f.g.parent&&f.g.parent.matrixWorld.elements[13])||0)>.05);
+  return h?h.point.y-((f.g.parent&&f.g.parent.matrixWorld.elements[13])||0):0}
+function topFix(I){if(!I||!I.furn)return;I.furn.forEach(f=>{if(FTOP[f.key]&&!f.sold)f.g.position.y=topY(I,f)})}
+addVar('mtube','Mini gel gel balon','🎈',40,[['Sarı',[0xf4c51e]],['Beyaz',[0xf4f4f2]],['Kırmızı-yeşil',[0xc8222a,0x1f8a3a]]],fMiniTube,.1,.1,null,null,null,null,'Diğer');VGRP.mtube.keys.forEach(k=>FTOP[k]=1);
 addVar('gdesk','Oyun Masası + Kavisli Monitör','🎮',780,[['Mavi',0x3aa0ff],['Kırmızı',0xff3a4a],['Mor',0x9a5aff],['Yeşil',0x3aff8a],['Turuncu',0xff8a2a]],fGameDesk,1.15,.6,'PC',1.3,'desk',null,'Oyun & PC');
 addVar('rugc','Desenli Halı','🟫',70,[['Kiremit',[0xb5532f,0xf2d9a6]],['Lacivert',[0x2a3a6a,0xe8dcc8]],['Yeşil',[0x2a6a4a,0xe8dcc8]],['Bordo',[0x7a1e2a,0xf2d9a6]],['Gri',[0x6a6a72,0xf0ece0]],['Pembe',[0xe0a8b0,0xffffff]],['Hardal',[0xc8a030,0x3a3a42]]],c=>fRug2(3.2,2.2,'#'+new T.Color(c[0]).getHexString(),'#'+new T.Color(c[1]).getHexString()),0,0,null,null,null,null,'Halı');
 addVar('rugr','Yuvarlak Halı','⭕',85,[['Krem',[0xf0ece0,0xc8a030]],['Gri',[0x8a8a92,0xf0ece0]],['Pembe',[0xe0a8b0,0xffffff]],['Mavi',[0x4a8ad8,0xf0ece0]],['Yeşil',[0x3a8a4a,0xf0ece0]]],c=>fRugR(c[0],c[1]),0,0,null,null,null,null,'Halı');
@@ -8674,7 +8697,7 @@ function startGame(key){if(me)return;
   toast('Hoş geldin '+me.n+(isCouple()?' 💙 '+PN()+' evde seni bekliyor 🏠':' 🏡'))}
 /* ---------- kayıt (localStorage: pw_save) ---------- */
 function restoreFurn(I,list){(I.furn||[]).filter(f=>f.key).forEach(f=>{if(f.g.parent)f.g.parent.remove(f.g);if(f.b)I.boxes=I.boxes.filter(b=>b!==f.b);(f.spots||[]).forEach(o=>{I.spots=I.spots.filter(s=>s!==o.sp)})});
-  I.furn=(I.furn||[]).filter(f=>!f.key);list.forEach(e=>{if(e.sold||!FURN[e.key])return;try{HF(I,e.key,e.x,e.z,e.q|0)}catch(er){}})}
+  I.furn=(I.furn||[]).filter(f=>!f.key);list.forEach(e=>{if(e.sold||!FURN[e.key])return;try{HF(I,e.key,e.x,e.z,e.q|0)}catch(er){}});try{topFix(I)}catch(er){}}
 function saveGame(){if(!me)return;try{const furn=Object.assign({},SAVE&&SAVE.furn||{});
   Object.keys(INT).forEach(k=>{const I=INT[k];if(k.indexOf('ev_')!==0||!I.furn)return;furn[k]=I.furn.filter(f=>f.key).map(f=>({key:f.key,x:+f.g.position.x.toFixed(3),z:+f.g.position.z.toFixed(3),q:f.q|0,sold:!!f.sold}))});
   const looks=Object.assign({},SAVE&&SAVE.looks||{});looks[me.key]=curLook();const bonds={};Object.keys(BONDS).forEach(k=>bonds[k]=BONDS[k].v);
