@@ -5373,8 +5373,10 @@ const IVQ={yazilim:[['Bir API yavaşladı, ilk ne yaparsın?',['Profil çıkarı
   sap:[['Kampanya dönüşümü düştü, ne yaparsın?',['Segmenti ve hunilere bakar, A/B test kurarım','Bütçeyi ikiye katlarım','Beklerim, düzelir'],0],['SAP CRM\'de müşteri segmenti nasıl kurulur?',['Hedef grup + kriterlerle dinamik segment','Excel\'e aktarıp elle seçerim','Rastgele seçerim'],0],['Ekip içi anlaşmazlıkta?',['Veriyle konuşur, ortak hedefi hatırlatırım','Müdüre şikayet ederim','Susarım'],0]],
   hemsire:[['Aynı anda iki acil hasta geldi?',['Triyaj yapar, önceliklendiririm','İlk geleni alırım','Doktoru beklerim'],0],['Hasta yakını öfkeli?',['Sakin dinler, bilgilendiririm','Ben de sinirlenirim','Güvenliği çağırırım'],0],['Uzun nöbet yorgunluğu?',['Ekip planı, mola ve devir teslim','Kahveyle idare ederim','Erken çıkarım'],0]],
   fabrika:[['Üretim hattı durdu?',['Kök neden analizi + hızlı devreye alma planı','Bir sonraki vardiyaya bırakırım','Herkesi suçlarım'],0],['İş güvenliği ihlali gördün?',['Hattı durdurur, düzeltici faaliyet başlatırım','Görmezden gelirim','Uyarı yazısı yazarım'],0],['Verimlilik nasıl artar?',['Yalın üretim, OEE takibi, ekip katılımı','Mesaiyi uzatırım','Makineleri hızlandırırım'],0]]};
-function interview(a){const P=PROF[me.key].p,Q=IVQ[P]||IVQ.sap;let i=0,sc=0;const ask=()=>{if(i>=Q.length){a.score=sc;a.st='bekle';a.at=HOME.day+1;toast('🎤 Mülakat bitti · '+(sc>=2?'çok iyi geçti 😊':'biraz gergindin 😅')+' · sonuç 1 gün içinde');GT+=60;memAdd('🎤',a.j.co+' mülakatı');return}const q=Q[i];
-    actionMenu('🎤 '+a.j.co+' · Soru '+(i+1)+'/'+Q.length+': '+q[0],q[1].map((t,k)=>['💬',t,()=>{if(k===q[2])sc++;i++;setTimeout(ask,250)}]))};ask()}
+/* ortak mülakat motoru: Q=[[soru,[cevaplar],doğruIndex]] · cevap sırası karışık · done(puan) */
+function ivRun(title,Q,done,ic){let i=0,sc=0;const ask=()=>{if(i>=Q.length){done(sc);return}const q=Q[i],ord=q[1].map((t,k)=>k).sort(()=>rnd()-.5);
+    actionMenu(title+' · Soru '+(i+1)+'/'+Q.length+': '+q[0],ord.map(k=>[ic||'💬',q[1][k],()=>{if(k===q[2])sc++;i++;setTimeout(ask,250)}]))};ask()}
+function interview(a){const P=PROF[me.key].p,Q=IVQ[P]||IVQ.sap;ivRun('🎤 '+a.j.co,Q,sc=>{a.score=sc;a.st='bekle';a.at=HOME.day+1;toast('🎤 Mülakat bitti · '+(sc>=2?'çok iyi geçti 😊':'biraz gergindin 😅')+' · sonuç 1 gün içinde');GT+=60;memAdd('🎤',a.j.co+' mülakatı')})}
 function acceptJob(a){const j=a.j;LNK.apps.forEach(q=>{if(q!==a&&q.st!=='red')q.st='red'});a.st='kabul';if(!LNK.old)LNK.old=curSal();LNK.job=j;SAL[me.key]=j.sal;sfx('bell');emitSafe('newjob');memAdd('💼',j.co+' · '+j.t+' olarak işe başladım');
   notify('🎉 Hayırlı olsun!',j.co+' · '+j.t+' · maaş '+j.sal+'🪙/10 gün'+(j.rem?' · uzaktan çalışabilirsin 🏠':'')+' · Buludex ofis bilgisayarı artık senin değil 🙂',[{t:'Süper 🎉',fn:()=>{}}])}
 function day39j(){if(!me)return;LNK.apps.forEach(a=>{if(a.st!=='bekle'||HOME.day<a.at)return;const P=PROF[me.key];
@@ -5477,7 +5479,7 @@ function premiumCar(key,parent){const D2=PRSH[key],col=PREMC[key][3],g=new T.Gro
   g.userData.wheels=Wh;g.userData.spin=d=>Wh.forEach(w=>w.rotation.z-=d/r);g.userData.face=(fx2,fz)=>{g.rotation.y=Math.atan2(-fz,fx2)};(parent||W).add(g);return g}
 const _car3d39=car3d;car3d=function(key,parent,pi){if(PREMC[key])return premiumCar(key,parent);return _car3d39(key,parent,pi)};
 const _setActiveCar39=setActiveCar;setActiveCar=function(k){if(!PREMC[k])return _setActiveCar39(k);me.carKey=k;me.car='hatch';const at=carAt||activeD.name;if(myCar&&myCar.parent)myCar.parent.remove(myCar);myCar=carSprite(k,scene,myPI());placeCar(at);toast('🚗 '+PREMC[k][0]+' artık aracın 🔑')};
-function premiumMenu(){if(!OWNCARS)OWNCARS=[curCarKey()];const brk=me&&me.key==='berke',A=Object.keys(PREMC).map(k=>{const c=PREMC[k],own=OWNCARS.indexOf(k)>=0,pr=Math.round(c[2]*(brk?.95:1));return [c[1],c[0]+' · '+(curCarKey()===k?'✓ kullanılıyor':own?'garajında · kullan':pr.toLocaleString('tr-TR')+'🪙'),()=>{if(curCarKey()===k)return;if(!own){if(!canPay(pr)){toast('Bu araç için bütçe yetmiyor 😅 · kredi kartı limiti de yetmedi');return}pay(pr);OWNCARS.push(k);sfx('coin');emitSafe('car_bought');memAdd('💎',c[0]+' satın aldım');if(brk){mood=clamp(mood+30,0,100);toast('😍 Berke\'nin rüya arabası! '+c[0])}}setActiveCar(k)}]});
+function premiumMenu(){if(!OWNCARS)OWNCARS=[curCarKey()];const brk=me&&me.key==='berke',A=Object.keys(PREMC).filter(k=>!PREMC[k][4]||OWNCARS.indexOf(k)>=0).map(k=>{const c=PREMC[k],own=OWNCARS.indexOf(k)>=0,pr=Math.round(c[2]*(brk?.95:1));return [c[1],c[0]+' · '+(curCarKey()===k?'✓ kullanılıyor':own?'garajında · kullan':pr.toLocaleString('tr-TR')+'🪙'),()=>{if(curCarKey()===k)return;if(!own){if(!canPay(pr)){toast('Bu araç için bütçe yetmiyor 😅 · kredi kartı limiti de yetmedi');return}pay(pr);OWNCARS.push(k);sfx('coin');emitSafe('car_bought');memAdd('💎',c[0]+' satın aldım');if(brk){mood=clamp(mood+30,0,100);toast('😍 Berke\'nin rüya arabası! '+c[0])}}setActiveCar(k)}]});
   actionMenu('💎 Premium Motors'+(brk?' · Berke Bey\'e %5 indirim':''),A)}
 function premiumGallery(x,z){ground(x,z,22,18,repeatMat(paverTex,22/5,18/5,.9),.05);const blk=std(0x141418,{roughness:.3}),gold=std(0xc9a24a,{roughness:.3,metalness:.5}),gl=new T.MeshStandardMaterial({color:0xcfe6f2,transparent:true,opacity:.22,roughness:.03,metalness:.3});
   box(20,.25,12,std(0x2a2a30,{roughness:.25}),x,.12,z);box(20,4.6,.1,gl,x,2.5,z+6);box(.1,4.6,12,gl,x-10,2.5,z);box(.1,4.6,12,gl,x+10,2.5,z);box(20,4.6,.2,blk,x,2.5,z-6);box(20.6,.6,12.6,blk,x,5,z);box(20.7,.15,.12,gold,x,4.72,z+6.3);
@@ -9501,7 +9503,8 @@ scnResetHook.push(()=>{delete FARM77.g[SR_ID];srDraw()});
 window.__sr={get S(){return srS()},get F(){return FARM77},get inv(){return INV},get I(){return curI},stall:srStall,draw:srDraw,decide:srDecide,islet:srStartIslet,rent:srRentDo,sell:srSell,eggs:srEggs,tree:srTree,season:season81,stock:srStock};
 /* ================= v83: Çiço senaryosu · Karşıyaka kafe + 2. şube (SCN.v.kafe) ================= */
 /* şube durumu: ilan → dekor → hazir (1 gün) → acilis (kurdele) → acik */
-const isCico83=()=>!!me&&me.key==='abla',kfS=()=>SCN.v.kafe||null;
+const isCico83=()=>!!me&&me.key==='abla',kfS=()=>SCN.v.kafe||null,kfWho=()=>{const S=kfS();return S&&S.who||'abla'},kfOwner=()=>!!me&&!!kfS()&&me.key===kfWho();
+function kfOwned(S){S=S||kfS();return !!(S&&S.br&&[1,2].some(b=>S.br[b]&&S.br[b].st&&S.br[b].st!=='ilan'))}
 const KF_BR={1:{d:'karsiyaka',x:87,z:3,n:'Karşıyaka',p:300000,fix:560},2:{d:'bostanli',x:86,z:8,n:'Bostanlı',p:450000,fix:680}};
 const KF_TH={bohem:{n:'Bohem',ic:'🪴',d:'Makrome, bitkiler, kilim, sıcak ahşap · tatlılar daha çok satar, müşteri daha sabırlı',nm:'Çiço Bohem Kafe',wall:'#ead7bd',tile:['#c89a6a','#b98b5c'],aw:['#c86a3a','#f4e2c4'],sg:['#5a3a22','#f4e2c4'],acc:0xc86a3a,tab:0x9a6a42,ch:0xd8b07a},
   modern:{n:'Modern',ic:'🤍',d:'Beton, cam, minimal çizgiler · kahveler %15 daha pahalı',nm:'ÇİÇO Coffee Lab',wall:'#efefed',tile:['#d6d6d4','#c6c6c4'],aw:['#2a2a2e','#ffffff'],sg:['#1a1a1e','#ffffff'],acc:0x2a2a2e,tab:0xf4f4f2,ch:0x2a2a2e},
@@ -9517,7 +9520,7 @@ const kfName=bid=>{const B=(kfS()||{br:{}}).br[bid];return B&&B.th?KF_TH[B.th].n
 /* --- vitrin (dünya) --- */
 function kfDraw(bid){const R=KF_BR[bid],D0=D[R.d];if(!D0)return;const k='kfG'+bid;let G=D0[k];if(!G){G=new T.Group();G.userData.noCull=true;G.userData.dyn64=true;D0.G.add(G);D0[k]=G}
   while(G.children.length){const o=G.children.pop();o.traverse(q=>{if(q.geometry)q.geometry.dispose()})}D0.boxes=D0.boxes.filter(b=>b.kf!==bid);D0.spots=D0.spots.filter(s=>s.kf!==bid);D0.anim=D0.anim.filter(f=>f.kf!==bid);
-  const S=kfS(),B=S&&S.br&&S.br[bid];if(!B||!isCico83())return;if(bid==2)D0.camX60=Math.max(D0.camX60||62,104);
+  const S=kfS(),B=S&&S.br&&S.br[bid];if(!B||!kfOwner())return;if(bid==2)D0.camX60=Math.max(D0.camX60||62,104);
   const pw=W,pc=C;W=G;C=null;const x=R.x,z=R.z,th=B.th?KF_TH[B.th]:null;
   try{building({x:x,z:z,w:9,d:6,floors:1,fh:3.8,wall:th?th.wall:'#d8d0c4',roof:0x6e6a78,seed:900+bid,lit:.9},G);
     if(th)awning(8.4,th.aw[0],th.aw[1],x,3,z+3.9);
@@ -9540,7 +9543,7 @@ function kfDraw(bid){const R=KF_BR[bid],D0=D[R.d];if(!D0)return;const k='kfG'+bi
   D0.boxes.push({x:x,z:z,hx:4.7,hz:3.2,kf:bid});D0.spots.push({x:x+2.6,z:z+4.6,r:2.4,kf:bid,get t(){return kfSpotT(bid)},fn:()=>kfSpot(bid)})}
 {const _bh=buildHome;buildHome=function(n){const r=_bh.apply(this,arguments);try{[1,2].forEach(b=>{if(KF_BR[b].d===n)kfDraw(b)})}catch(e){scnErr(e)}return r}}
 function kfSpotT(bid){const S=kfS(),B=S&&S.br[bid];if(!B)return 'E: 🏪 Kafe';return ({ilan:'E: 🏪 Devren kiralık kafe · ilana bak',dekor:'E: 🎨 Dekorasyon temasını seç',hazir:'E: 🎨 Dekorasyon · '+scnTimerTxt('kfDekor'+bid),acilis:'E: ✂️ Açılış · kurdeleyi kes',acik:'E: ☕ '+kfName(bid)+' · içeri gir'})[B.st]||'E: ☕ Kafe'}
-function kfSpot(bid){const S=kfS(),B=S&&S.br[bid];if(!B||!isCico83())return;if(B.st==='ilan')return kfIlan(bid);if(B.st==='dekor')return kfTheme(bid);if(B.st==='hazir'){toast('🎨 Ustalar çalışıyor · '+scnTimerTxt('kfDekor'+bid));return}if(B.st==='acilis')return kfRibbon(bid);enter('rest_cf_'+bid)}
+function kfSpot(bid){const S=kfS(),B=S&&S.br[bid];if(!B||!kfOwner())return;if(B.st==='ilan')return kfIlan(bid);if(B.st==='dekor')return kfTheme(bid);if(B.st==='hazir'){toast('🎨 Ustalar çalışıyor · '+scnTimerTxt('kfDekor'+bid));return}if(B.st==='acilis')return kfRibbon(bid);enter('rest_cf_'+bid)}
 /* --- ilan + devralma --- */
 function kfIlan(bid){const S=kfInit(),R=KF_BR[bid],P=R.p,down=Math.round(P*.1),o1=loanOffer67('isyeri',P-down,104),o2=loanOffer67('kosgeb',P,104);
   scnCards({title:'🏪 Devren kiralık kafe · '+R.n,sub:(bid==1?'Çarşıda, Arena\'nın yanında · 6 masa · espresso makinesi ve vitrin dahil':'Bostanlı sahil, festival alanının ilerisi · 8 masa · köşe dükkân')+' · günlük sabit gider ~'+R.fix+'🪙 (kira, personel, faturalar) · 🪙 '+coins.toLocaleString('tr-TR'),cards:[
@@ -9660,16 +9663,130 @@ function kfDaily(){const S=kfS();if(!S||!S.br)return;let lines=[],tot=0;[1,2].fo
   if(lines.length){tot+=(S.today|0);S.days=(S.days||[]).concat([{d:HOME.day-1,net:tot}]).slice(-14);S.today=0;try{txNote67('☕ Kafe gün sonu','gelir')}catch(e){}setTimeout(()=>notify('☕ Kafe · gün sonu',lines.join(' | ')+' · memnuniyet %'+S.rep,[{t:'Tamam',fn:()=>{}}]),8000)}
   if(S.br[1]&&S.br[1].st==='acik'&&!S.br[2]&&S.rep>=70&&S.shifts>=3){S.br[2]={st:'ilan'};kfDraw(2);try{saveGame()}catch(e){}setTimeout(()=>{scnTask('kf_sube2','Bostanlı\'daki 2. şube fırsatını değerlendir','📈');
     notify('❤️ Gökhan','Aşkım müşteriler bayılıyor, puanın %'+S.rep+'! Bostanlı sahilde, festival alanının ilerisinde devren bir dükkân var. 2. şube? 😍',[{t:'İlana bak',fn:()=>kfIlan(2)},{t:'Sonra',fn:()=>{}}])},12000)}}
-/* --- senaryo kaydı: sadece Çiço --- */
-scnAdd('kafeCico',{after:3,cond:()=>isCico83(),fire:()=>{SCN.v.kafe={st:'call',d:HOME.day};kfInit();
+/* --- kafe hikâyesi: genel başlatıcı (kim = karakter anahtarı). v93: Çiço'dan kaldırıldı, Almira'ya bağlanacak --- */
+const KF_INTRO={abla:{mail:['📧 Ege Holding · İK','Terfi sonuçları açıklandı: Satış Müdürlüğü\'ne Selin Aydın atanmıştır. Katkılarınız için teşekkür ederiz.'],say:'Yine mi ben değilim?! 😞',mood:12,
+    call:{from:'Gökhan ❤️',ic:'👨🏻',msg:['Gökhan: Aşkım? Sesin bir tuhaf geliyor…','Çiço: Terfiyi yine Selin aldı. Yıllardır o şirkete emek veriyorum Gökhan… 😞','Gökhan: Boş ver onları. Hep "bir gün kendi kafemi açacağım" demiyor muydun?','Çiço: Diyordum ama… para, risk… ya batarsa?','Gökhan: Karşıyaka çarşıda, Arena\'nın yanında devren kiralık bir kafe ilanı gördüm. Peşin olmazsa banka ya da KOSGEB kredisi var. Bir bak bence, ben hep arkandayım ❤️','Çiço: Tamam… bakacağım! ☕']},
+    rej:'Aşkım telefonu açmadın 🙁 Terfiyi duydum, üzülme. Karşıyaka çarşıda devren kiralık bir kafe var, Arena\'nın yanında. Kendi işini kur, ben arkandayım ❤️'},
+  _:{say:'Kendi kafemi açsam mı? ☕',mood:0,call:{from:'Emlakçı Kemal',ic:'🏪',msg:['Kemal: Merhaba! Kafe arıyordunuz değil mi?','Kemal: Karşıyaka çarşıda, Arena\'nın yanında devren kiralık bir kafe var. Peşin olmazsa banka ya da KOSGEB kredisi de olur.','Kemal: Bir uğrayın, beğenirsiniz ☕']},rej:'Karşıyaka çarşıda, Arena\'nın yanında devren kiralık bir kafe var. Uğrarsanız gösteririm ☕'}};
+function kafeStart(kim){kim=kim||(me&&me.key);SCN.v.kafe={st:'call',d:HOME.day,who:kim};kfInit();const X=KF_INTRO[kim]||KF_INTRO._;
   const go=()=>{const S=kfS();S.st='ilan';S.br[1]={st:'ilan'};scnTask('kf_ilan1','Karşıyaka çarşıdaki devren kiralık kafeye bak (Arena\'nın yanı)','🏪');kfDraw(1);try{saveGame()}catch(e){}};
-  notify('📧 Ege Holding · İK','Terfi sonuçları açıklandı: Satış Müdürlüğü\'ne Selin Aydın atanmıştır. Katkılarınız için teşekkür ederiz.',[{t:'…',fn:()=>{}}]);try{say(player,'Yine mi ben değilim?! 😞',3)}catch(e){}mood=clamp(mood-12,0,100);
-  setTimeout(()=>{scnCall({from:'Gökhan ❤️',ic:'👨🏻',msg:['Gökhan: Aşkım? Sesin bir tuhaf geliyor…','Çiço: Terfiyi yine Selin aldı. Yıllardır o şirkete emek veriyorum Gökhan… 😞','Gökhan: Boş ver onları. Hep "bir gün kendi kafemi açacağım" demiyor muydun?','Çiço: Diyordum ama… para, risk… ya batarsa?','Gökhan: Karşıyaka çarşıda, Arena\'nın yanında devren kiralık bir kafe ilanı gördüm. Peşin olmazsa banka ya da KOSGEB kredisi var. Bir bak bence, ben hep arkandayım ❤️','Çiço: Tamam… bakacağım! ☕'],
-    onAnswer:()=>{try{say(player,'Kendi kafem… neden olmasın? ☕',2.8)}catch(e){}go()},onReject:()=>{go();setTimeout(()=>notify('❤️ Gökhan','Aşkım telefonu açmadın 🙁 Terfiyi duydum, üzülme. Karşıyaka çarşıda devren kiralık bir kafe var, Arena\'nın yanında. Kendi işini kur, ben arkandayım ❤️',[{t:'Tamam',fn:()=>{}}]),800)}})},3200)}});
+  if(X.mail)notify(X.mail[0],X.mail[1],[{t:'…',fn:()=>{}}]);try{say(player,X.say,3)}catch(e){}mood=clamp(mood-(X.mood||0),0,100);
+  setTimeout(()=>{scnCall({from:X.call.from,ic:X.call.ic,msg:X.call.msg,
+    onAnswer:()=>{try{say(player,'Kendi kafem… neden olmasın? ☕',2.8)}catch(e){}go()},onReject:()=>{go();setTimeout(()=>notify(X.call.from,X.rej,[{t:'Tamam',fn:()=>{}}]),800)}})},3200)}
 scnResetHook.push(()=>{[1,2].forEach(b=>{try{kfDraw(b)}catch(e){}delete INT['rest_cf_'+b]})});
-{const _ld=load25;load25=function(x){const r=_ld.apply(this,arguments);try{const S=kfS();if(S){kfInit();if(S.st==='call'){S.st='ilan';S.br[1]=S.br[1]||{st:'ilan'};if(!SCN.tasks.find(q=>q.id==='kf_ilan1'))SCN.tasks.push({id:'kf_ilan1',t:"Karşıyaka çarşıdaki devren kiralık kafeye bak (Arena'nın yanı)",ic:'🏪',done:false,day:HOME.day})}
+function kfMigrate(){const S=kfS();if(S&&!S.who){if(kfOwned(S))S.who='abla';else{delete SCN.v.kafe;SCN.tasks=SCN.tasks.filter(q=>!/^kf_/.test(q.id));Object.keys(SCN.timers).forEach(k=>{if(/^kfDekor/.test(k))delete SCN.timers[k]});return null}}return S}
+{const _ld=load25;load25=function(x){const r=_ld.apply(this,arguments);try{let S=kfS();
+  /* v93 göç: eski 'kafeCico' kaydı (who yok) · kafe devralınmadıysa sessizce iptal, devralındıysa Çiço'da kalır */
+  S=kfMigrate();
+  if(S){kfInit();if(S.st==='call'){S.st='ilan';S.br[1]=S.br[1]||{st:'ilan'};if(!SCN.tasks.find(q=>q.id==='kf_ilan1'))SCN.tasks.push({id:'kf_ilan1',t:"Karşıyaka çarşıdaki devren kiralık kafeye bak (Arena'nın yanı)",ic:'🏪',done:false,day:HOME.day})}
   [1,2].forEach(b=>{const B=S.br[b];if(B&&B.st==='hazir'&&!SCN.timers['kfDekor'+b])B.st='acilis'})}}catch(e){}return r}}
-window.__kf={get S(){return kfS()},draw:kfDraw,ilan:kfIlan,buy:kfBuy,theme:kfThemeSet,ribbon:kfRibbon,shift:kfShift,daily:kfDaily,menu:KF_MENU};
+window.__kf={start:kafeStart,owned:kfOwned,mig:kfMigrate,get S(){return kfS()},draw:kfDraw,ilan:kfIlan,buy:kfBuy,theme:kfThemeSet,ribbon:kfRibbon,shift:kfShift,daily:kfDaily,menu:KF_MENU};
+/* ================= v93: Çiço senaryosu · terfi (SCN.v.terfi) ================= */
+/* durum: call → karar → sinav (sunum|mülakat) → retry? → done · seçim: a = aynı firmada müdür, b = headhunter · bölge direktörü */
+const tcS=()=>SCN.v.terfi||null;
+const TC_OF={a:{t:'CRM & Pazarlama Müdürü',k:1.6,ic:'🏢',ex:'Yönetim kuruluna sunum'},b:{t:'Bölge Pazarlama Direktörü',k:2,ic:'🏙️',co:'Körfez Global Holding',d:'alsancak',ex:'Mülakat (CMO + İK)'}};
+PREMC.p_sirket=['Şirket Arabası · Lüks SUV (Körfez Global)','🚙',0,0x1d2a3a,'corp'];PRSH.p_sirket=PRSH.p_suvx;
+const TC_Q={a:[['Kurul: "Pazarlama bütçesini neden artıralım?"',['Geçen çeyrek her 1🪙 kampanya bütçesi 4,2🪙 ciro getirdi; verileri göstereyim','Çünkü rakipler de artırdı','Ekip istedi, ben de destekliyorum'],0],
+    ['Sunumun ortasında projektör kapandı',['Toplantıyı ertelerim','Hazırladığım çıktılarla devam eder, ana mesajı anlatırım','Teknik ekibi bekleriz'],1],
+    ['CFO: "Müşteri kaybını nasıl azaltırız?"',['Fiyatları düşürürüz','Herkese aynı e-postayı atarız','SAP CRM\'de kayıp riski yüksek segmenti çıkarıp kişisel sadakat kampanyası kurarız'],2],
+    ['Kurul: "Yeni ekibinizi nasıl yöneteceksiniz?"',['Net hedefler, haftalık birebirler ve başarıyı birlikte kutlayarak','Herkes mesaiye kalarak','Ben karar veririm, onlar uygular'],0]],
+  b:[['5 şehirde pazarlamayı nasıl yönetirsin?',['Hepsine aynı kampanyayı veririm','Ortak strateji + şehir bazlı segment ve bütçe, tek KPI panosu','Her şehir kendi bilir'],1],
+    ['Direktör olarak ilk 90 günün?',['Dinler, veriyi analiz eder, hızlı kazanımlar ve yol haritası çıkarırım','Ekibi baştan kurarım','Bütçeyi hemen harcarım'],0],
+    ['Satış ekibiyle hedef çatışması yaşarsan?',['Satışı yönetime şikâyet ederim','Ortak huni metrikleri ve hizmet seviyesi anlaşmasıyla hizalarım','Kendi hedefime odaklanırım'],1],
+    ['Neden Körfez Global?',['Sadece maaş için','Eski işimden sıkıldım','Bölgesel ölçekte büyüme ve dijital dönüşümde iz bırakmak istiyorum'],2]]};
+const TC_MEET=[['😮‍💨','Kampanya teslimi yaklaştı, ekip çok yorgun.',[['Öncelikleri sadeleştir, esnek mesai ver',10,'Ekip rahatladı, iş yine yetişti'],['Hafta sonu mesaisi iste',-12,'İş bitti ama ekip söylendi'],['Teslimi 2 gün ertele, müşteriye açıkla',4,'Müşteri anlayış gösterdi']]],
+  ['😬','Yeni stajyer büyük bir e-posta listesini yanlış segmente gönderdi.',[['Birlikte düzeltin, öğrenme fırsatına çevir',8,'Stajyer sana minnettar'],['Herkesin önünde uyar',-15,'Ortam gerildi'],['Görmezden gel',-4,'Ekip "kimse umursamıyor" dedi']]],
+  ['💸','Çeyrek sonunda küçük bir bütçe arttı: ekip etkinliği mi, reklam mı?',[['Ekip kahvaltısı 🥐',12,'Moral tavan'],['Hepsini reklama koy',-3,'Rakamlar iyi, ekip biraz küskün'],['Yarı yarıya böl',5,'Herkes memnun']]],
+  ['🤝','İki ekip üyesi aynı yeni projeyi yönetmek istiyor.',[['Ortak liderlik ver',6,'İkisi de sahiplendi'],['Kıdemli olana ver',-4,'Genç olan kırıldı'],['Kura çek',-6,'Kimse ciddiye almadı']]],
+  ['🧩','Yeni SAP CRM modülü geliyor.',[['Ekibe eğitim planla',7,'Herkes hızlıca uyum sağladı'],['Herkes kendi öğrensin',-6,'Kafalar karıştı'],['Bir şampiyon seç, o yaysın',5,'Bilgi hızla yayıldı']]],
+  ['📈','Ekipten biri terfi istiyor.',[['Gelişim planı çıkar, 3 ay sonra değerlendir',8,'Motivasyonu arttı'],['"Şimdi olmaz" de',-8,'Bozuldu'],['Hemen söz ver',2,'Sevindi ama diğerleri kıskandı']]],
+  ['🏠','Bir ekip arkadaşı hasta çocuğu için evden çalışmak istiyor.',[['Tabii ki, sağlık önce',9,'Ekip sana güveniyor'],['Bu hafta olmaz',-10,'Güven sarsıldı'],['Yarım gün izin ver',4,'İdare etti']]]];
+const TC_TRIP=[['✈️','Ankara müşteri ziyareti','Büyük bir perakende zinciriyle yıllık anlaşma görüşmesi',.25,6],['🎤','İstanbul Pazarlama Zirvesi','Konuşmacı olarak davetlisin',.2,12],['🌍','Berlin SAP CX Kongresi','Uluslararası CRM kongresi · direktörlere özel davet',.35,14,'b'],['🏖️','Bodrum bayi toplantısı','Ege bayileriyle strateji günü + akşam yemeği',.15,10]];
+function tcSal(){return (typeof SAL!=='undefined'&&SAL.abla)||2200}
+function tcStart(){const co=(LNK.job&&!LNK.job.terfi)?LNK.job.co:CUROF.abla;SCN.v.terfi={st:'call',d:HOME.day,co:co,morale:70};
+  notify('📊 '+co+' · Çeyrek raporu','Çiço Hanım, SAP CRM kampanyalarınız bu çeyrek dönüşümü %38 artırdı. Yönetim kurulu sonuçlarınızı konuşuyor 👏',[{t:'😳',fn:()=>{}}]);try{say(player,'Fark ettiler mi yoksa? 😳',3)}catch(e){}mood=clamp(mood+6,0,100);
+  setTimeout(tcCall,3200)}
+function tcCall(){const v=tcS();if(!v||v.st!=='call')return;
+  scnCall({from:'Murat Bey · Genel Müdür',ic:'👔',msg:['Murat Bey: Çiço Hanım, iyi günler. Müsait misiniz?','Çiço: Tabii Murat Bey, buyurun.','Murat Bey: Son çeyrekteki kampanya sonuçlarınız yönetim kurulunun gündemindeydi. Sizi yarın sabah bir toplantıya almak istiyoruz.','Murat Bey: Size CRM & Pazarlama Müdürlüğü\'nü teklif edeceğiz. Kendi odanız ve ekibiniz olacak. Kurula kısa bir sunum yapmanız yeterli.','Çiço: Çok mutlu oldum, teşekkür ederim! 😊','Murat Bey: Bir de… piyasada adınız duyulmuş, biliyorum. Kararınızı verirken bizi de düşünün 🙂'],
+    onAnswer:()=>{try{say(player,'Müdür mü olacağım?! 🥹',2.8)}catch(e){}tcHunter()},onReject:()=>{scnTimer('tcCall',.25);setTimeout(()=>notify('📧 Murat Bey · Genel Müdür','Size ulaşamadım. Önemli bir konuda konuşmamız gerekiyor, müsait olunca dönün 🙂',[{t:'📞 Geri ara',fn:tcCall},{t:'Sonra',fn:()=>scnTimer('tcCall',.2)}]),800)}})}
+scnTimerOn('tcCall',()=>{const v=tcS();if(v&&v.st==='call')tcCall()});
+function tcHunter(){const v=tcS();v.st='karar';v.base=v.base||tcSal();try{saveGame()}catch(e){}
+  setTimeout(()=>notify('📨 LinkedLin · Ece Kaya (Headhunter)','Merhaba Çiço Hanım! Körfez Global Holding için Bölge Pazarlama Direktörü arıyoruz: maaşınızın 2 katı, Alsancak\'ta plaza ofisi ve şirket arabası. Mesai biraz daha uzun ama ölçek çok büyük. Görüşelim mi? 🙂',[{t:'Teklifleri karşılaştır',fn:tcOffers},{t:'Sonra',fn:()=>scnTimer('tcKarar',.2,'💼 Terfi kararı')}]),2400);
+  scnTask('tc_karar','Terfi kararı: iki teklif arasında seçim yap','💼');scnTimer('tcKarar',.3,'💼 Terfi kararı')}
+function tcOffers(){const v=tcS();if(!v||v.st!=='karar')return;const b=v.base||tcSal(),A=TC_OF.a,B=TC_OF.b,sa=Math.round(b*A.k/10)*10,sb=Math.round(b*B.k/10)*10;
+  scnCards({title:'💼 İki teklif masada',sub:'Şu anki maaşın '+b.toLocaleString('tr-TR')+'🪙 / 10 gün · seçtiğin yolda '+'kısa bir sınav seni bekliyor',cancel:'Biraz düşüneyim',onCancel:()=>{scnTimer('tcKarar',.2,'💼 Terfi kararı');toast('🤔 Acele etme, birazdan hatırlatırım')},
+    cards:[{ic:A.ic,t:A.t+' · '+v.co,d:'Maaş ×1.6 · kendi odan (cam bölme, isim tabelası) · 4 kişilik ekip · '+A.ex,price:sa.toLocaleString('tr-TR')+' 🪙/10 gün',fn:()=>tcPick('a')},
+      {ic:B.ic,t:B.t+' · '+B.co,d:'Maaş ×2 · Alsancak\'ta prestijli plaza ofisi · şirket arabası · daha uzun mesai · '+B.ex,price:sb.toLocaleString('tr-TR')+' 🪙/10 gün',fn:()=>tcPick('b')}]})}
+scnTimerOn('tcKarar',()=>tcOffers());
+function tcPick(k){const v=tcS();v.pick=k;v.st='sinav';scnTaskDone('tc_karar');scnTask('tc_sinav',k==='a'?'Yönetim kuruluna sunumunu yap':'Körfez Global mülakatını geç','🎤');try{saveGame()}catch(e){}
+  if(k==='b')notify('📨 Ece Kaya','Harika! CMO ile görüşmeniz hemen şimdi, görüntülü. Bol şans! 🍀',[{t:'Başla 🎤',fn:tcExam}]);else notify('📅 Murat Bey','Kurul toplantı odasında sizi bekliyor. Sunumunuza başlayabilirsiniz 📊',[{t:'Sunuma başla 📊',fn:tcExam}]);
+  scnTimer('tcSinav',.15)}
+scnTimerOn('tcSinav',()=>{const v=tcS();if(v&&(v.st==='sinav'||v.st==='retry'))tcExamCall()});
+function tcExamCall(){const v=tcS();if(!v)return;scnCall({from:v.pick==='b'?'Ece Kaya · Headhunter':'Murat Bey · Genel Müdür',ic:v.pick==='b'?'🕴️':'👔',msg:[v.pick==='b'?'Ece: CMO hâlâ sizi bekliyor, hazır mısınız? 🙂':'Murat Bey: Kurul sunumunuzu bekliyor, hazır mısınız?'],
+  onAnswer:tcExam,onReject:()=>scnTimer('tcSinav',.25)})}
+function tcExam(){const v=tcS();if(!v||(v.st!=='sinav'&&v.st!=='retry'))return;v.st='sinav';scnTimer('tcSinav',.2);const k=v.pick;
+  ivRun(k==='a'?'📊 Kurul sunumu':'🎤 Körfez Global · CMO mülakatı',TC_Q[k],sc=>{v.sc=sc;GT+=60;if(sc>=3)return tcWin();v.st='retry';v.tries=(v.tries||0)+1;mood=clamp(mood-6,0,100);
+    notify(k==='a'?'📧 Murat Bey':'📧 Ece Kaya','Bu sefer tam olmadı ('+sc+'/4) ama sizi çok beğendiler. Yarın bir şans daha veriyorlar 💪',[{t:'Tamam',fn:()=>{}}]);scnTimer('tcSinav',1,k==='a'?'📊 Sunum tekrarı':'🎤 Mülakat tekrarı');try{saveGame()}catch(e){}},k==='a'?'📊':'💬')}
+function tcWin(){const v=tcS(),k=v.pick,O=TC_OF[k],sal=Math.round((v.base||tcSal())*O.k/10)*10;v.st='done';v.won=HOME.day;v.party=1;v.trip=HOME.day;scnTaskDone('tc_sinav');delete SCN.timers.tcSinav;
+  if(!LNK.old)LNK.old=curSal();LNK.apps.forEach(q=>{if(q.st!=='red'&&q.st!=='kabul')q.st='red'});
+  LNK.job={id:'sap_terfi'+k,t:O.t,co:k==='a'?v.co:O.co,d:k==='a'?'merkez':O.d,sal:sal,rem:0,terfi:k};SAL.abla=sal;delete INT['job_sap_terfi'+k];
+  if(k==='b'){if(!OWNCARS)OWNCARS=[curCarKey()];if(OWNCARS.indexOf('p_sirket')<0)OWNCARS.push('p_sirket')}
+  sfx('bell');emitSafe('newjob');mood=clamp(mood+15,0,100);memAdd('🎉',LNK.job.co+' · '+O.t+' oldum!');scnTask('tc_kutlama','Ofise git: terfi kutlaması seni bekliyor 🎉','🎉');try{saveGame()}catch(e){}
+  setTimeout(()=>notify('🎉 Tebrikler '+O.t+'!',LNK.job.co+' · yeni maaşın '+sal.toLocaleString('tr-TR')+'🪙/10 gün'+(k==='a'?' · kendi odan hazırlanıyor 🚪':' · Alsancak plaza ofisin ve şirket araban (🚙 Garaj) hazır')+'. Ekip seni ofiste bekliyor!',[{t:'🏢 Ofise git',fn:()=>goJob()},{t:'Sonra',fn:()=>{}}]),3200);
+  const fam=[['ogus','Aşkıııım! Sonunda hak ettiğin yer 😍 Akşam kutlama yemeği benden ❤️'],['cicom','Çiço ablaaa! 🎉 Gurur duydum, sen bunu çoktan hak ettin 💛'],['anne','{c}, Allah utandırmasın, hep böyle başarılı ol 🧿❤️']];
+  fam.forEach((q,i)=>setTimeout(()=>{try{addMsg(q[0],'in',q[1]);toast('💬 '+cName(ckey(q[0]))+': '+fillC(q[1]))}catch(e){}},6000+i*3500));
+  setTimeout(()=>{try{notify('👦🏻 Gökay','Anneee! Müdür mü oldun?! 😎 Bana da ofisini gösterir misin? 🙏',[{t:'Tabii ki 💛',fn:()=>{}}])}catch(e){}},17000)}
+/* --- yeni ofisler: (a) aynı firmada cam bölmeli kendi odan · (b) Alsancak plaza --- */
+function tcGlass(I,x,z,w,d){const g=mt(0xbfe0f0,{transparent:true,opacity:.32,roughness:.05,metalness:.1}),fr=mt(0x3a3a40);box(w,2.6,d,g,x,1.3,z);box(w+(d>w?.06:0),.08,d+(w>d?.06:0),fr,x,2.64,z);box(w+(d>w?.06:0),.06,d+(w>d?.06:0),fr,x,.03,z);I.boxes.push({x:x,z:z,hx:w/2+.05,hz:d/2+.05})}
+function tcOffice(I,j){const B=j.terfi==='b',W0=B?24:20,D0=B?15:13,hw=W0/2,hd=D0/2;I.G=W;I.title=j.co+' · '+j.t+(B?' · Alsancak plaza, 21. kat':'');I.workers=[];
+  room(I,W0,D0,{wall:B?'#e4e7ee':'#eef0f4',tile:B?['#ecebe8','#d9d7d2']:['#f2f2f4','#e2e4ea'],winW:B?5:3.4});exitDoor(I,-7);
+  const sm=new T.MeshBasicMaterial({map:textSign(j.co.toUpperCase(),5,.8,B?'#1d2a3a':'#0a66c2','#ffffff')});signMats.push(sm);const sg=new T.Mesh(new T.PlaneGeometry(5,.8),sm);sg.position.set(-2,3.1,-hd+.06);W.add(sg);
+  if(B){F(I,-2,-hd+2.2,0,3.1,.8,fReception);I.spots.push({x:-2,z:-hd+3.6,r:2,t:'E: 🛎️ Resepsiyon',fn:()=>toast('"Günaydın Çiço Hanım! Kahveniz odanızda ☕"')});
+    I.spots.push({x:-hw+1.2,z:0,r:2,t:'E: 🌇 Körfez manzarası (21. kat)',fn:()=>{mood=clamp(mood+6,0,100);toast('🌇 Kordon, vapurlar, Karşıyaka… İzmir ayaklarının altında')}})}
+  /* açık ofis: ekibin masaları */
+  const team=B?[[-7,0],[-3,0],[1,0],[-7,4],[-3,4],[1,4]]:[[-7,-1],[-3,-1],[-7,3],[-3,3]];
+  team.forEach((p,i)=>{F(I,p[0],p[1],0,1.2,1.7,fDesk(true));try{I.workers.push(seatedNpc(W,p[0],p[1]+1.25,Math.PI,COWORK[i%COWORK.length],1))}catch(e){}});
+  /* kendi odası: arka sağ köşe, cam bölme */
+  const ox=hw-7,gz=-hd+5.6,dx0=ox+.9,dx1=ox+2.5;
+  tcGlass(I,(dx1+hw)/2,gz,hw-dx1,.06);tcGlass(I,(ox+dx0)/2,gz,dx0-ox,.06);tcGlass(I,ox,(-hd+gz)/2,.06,gz+hd);box(dx1-dx0,.12,.08,mt(0x3a3a40),(dx0+dx1)/2,2.6,gz);
+  const dsk=[ox+3.8,-hd+2.2];F(I,dsk[0],dsk[1],0,1.2,.7,fDesk(true));F(I,dsk[0],dsk[1]+1.15,2,0,0,fChair(B?0x1a1a1e:0x2a2a30));
+  {const t=textSign('ÇİÇO · '+j.t.toUpperCase(),3,.5,'#2a2a30','#f2d27a'),pm=new T.MeshBasicMaterial({map:t});signMats.push(pm);const pl0=new T.Mesh(new T.PlaneGeometry(1.1,.2),pm);pl0.position.set(dsk[0],1.02,dsk[1]+.56);W.add(pl0);box(1.16,.24,.06,mt(0x2a2a30),dsk[0],1.02,dsk[1]+.52)}
+  {const ds=new T.MeshBasicMaterial({map:textSign('ÇİÇO · '+(B?'BÖLGE DİREKTÖRÜ':'CRM & PAZARLAMA MÜDÜRÜ'),4,.5,'#ffffff','#1d2a3a')});signMats.push(ds);const dp=new T.Mesh(new T.PlaneGeometry(2.2,.28),ds);dp.position.set((dx0+dx1)/2+.4,2.25,gz+.05);W.add(dp)}
+  F(I,hw-1,-hd+1,0,.5,.5,fPlant);F(I,ox+1,-hd+1,0,.5,.5,fPlant);if(B){F(I,hw-1.4,-hd+4.2,3,1.6,.7,fSofa(0x2a3a5a))}else F(I,ox+1.4,-hd+.55,0,1.1,.3,fShelf);
+  I.spots.push({x:dsk[0],z:dsk[1]+1.7,r:1.7,t:'E: 💼 Odanda mesaiye başla'+(B?' (uzun gün)':''),fn:()=>tcShift({x:dsk[0],z:dsk[1]})});
+  /* toplantı masası + mutfak */
+  const mt0=[hw-4.2,hd-2.8];F(I,mt0[0],mt0[1],0,1.7,1,fTable(3.2,1.6,.78));[[-1,-1.3],[0,-1.3],[1,-1.3],[-1,1.3],[0,1.3],[1,1.3]].forEach((q,i)=>F(I,mt0[0]+q[0],mt0[1]+q[1],q[1]<0?0:2,0,0,fChair(B?0x1a1a1e:0x4a6a8a)));I.tcTable=mt0;
+  I.spots.push({x:mt0[0]-2.4,z:mt0[1],r:1.9,t:'E: 📋 Ekip toplantısı yönet',fn:()=>tcMeet()});
+  F(I,-hw+1.6,hd-1.2,0,1.1,.5,fCounter(2));I.spots.push({x:-hw+1.6,z:hd-2.6,r:1.9,t:'E: ☕ Mutfakta kahve molası',fn:()=>startAct({name:'Kahve molası',ic:'☕',dur:6,tm:3,per:{en:2,soc:1},end:()=>{toast('☕ Ekibinle sohbet ettin · moral +2');const v=tcS();if(v)v.morale=clamp((v.morale||70)+2,0,100)}})});
+  I.spawn=[-7,-hd+1.6]}
+{const _ji=jobInt;jobInt=function(I,id){if(/^sap_terfi[ab]$/.test(id)&&LNK.job&&LNK.job.id===id)return tcOffice(I,LNK.job);return _ji.apply(this,arguments)}}
+function tcShift(face){const j=LNK.job;if(!j)return;if(j.terfi!=='b')return workShift(face,j.co+' · odanda mesai');if(GT<7*60||GT>20*60){toast('Mesai saatleri 08:00 – 19:00 🕗');return}
+  startAct({name:j.co+' · direktör mesaisi (uzun gün)',ic:'💼',dur:18,tm:4,pose:'work',faceTo:face,per:{fun:-.4,en:-.8,mood:-.15},end:()=>{GT+=6*60;LNK.done=(LNK.done||0)+1;toast('💼 Uzun mesai bitti · '+hhmm(GT)+' · plaza ışıkları hâlâ yanıyor 🌃')}})}
+/* --- terfi kutlaması: alkış, pasta, PixelGram --- */
+function tcParty(I){const v=tcS();if(!v||!v.party||!I||!I.tcTable)return;v.party=0;scnTaskDone('tc_kutlama');const j=LNK.job,t=I.tcTable,g=new T.Group();g.position.set(t[0],.84,t[1]);
+  cyl(.5,.5,.32,20,mt(0xf6efe4),0,.16,0,g);cyl(.36,.36,.26,20,mt(0xe89ab0),0,.45,0,g);cyl(.52,.52,.04,20,mt(0xffffff),0,.02,0,g);for(let i=0;i<5;i++){const a=i/5*6.283;cyl(.02,.02,.18,6,mt(0xf2d27a),Math.cos(a)*.22,.67,Math.sin(a)*.22,g);const f=new T.Mesh(new T.SphereGeometry(.035,6,5),new T.MeshBasicMaterial({color:0xffb030}));f.position.set(Math.cos(a)*.22,.79,Math.sin(a)*.22);g.add(f)}
+  (I.G||W).add(g);I.spots.push({x:t[0]-2.4,z:t[1]+1.6,r:1.6,t:'E: 🍰 Terfi pastasından bir dilim',fn:()=>{hunger=clamp(hunger+12,0,100);mood=clamp(mood+3,0,100);toast('🍰 Çilekli pasta · ekip seçmiş 😋')}});
+  sfx('bell');try{noiseHit(1.6,2400,.18);setTimeout(()=>noiseHit(1.2,2800,.14),700)}catch(e){}(I.workers||[]).forEach((w,i)=>setTimeout(()=>{try{say(w.p,pick(['👏👏 Tebrikler!','Hayırlı olsun Çiço Hanım! 🎉','Bravooo! 👏','Sen bunu hak ettin! 💪']),3);fxPop(w.p,'👏',3)}catch(e){}},300+i*350));
+  setTimeout(()=>{try{fxPop(player,'🎉',6);say(player,'Hepinize çok teşekkür ederim, bu başarı hepimizin! 🥹',3.6)}catch(e){}},2200);mood=clamp(mood+18,0,100);
+  setTimeout(()=>{try{pgPost(null,10,'Yeni görevim: '+j.t+' 💼✨ '+j.co+' ailesine ve ekibime teşekkürler 🎉🍰')}catch(e){}notify('📸 PixelGram','Terfi fotoğrafını paylaştın! Beğeniler yağıyor ❤️',[{t:'😍',fn:()=>{}}])},5200);
+  memAdd('🍰','Ofiste terfi kutlaması · '+j.t);v.morale=clamp((v.morale||70)+8,0,100);try{saveGame()}catch(e){}}
+{const _e=enter;enter=function(kind){const r=_e.apply(this,arguments);try{if(/^job_sap_terfi[ab]$/.test(String(kind))){let n=0;const iv=setInterval(()=>{n++;if(mode==='int'&&curI&&curI.name===kind){clearInterval(iv);setTimeout(()=>tcParty(curI),700)}else if(n>40)clearInterval(iv)},100)}}catch(e){}return r}}
+/* --- ekip toplantısı: 3 karar kartı, ekip morali --- */
+function tcMeet(){const v=tcS();if(!v||v.st!=='done'||!LNK.job||!LNK.job.terfi)return toast('📋 Toplantı odası boş');if(v.meet===HOME.day)return toast('📋 Bugünkü ekip toplantısını yaptın · moral %'+v.morale);
+  if(GT<8*60||GT>19*60)return toast('📋 Ekip mesai saatlerinde toplanır (08:00 – 19:00)');v.meet=HOME.day;const pool=TC_MEET.slice().sort(()=>rnd()-.5).slice(0,3);let i=0,dm=0;const log=[];
+  const step=()=>{if(i>=pool.length){v.morale=clamp((v.morale||70)+dm,0,100);GT+=60;let x='';if(v.morale>=75){const pr=Math.round(tcSal()*.08);coins+=pr;try{txNote67('💼 Ekip performans primi','maaş')}catch(e){}x=' · ekip hedefi geçti, prim +'+pr+'🪙';mood=clamp(mood+5,0,100)}else if(v.morale<40){mood=clamp(mood-5,0,100);x=' · ekipte huzursuzluk var ⚠️'}
+      notify('📋 Toplantı özeti',log.join(' · ')+' → ekip morali %'+v.morale+' ('+(dm>=0?'+':'')+dm+')'+x,[{t:'Tamam',fn:()=>{}}]);memAdd('📋','Ekip toplantısı yönettim');try{saveGame()}catch(e){}return}
+    const q=pool[i];scnCards({title:'📋 Ekip toplantısı · Karar '+(i+1)+'/3',sub:q[0]+' '+q[1]+' · Ekip morali %'+clamp((v.morale||70)+dm,0,100),cancel:false,
+      cards:q[2].map(o=>({ic:o[1]>=5?'🤝':o[1]>=0?'⚖️':'⚡',t:o[0],fn:()=>{dm+=o[1];log.push(o[2]);toast((o[1]>=0?'💚 ':'💔 ')+o[2]+' ('+(o[1]>=0?'+':'')+o[1]+')');i++;setTimeout(step,500)}}))})};step()}
+/* --- ara sıra iş seyahati / konferans --- */
+function tcTrip(){const v=tcS(),j=LNK.job;if(!v||!j||!j.terfi)return;const L=TC_TRIP.filter(q=>!q[5]||q[5]===j.terfi),q=pick(L),bonus=Math.round(tcSal()*q[3]/10)*10;v.trip=HOME.day;
+  notify(q[0]+' '+q[1],q[2]+' · harcırah + prim '+bonus+'🪙. Katılmak ister misin?',[{t:'Katıl '+q[0],fn:()=>{coins+=bonus;try{txNote67(q[0]+' '+q[1]+' · prim','maaş')}catch(e){}mood=clamp(mood+q[4],0,100);GT+=3*60;memAdd(q[0],q[1]);v.morale=clamp((v.morale||70)+3,0,100);
+      toast(q[0]+' '+q[1]+' harika geçti · +'+bonus+'🪙');if(q[1].indexOf('Zirve')>=0||q[1].indexOf('Kongre')>=0)setTimeout(()=>{try{pgPost(null,10,q[1]+' sahnesindeydim 🎤✨')}catch(e){}},1500)}},{t:'Bu sefer geç',fn:()=>{}}])}
+{const _nd=newDay;newDay=function(){const r=_nd.apply(this,arguments);try{const v=tcS();if(v&&v.st==='done'&&isCico83()&&LNK.job&&LNK.job.terfi&&HOME.day-(v.trip||0)>=4&&rnd()<.3)setTimeout(()=>{try{tcTrip()}catch(e){scnErr(e)}},9000)}catch(e){scnErr(e)}return r}}
+/* --- senaryo kaydı: sadece Çiço; kafeyi devralmış eski kayıtlarda tetiklenmez --- */
+scnAdd('terfiCico',{after:3,cond:()=>isCico83()&&!kfOwned(),fire:tcStart});
+scnResetHook.push(()=>{try{if(me&&me.key==='abla'&&LNK.job&&LNK.job.terfi){delete INT['job_'+LNK.job.id];SAL.abla=LNK.old||2200;LNK.job=null;if(OWNCARS){OWNCARS=OWNCARS.filter(k=>k!=='p_sirket');if(curCarKey()==='p_sirket'&&OWNCARS[0])setActiveCar(OWNCARS[0])}}}catch(e){scnErr(e)}});
+window.__tc={get S(){return tcS()},get job(){return LNK.job},get sal(){return SAL.abla},get cars(){return OWNCARS},get I(){return curI},start:tcStart,offers:tcOffers,pick:tcPick,exam:tcExam,win:tcWin,meet:tcMeet,trip:tcTrip,party:tcParty,Q:TC_Q};
 function saveGame(){if(!me)return;try{const furn=Object.assign({},SAVE&&SAVE.furn||{});
   Object.keys(INT).forEach(k=>{const I=INT[k];if(k.indexOf('ev_')!==0||!I.furn)return;furn[k]=I.furn.filter(f=>f.key).map(f=>({key:f.key,x:+f.g.position.x.toFixed(3),z:+f.g.position.z.toFixed(3),q:f.q|0,sold:!!f.sold}))});
   const looks=Object.assign({},SAVE&&SAVE.looks||{});looks[me.key]=curLook();const bonds={};Object.keys(BONDS).forEach(k=>bonds[k]=BONDS[k].v);
