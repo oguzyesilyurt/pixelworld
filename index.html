@@ -3522,7 +3522,7 @@ function dogFollow(dt,t){const back=1.6,tx=pl.x-Math.sin(pl.face)*back+Math.cos(
 const LOOK={x:0,z:0,id:null,sx:0,sy:0};
 dom.addEventListener('pointerdown',e=>{if(!ACT.on||BUILD.on||e.clientX<innerWidth/2)return;LOOK.id=e.pointerId;LOOK.sx=e.clientX;LOOK.sy=e.clientY;e.stopImmediatePropagation();try{dom.setPointerCapture(e.pointerId)}catch(er){}},{capture:true});
 addEventListener('pointermove',e=>{if(LOOK.id!==e.pointerId)return;const k=2*zoom/innerHeight,dx=e.clientX-LOOK.sx,dy=e.clientY-LOOK.sy;LOOK.sx=e.clientX;LOOK.sy=e.clientY;
-  LOOK.x+=(-.707*dx+.707*dy/.537)*k;LOOK.z+=(-.707*dx-.707*dy/.537)*k;const l=Math.hypot(LOOK.x,LOOK.z);if(l>16){LOOK.x*=16/l;LOOK.z*=16/l}});
+  LOOK.x+=(-CAMR113.x*dx+CAMF113.x*dy/.537)*k;LOOK.z+=(-CAMR113.z*dx+CAMF113.z*dy/.537)*k;const l=Math.hypot(LOOK.x,LOOK.z);if(l>16){LOOK.x*=16/l;LOOK.z*=16/l}});
 ['pointerup','pointercancel'].forEach(ev=>addEventListener(ev,e=>{if(LOOK.id===e.pointerId)LOOK.id=null}));
 function lookTick(dt){if(!ACT.on&&LOOK.id==null&&(LOOK.x||LOOK.z)){LOOK.x*=Math.max(0,1-dt*5);LOOK.z*=Math.max(0,1-dt*5);if(Math.abs(LOOK.x)+Math.abs(LOOK.z)<.02)LOOK.x=LOOK.z=0}}
 
@@ -4802,11 +4802,11 @@ function geoMerge(parts){let n=0;parts.forEach(p=>{const g=p[0];n+=(g.index?g.in
       if(N){v.fromBufferAttribute(N,i).applyMatrix3(nm).normalize();nor[o*3]=v.x;nor[o*3+1]=v.y;nor[o*3+2]=v.z}if(col){const cc=c||[1,1,1];col[o*3]=cc[0];col[o*3+1]=cc[1];col[o*3+2]=cc[2]}o++}});
   const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(pos,3));g.setAttribute('normal',new T.BufferAttribute(nor,3));if(col)g.setAttribute('color',new T.BufferAttribute(col,3));g.computeBoundingSphere();return g}
 /* --- görüş kesiti: oyuncunun önünü kapatan her şey (bina, ağaç, direk) karakterin çevresinde şeffaflaşır (Sims tarzı) --- */
-const CUT38={P:{value:new T.Vector2(-9999,-9999)},R:{value:0},D:{value:0}};
+const CUT38={P:{value:new T.Vector2(-9999,-9999)},R:{value:0},D:{value:0},K:{value:0}};
 function cutPatch(m){if(!m||m.userData.cut38||m.isShaderMaterial||m.isSpriteMaterial||m.isPointsMaterial||m.isLineBasicMaterial||m.isMeshDepthMaterial)return;if(Object.prototype.hasOwnProperty.call(m,'onBeforeCompile'))return;m.userData.cut38=1;
-  m.onBeforeCompile=function(sh){if(sh.vertexShader.indexOf('#include <project_vertex>')<0||sh.fragmentShader.indexOf('void main() {')<0)return;sh.uniforms.uCutP=CUT38.P;sh.uniforms.uCutR=CUT38.R;sh.uniforms.uCutD=CUT38.D;
+  m.onBeforeCompile=function(sh){if(sh.vertexShader.indexOf('#include <project_vertex>')<0||sh.fragmentShader.indexOf('void main() {')<0)return;sh.uniforms.uCutP=CUT38.P;sh.uniforms.uCutR=CUT38.R;sh.uniforms.uCutD=CUT38.D;sh.uniforms.uCutK=CUT38.K;
     sh.vertexShader=sh.vertexShader.replace('void main() {','varying float vCutD;varying float vCutY;\nvoid main() {').replace('#include <project_vertex>','#include <project_vertex>\nvCutD=-mvPosition.z;\n#ifdef USE_INSTANCING\nvCutY=(modelMatrix*instanceMatrix*vec4(transformed,1.0)).y;\n#else\nvCutY=(modelMatrix*vec4(transformed,1.0)).y;\n#endif');
-    sh.fragmentShader=sh.fragmentShader.replace('void main() {','uniform vec2 uCutP;uniform float uCutR;uniform float uCutD;varying float vCutD;varying float vCutY;\nvoid main() {\nif(uCutR>0.0&&vCutY>0.35&&vCutD<uCutD-1.9){vec2 q38=(gl_FragCoord.xy-uCutP)/uCutR;float r38=dot(q38,q38);if(r38<1.0){float b38=mod(floor(gl_FragCoord.x)+floor(gl_FragCoord.y)*2.0,4.0)*.25;if(r38<.42+b38*.58)discard;}}')};
+    sh.fragmentShader=sh.fragmentShader.replace('void main() {','uniform vec2 uCutP;uniform float uCutR;uniform float uCutD;uniform float uCutK;varying float vCutD;varying float vCutY;\nvoid main() {\nif(uCutR>0.0&&uCutK>0.0&&vCutY>0.35&&vCutD<uCutD-1.9){vec2 q38=(gl_FragCoord.xy-uCutP)/uCutR;float r38=dot(q38,q38);if(r38<1.0){float b38=mod(floor(gl_FragCoord.x)+floor(gl_FragCoord.y)*2.0,4.0)*.25;float f38=uCutK*(1.0-smoothstep(.45,1.0,r38));if(b38<.75*f38)discard;}}')};
   m.needsUpdate=true}
 function cutScan(A){if(!A||!A.G)return;A.G.traverse(o=>{if(!o.isMesh)return;const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(cutPatch)})}
 const _cv=new T.Vector3(),_cv2=new T.Vector3();
@@ -8988,7 +8988,7 @@ function frameBody(){
     const inI=mode==='int';
     let sx=(keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0)+drag.x,sy=(keys.KeyW||keys.ArrowUp?1:0)-(keys.KeyS||keys.ArrowDown?1:0)+drag.y;
     if(busy||uiPC){sx=0;sy=0}const l=Math.hypot(sx,sy);if(l>1){sx/=l;sy/=l}
-    const wx=(sx+sy)*Math.SQRT1_2,wz=(sx-sy)*Math.SQRT1_2,sp=inI?4.6:6.2,moving=Math.hypot(wx,wz)>.05,bl=inI?blockedI:blockedW;
+    const wx=sx*CAMR113.x+sy*CAMF113.x,wz=sx*CAMR113.z+sy*CAMF113.z,sp=inI?4.6:6.2,moving=Math.hypot(wx,wz)>.05,bl=inI?blockedI:blockedW;
     const nx=pl.x+wx*sp*spdK()*dt,nz=pl.z+wz*sp*spdK()*dt;const rr=inI?.28:.45;if(!bl(nx,pl.z,rr))pl.x=nx;if(!bl(pl.x,nz,rr))pl.z=nz;if(moving)pl.face=Math.atan2(wx,wz);
     player.position.set(pl.x,0,pl.z);let d=pl.face-player.rotation.y;d=Math.atan2(Math.sin(d),Math.cos(d));player.rotation.y+=d*Math.min(1,dt*12);walkAnim(player,moving,t);sitPose(dt,t,moving);lifeTick(t);buildTick(t);homeTick(dt);life25(dt,t,inI,moving);
     if(!inI){
@@ -11908,6 +11908,71 @@ function interact112(g,F,ia,t){const A=g.userData.arms,P=F.parts,k=ia.k,T0=Math.
 {const _p=post108;post108=function(sc,cm,inI){let ok=false;try{anim112();ok=true}catch(e){restore112();showErrOnce(e)}try{return _p.apply(this,arguments)}finally{if(ok)restore112()}}}
 window.__c112={A:ANIM112,expr:(who,e,d)=>{const g=who==='player'?player:who==='og'?OG.p:who;expr112(g,e,d)},face:g=>{const F=(g||player).userData.face43;return F&&F.ex?{v3:!!F.v3,cur:F.ex.cur,next:F.ex.next||null,mix:F.v3?F.v3f.cur.mo:F.head.material.userData.u112.mix.value,bR:F.v3?+F.v3f.cur.bR.toFixed(2):null,idle:F.idle.g,sp:+(F.idle.sp||0).toFixed(2),still:+F.idle.still.toFixed(1)}:null},
   social:k=>social112(k),pair:k=>{const g=nearPerson112();if(g)pair112(g,k,1.8);return !!g},near:()=>{const g=nearPerson112();return g?{x:g.position.x,z:g.position.z}:null},idle:(g)=>{const F=(g||player).userData.face43;F.idle.still=5;F.idle.next=0},faces:()=>FACES.length,gesture:(k)=>{const F=player.userData.face43;F.idle.still=5;F.idle.g=k;F.idle.t=0;F.idle.gd=3;if(k==='yawn')expr112(player,'yawn',2.2)}};
+/* ================= v113: serbest kamera döndürme (dünya 360°, iç mekân 4 sabit açı) · kameraya göre yürüme · görüş engeli yarı saydam ================= */
+/* yaw: kameranın hedefe göre yatay konumu (sin,cos). Varsayılan (-x,+z) = -45° */
+const YAW0_113=Math.atan2(-1,1),PMAX113=10*Math.PI/180;
+const ROT113={on:false,yaw:(SET.camYaw!=null&&isFinite(SET.camYaw))?SET.camYaw:YAW0_113,dp:(SET.camPitch!=null&&isFinite(SET.camPitch))?SET.camPitch:0,v:0,ret:false,drag:null,ik:0,iyaw:YAW0_113,eff:YAW0_113,saveT:0,key:0,inInt:false,acc:0};
+const CAMF113=new T.Vector3(.7071,0,-.7071),CAMR113=new T.Vector3(.7071,0,.7071);
+function camApply113(){const y=ROT113.eff,base=Math.atan2(SET.camLow?.5:.9,Math.SQRT2),p=base+clamp(ROT113.dp,-PMAX113,PMAX113),cp=Math.cos(p);
+  camOff.set(Math.sin(y)*cp,Math.sin(p),Math.cos(y)*cp).multiplyScalar(150);CAMF113.set(-Math.sin(y),0,-Math.cos(y));CAMR113.set(Math.cos(y),0,-Math.sin(y))}
+{const _ac=applyCam55;applyCam55=function(){const r=_ac.apply(this,arguments);try{camApply113()}catch(e){}return r}}
+const wrapA113=a=>Math.atan2(Math.sin(a),Math.cos(a));
+function rotSave113(){ROT113.saveT=1.2}
+function rotTick113(dt){const R=ROT113,inI=mode==='int';if(mode!=='world'&&!inI)return;
+  if(R.ret){const d=wrapA113(YAW0_113-R.yaw);R.yaw+=d*Math.min(1,dt*4);R.dp+=(0-R.dp)*Math.min(1,dt*4);R.ik=0;if(Math.abs(d)<.002&&Math.abs(R.dp)<.002){R.yaw=YAW0_113;R.dp=0;R.ret=false;R.v=0;rotSave113()}}
+  else if(!R.drag&&Math.abs(R.v)>.0005){R.yaw+=R.v*dt;R.v*=Math.exp(-dt*3.2);if(Math.abs(R.v)<.02){R.v=0;rotSave113()}}
+  if(R.key&&!inI){R.yaw+=R.key*dt*1.9;R.v=0}
+  R.yaw=wrapA113(R.yaw);
+  /* iç mekân: 90° adımlar, yumuşak geçiş */
+  if(inI){if(!R.inInt){R.inInt=true;R.iyaw=YAW0_113+R.ik*Math.PI/2}const tg=YAW0_113+R.ik*Math.PI/2;R.iyaw+=wrapA113(tg-R.iyaw)*Math.min(1,dt*6);R.eff=R.iyaw}else{R.inInt=false;R.eff=R.yaw}
+  camApply113();if(R.saveT>0){R.saveT-=dt;if(R.saveT<=0){SET.camYaw=+R.yaw.toFixed(4);SET.camPitch=+R.dp.toFixed(4);SET.camIK=R.ik;try{saveSet()}catch(e){}}}
+  try{intWallsTick113()}catch(e){}}
+if(SET.camIK!=null)ROT113.ik=SET.camIK|0;
+{const _fb=frameBody;frameBody=function(){try{rotTick113(Math.min(.05,ROT113.lt?(performance.now()-ROT113.lt)/1000:.016))}catch(e){}ROT113.lt=performance.now();return _fb.apply(this,arguments)}}
+/* --- kontroller: 🔄 düğmesi, sağ yarıda sürükleme, sağ tık sürükleme, Q/E --- */
+const rotBtn113=(()=>{const tr=$('topr');if(!tr)return null;const b=document.createElement('button');b.id='rotb';b.className='panel rb';b.title='360° döndür (uzun bas: varsayılan açı)';b.innerHTML='🔄<i id="roti">360°</i>';
+  const sb=$('setb');tr.insertBefore(b,sb);const st=document.createElement('style');st.textContent='#rotb #roti{position:absolute;right:-4px;bottom:-4px;font:700 9px/1 system-ui;background:#6b5bd6;color:#fff;border-radius:6px;padding:2px 3px;font-style:normal}#rotb{position:relative}#rotb.on{box-shadow:0 0 0 3px #8f7bff,0 0 18px rgba(143,123,255,.75)}#rot113h{position:fixed;right:0;top:0;bottom:0;width:50%;pointer-events:none;z-index:2;border-left:2px dashed rgba(143,123,255,.35);background:linear-gradient(90deg,rgba(143,123,255,.07),rgba(143,123,255,0));display:none}#rot113h.on{display:block}#rot113h span{position:absolute;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(20,16,40,.7);color:#fff;font:600 12px system-ui;padding:5px 9px;border-radius:9px;white-space:nowrap}';document.head.appendChild(st);
+  const h=document.createElement('div');h.id='rot113h';h.innerHTML='<span>↔ sürükle: döndür</span>';document.body.appendChild(h);
+  let lt=null,long=false;b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();long=false;lt=setTimeout(()=>{long=true;ROT113.ret=true;ROT113.v=0;try{toast('🔄 Kamera varsayılan açıya dönüyor')}catch(er){}},600)});
+  const up=e=>{if(lt){clearTimeout(lt);lt=null}if(!long&&e.type==='pointerup')rotToggle113()};b.addEventListener('pointerup',up);b.addEventListener('pointerleave',()=>{if(lt){clearTimeout(lt);lt=null}});b.addEventListener('click',e=>e.stopPropagation());return b})();
+function rotToggle113(on){ROT113.on=on==null?!ROT113.on:!!on;if(rotBtn113)rotBtn113.classList.toggle('on',ROT113.on);const h=$('rot113h');if(h)h.classList.toggle('on',ROT113.on&&(mode==='world'||mode==='int'));
+  try{toast(ROT113.on?(mode==='int'?'🔄 Döndürme açık · sağ yarıda sürükle ya da Q/E: 90° adım':'🔄 Döndürme açık · sağ yarıda sürükle (Q/E)'):'🔄 Döndürme kapalı · açı korundu')}catch(e){}}
+function rotStart113(e,btn2){ROT113.drag={id:e.pointerId,x:e.clientX,y:e.clientY,t:performance.now(),b2:btn2};ROT113.v=0;ROT113.ret=false;ROT113.acc=0;try{dom.setPointerCapture(e.pointerId)}catch(er){}}
+dom.addEventListener('pointerdown',e=>{if(mode!=='world'&&mode!=='int')return;if(BUILD.on)return;const b2=e.button===2;if(!(b2||(ROT113.on&&e.clientX>innerWidth/2)))return;
+  e.stopImmediatePropagation();e.preventDefault();rotStart113(e,b2)},{capture:true});
+addEventListener('pointermove',e=>{const D=ROT113.drag;if(!D||D.id!==e.pointerId)return;const dx=e.clientX-D.x,dy=e.clientY-D.y,now=performance.now(),dtm=Math.max(1,now-D.t);D.x=e.clientX;D.y=e.clientY;D.t=now;
+  if(mode==='int'){ROT113.acc+=dx;if(Math.abs(ROT113.acc)>90){ROT113.ik=(ROT113.ik+(ROT113.acc>0?-1:1)+4)%4;ROT113.acc=0;rotSave113()}return}
+  const k=(2*Math.PI)/Math.max(420,innerWidth*.85),da=-dx*k;ROT113.yaw+=da;ROT113.v=ROT113.v*.6+(da/(dtm/1000))*.4;ROT113.dp=clamp(ROT113.dp+dy*.0022,-PMAX113,PMAX113)},{passive:true});
+['pointerup','pointercancel'].forEach(ev=>addEventListener(ev,e=>{const D=ROT113.drag;if(!D||D.id!==e.pointerId)return;ROT113.drag=null;if(performance.now()-D.t>90)ROT113.v=0;ROT113.v=clamp(ROT113.v,-6,6);rotSave113()}));
+dom.addEventListener('contextmenu',e=>e.preventDefault());
+addEventListener('keydown',e=>{if(!ROT113.on||(mode!=='world'&&mode!=='int'))return;if(e.code!=='KeyQ'&&e.code!=='KeyE')return;if(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName))return;
+  e.stopImmediatePropagation();e.preventDefault();const s=e.code==='KeyQ'?1:-1;if(mode==='int'){if(!e.repeat){ROT113.ik=(ROT113.ik+(s>0?1:-1)+4)%4;rotSave113()}}else{ROT113.key=s;ROT113.ret=false}},{capture:true});
+addEventListener('keyup',e=>{if(e.code==='KeyQ'||e.code==='KeyE'){if(ROT113.key){ROT113.key=0;rotSave113()}}});
+{const _ufm=uiForMode;uiForMode=function(){const r=_ufm.apply(this,arguments);try{const h=$('rot113h'),ok=mode==='world'||mode==='int';if(h)h.classList.toggle('on',ROT113.on&&ok);if(rotBtn113)rotBtn113.style.display=ok?'':'none'}catch(e){}return r}}
+/* --- 4) görüş engeli: oyuncu ile kamera arasında bina/ağaç varsa görüş kesiti %25 opaklıkla yumuşakça açılır (5 karede bir kontrol) --- */
+const OCC113={f:0,k:0,occ:false};
+function occTest113(){const A=activeD;if(!A||mode!=='world')return false;const px=pl.x,pz=pl.z,ox=Math.sin(ROT113.eff),oz=Math.cos(ROT113.eff),L=28;
+  for(const b of A.boxes){if(b.hx<.9&&b.hz<.9)continue;if(Math.abs(px-b.x)<b.hx&&Math.abs(pz-b.z)<b.hz)continue;
+    let t0=0,t1=L;const ax=[[px,ox,b.x-b.hx,b.x+b.hx],[pz,oz,b.z-b.hz,b.z+b.hz]];let hit=true;for(const [p,d,lo,hi] of ax){if(Math.abs(d)<1e-6){if(p<lo||p>hi){hit=false;break}continue}let a=(lo-p)/d,c=(hi-p)/d;if(a>c){const s=a;a=c;c=s}t0=Math.max(t0,a);t1=Math.min(t1,c);if(t0>t1){hit=false;break}}if(hit&&t1>.6)return true}
+  for(const c of (A.circles||[])){if(c.r<.7)continue;const dx=c.x-px,dz=c.z-pz,t=dx*ox+dz*oz;if(t<.6||t>L)continue;const q=Math.hypot(dx-ox*t,dz-oz*t);if(q<c.r+.4)return true}return false}
+{const _cu=cutUpdate;cutUpdate=function(){const r=_cu.apply(this,arguments);try{const O=OCC113;if(++O.f%5===0)O.occ=occTest113();const tg=O.occ&&CUT38.R.value>0?1:0;O.k+=(tg-O.k)*.12;if(O.k<.01)O.k=0;CUT38.K.value=O.k}catch(e){}return r}}
+/* --- 6) iç mekân: kameraya bakan iki duvar gizlenir; eksik ön duvarlar (room) aynalanarak eklenir, diğer açılarda tam boy görünür --- */
+const NRM113={N:[0,-1],S:[0,1],E:[1,0],W:[-1,0]};
+function intWalls113(I){if(I.walls113!==undefined)return I.walls113;I.walls113=null;if(!I.G||!(I.w>0&&I.d>0))return null;const w=I.w,d=I.d,S={N:[],S:[],E:[],W:[]},walls={N:[],S:[],E:[],W:[]};
+  I.G.children.forEach(o=>{if(!o.isMesh||o===player)return;const p=o.position,g=o.geometry,pa=g&&g.parameters;
+    let side=null;if(Math.abs(p.z+d/2)<.6)side='N';else if(Math.abs(p.z-d/2)<.6)side='S';else if(Math.abs(p.x-w/2)<.6)side='E';else if(Math.abs(p.x+w/2)<.6)side='W';if(!side)return;
+    if(g.type==='BoxGeometry'&&pa){const sx=pa.width*o.scale.x,sy=pa.height*o.scale.y,sz=pa.depth*o.scale.z;if(sy<.15&&p.y<.5)return;/* süpürgelik kalır */if(sy>=2.4&&((side==='N'||side==='S')?sz<=.7&&sx>=2:sx<=.7&&sz>=2))walls[side].push(o)}
+    S[side].push(o)});
+  if(!walls.N.length&&!walls.E.length)return null;
+  /* eksik kenarlar: karşı duvarın kopyası (aynı geometri/malzeme), varsayılan açıda zaten gizli */
+  [['S','N','z'],['W','E','x'],['N','S','z'],['E','W','x']].forEach(([m,src,ax])=>{if(walls[m].length||!walls[src].length)return;S[src].filter(o=>o.geometry.type==='BoxGeometry'&&(walls[src].indexOf(o)>=0||o.position.y>3)).forEach(o=>{const c=new T.Mesh(o.geometry,o.material);c.position.copy(o.position);c.position[ax]*=-1;c.rotation.copy(o.rotation);c.scale.copy(o.scale);c.castShadow=o.castShadow;c.receiveShadow=o.receiveShadow;c.visible=false;c.userData.wall113=1;I.G.add(c);S[m].push(c)})});
+  I.walls113={S:S,last:null};return I.walls113}
+function intWallsTick113(){if(mode!=='int'||!curI)return;const W=intWalls113(curI);if(!W)return;const tg=YAW0_113+ROT113.ik*Math.PI/2,key=ROT113.ik;if(W.last===key)return;W.last=key;const ox=Math.sin(tg),oz=Math.cos(tg);
+  Object.keys(W.S).forEach(s=>{const n=NRM113[s],face=n[0]*ox+n[1]*oz>.3;W.S[s].forEach(o=>{o.visible=!face})})}
+/* audio konumu: kamera sağına göre sol/sağ */
+{const _ap=au97Pos;au97Pos=function(x,z){const o=_ap.apply(this,arguments);try{const dx=x-pl.x,dz=z-pl.z;o.pan=clamp((dx*CAMR113.x+dz*CAMR113.z)/14,-1,1)}catch(e){}return o}}
+camApply113();
+window.__r113={R:ROT113,toggle:on=>rotToggle113(on),set:(y,p)=>{ROT113.yaw=y;if(p!=null)ROT113.dp=p;ROT113.v=0},step:k=>{ROT113.ik=((ROT113.ik+k)%4+4)%4},reset:()=>{ROT113.ret=true},occ:()=>({occ:OCC113.occ,k:+OCC113.k.toFixed(2)}),walls:()=>{const W=curI&&curI.walls113;return W?Object.fromEntries(Object.keys(W.S).map(s=>[s,W.S[s].length+':'+(W.S[s][0]?W.S[s][0].visible:'-')])):null},F:()=>[+CAMF113.x.toFixed(2),+CAMF113.z.toFixed(2)]};
 /* ================= v90: bahçe & tarım görsel yenileme — tekrarsız çim, sürülmüş toprak, taş yol, lamba, bank, 3 evreli instanced bitkiler, rüzgâr, hasat animasyonu ================= */
 const U90={t:{value:0}};
 function sway90(col,o,amp){const m=std(col,Object.assign({roughness:.75},o||{}));const A=(amp||.03).toFixed(3);
