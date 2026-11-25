@@ -12071,6 +12071,123 @@ const NV115=()=>({hf:hunger,ef:NEED.en,yf:HOME.hyg,ff:NEED.fun,sof:NEED.soc,mf:m
 /* özet paneli: yalnız 🔍 ile; değerler güvenli okunur (NaN/undefined → gerçek değişken, sonra 0), içerik kaydırılabilir */
 {const _cs=charSummary106;charSummary106=function(){const r=_cs.apply(this,arguments);try{const b=$('mbody');if(b&&!b.querySelector('#sum115')){const w=el('div','');w.id='sum115';[...b.childNodes].forEach(n=>w.appendChild(n));b.appendChild(w)}}catch(e){}return r}}
 window.__h115={vals:()=>{const V=NV115();return Object.fromEntries(Object.entries(V).map(([k,v])=>[k,Math.round(v)]))},bars:()=>Object.fromEntries(['hf','ef','yf','ff','sof','mf'].map(k=>[k,parseFloat($(k).style.width)])),cmp:on=>{$('hud').classList.toggle('cmp115',on)}};
+/* ================= v116: araba sahipliği · yakıt/benzinlik/çekici, otopark, trafik cezası (e-Kapı), modifiye, kasko & trafik sigortası (sürüş koduna dokunmaz) ================= */
+Object.assign(ECO,{fuelP:{benzin:46,dizel:44,lpg:23,elektrik:9},tank:{hatch:45,suv:60,lux:70},cons:{hatch:6.2,suv:8,lux:11},tow:2800,
+  park:{mall:60,fine:900,risk:.35},fine:{speed:[1600,3200],red:4600,noIns:2400,lateDays:7,lateK:.25},ins:{trafik:1400,kasko:4200,every:30,cover:.85},
+  hitCost:2400,breakP:.04,breakCost:[3000,12000],mod:{color:7500,rim:4800,tint:2600,spoiler:5900,neon:4400}});
+const CX={cars:{},fines:[],ins:{trafik:0,kasko:0},park:null,stranded:null,trip:null,nid:1,mods:{},log:[]};
+const FUELN116={benzin:'⛽ Benzin',dizel:'🛢️ Motorin',lpg:'🔵 LPG',elektrik:'🔌 Elektrik (kWh)'};
+function carCls116(k){return /^p_/.test(k)?'lux':/^blue/.test(k)?'suv':'hatch'}
+function carK116(){try{return curCarKey()}catch(e){return 'gray_base'}}
+function carS116(k){k=k||carK116();let c=CX.cars[k];if(!c){const cl=carCls116(k);c=CX.cars[k]={fuel:Math.round(ECO.tank[cl]*.6),type:k==='p_sedan'?'elektrik':cl==='suv'?'dizel':'benzin'}}return c}
+function tankOf116(k){return ECO.tank[carCls116(k||carK116())]}
+function needL116(km,k){return km*ECO.cons[carCls116(k||carK116())]/100}
+const fmt116=v=>Math.round(v).toLocaleString('tr-TR');
+function insOn116(t){return CX.ins[t]>=HOME.day}
+/* ---------- trafik cezaları ---------- */
+function fineAmt116(f){if(f.paid)return 0;const late=HOME.day-f.due;return late>0?Math.round(f.base*(1+ECO.fine.lateK*Math.ceil(late/ECO.fine.lateDays))):f.base}
+function addFine116(type,t,base,why){const f={id:CX.nid++,type:type,t:t,base:Math.round(base),day:HOME.day,due:HOME.day+ECO.fine.lateDays,paid:false,why:why||''};CX.fines.push(f);
+  setTimeout(()=>{try{notify('🏛️ e-Kapı','📨 Yeni trafik cezası: '+t+' · '+fmt116(f.base)+'🪙'+(why?' ('+why+')':'')+' · son ödeme Gün '+f.due+' (gecikirse artar)',[{t:'e-Kapı\'yı aç',fn:()=>phoneApp('ekapi')},{t:'Sonra',fn:()=>{}}])}catch(e){}},1800);return f}
+function payFine116(f){const a=fineAmt116(f);if(!a)return;if(!payOk(a))return;pay(a);f.paid=true;f.paidDay=HOME.day;sfx('coin');toast('🧾 Ceza ödendi · −'+fmt116(a)+'🪙')}
+/* ---------- yolculuk öncesi / sonrası (finishDrive ve startDrive sarmalayıcıları; sürüş döngüsü değişmez) ---------- */
+{const _sd=startDrive;startDrive=function(to){const self=this;if(CX.stranded){toast('🚗 Araban yolda kaldı · önce 🚛 çekici çağır (telefon → e-Kapı)');return}
+  const go=()=>{CX.trip={to:to,km:(PLACES[to]&&PLACES[to].km)||8,maxV:0,from:activeD&&activeD.name};
+    if(CX.park&&CX.park.bad&&Math.random()<ECO.park.risk){addFine116('park','Hatalı park',ECO.park.fine,(CX.park.d||'')+' · camda ceza kâğıdı');toast('🚓 Arabanın camında park cezası kâğıdı var!')}CX.park=null;
+    return _sd.call(self,to)};
+  if(CX.byp){CX.byp=false;return go()}const c=carS116(),need=needL116((PLACES[to]&&PLACES[to].km)||8);
+  if(c.fuel<need){actionMenu('⛽ Yakıt yetmeyebilir · depoda '+c.fuel.toFixed(1)+' L, yol ~'+need.toFixed(1)+' L',[['⛽','Önce benzinliğe uğrayayım',()=>toast('⛽ Benzinlikler: Çiğli, Karşıyaka, Bostanlı, Karabağlar, Kocaeli, Merkez')],['🚗','Yine de yola çık (yolda kalabilirsin)',()=>{CX.byp=true;setTimeout(()=>startDrive(to),60)}]]);return}
+  return go()}}
+{const _fb=frameBody;frameBody=function(){const r=_fb.apply(this,arguments);try{if(mode==='drive'&&CX.trip&&typeof DR!=='undefined'&&DR.v>CX.trip.maxV)CX.trip.maxV=DR.v}catch(e){}return r}}
+{const _fd=finishDrive;finishDrive=function(){const T0=CX.trip;let hits=0,dd=null;try{hits=DR.hits|0;dd=PLACES[DR.dest]?PLACES[DR.dest].d:null}catch(e){}const r=_fd.apply(this,arguments);CX.trip=null;setTimeout(()=>{try{afterTrip116(T0,hits,dd)}catch(e){showErrOnce(e)}},1400);return r}}
+function strand116(dd){CX.stranded={d:dd,day:HOME.day};try{if(carAt&&D[carAt]&&myBox)D[carAt].boxes=D[carAt].boxes.filter(b=>b!==myBox)}catch(e){}carAt=null;if(myCar)myCar.visible=false;
+  notify('⛽ Yakıt bitti!','Araban yolda kaldı, sen yürüyerek devam ettin. Çekici aracı getirip yakıt da koyar.',[{t:'🚛 Çekici çağır ('+fmt116(ECO.tow)+'🪙)',fn:()=>tow116()},{t:'Sonra',fn:()=>toast('🚛 Çekiciyi telefondan e-Kapı ile çağırabilirsin')}])}
+function tow116(){if(!CX.stranded){toast('Aracın zaten yanında 🚗');return}if(!payOk(ECO.tow))return;pay(ECO.tow);const c=carS116();c.fuel=Math.max(c.fuel,6);CX.stranded=null;
+  const here=mode==='world'&&activeD?activeD.name:(ret&&ret.d)||me.home;setTimeout(()=>{try{if(D[here]){placeCar(here);myCar.visible=true}toast('🚛 Çekici aracını '+(D[here]&&D[here].label||here)+' otoparkına bıraktı · depoya 6 L kondu')}catch(e){}},1500);CX.log.push({d:HOME.day,t:'Çekici',a:-ECO.tow})}
+function repairBill116(name,cost){const cv=insOn116('kasko')?ECO.ins.cover:0,you=Math.round(cost*(1-cv));pay(you);CX.log.push({d:HOME.day,t:name,a:-you});
+  toast((cv?'🛡️ Kasko karşıladı: ':'🔧 ')+name+' · masraf '+fmt116(cost)+'🪙'+(cv?' · sana kalan '+fmt116(you)+'🪙':' · kasko yok, tamamını ödedin'))}
+function afterTrip116(T0,hits,dd){if(!T0)return;const c=carS116(),use=needL116(T0.km);
+  if(use>c.fuel+.01){c.fuel=0;strand116(dd);return}c.fuel=Math.max(0,c.fuel-use);
+  if(c.fuel<tankOf116()*.15)setTimeout(()=>toast('⛽ Yakıt azaldı · '+c.fuel.toFixed(1)+' L kaldı'),2600);
+  if(hits>0)setTimeout(()=>repairBill116('Kaporta onarımı ('+hits+' çarpma)',hits*ECO.hitCost),2200);
+  if(Math.random()<ECO.breakP){const a=ECO.breakCost,cost=Math.round((a[0]+Math.random()*(a[1]-a[0]))/100)*100;setTimeout(()=>repairBill116(pick(['Alternatör arızası','Fren balatası değişimi','Akü değişimi','Radyatör sızıntısı']),cost),3200)}
+  const kmh=T0.maxV*3.6;if(kmh>105&&Math.random()<.3){const f=ECO.fine.speed,amt=kmh>130?f[1]:f[0];addFine116('hiz','Hız ihlali · '+Math.round(kmh)+' km/s',amt,'EDS kamerası')}
+  else if(Math.random()<.025)addFine116('kirmizi','Kırmızı ışık ihlali',ECO.fine.red,'kavşak kamerası');
+  if(!insOn116('trafik')&&Math.random()<.1)addFine116('sigorta','Zorunlu trafik sigortası yok',ECO.fine.noIns,'yol kontrolü');
+  /* otopark */
+  if(!dd)return;if(/^mall_/.test(dd)){setTimeout(()=>actionMenu('🅿️ AVM\'ye vardın · nereye park edeceksin?',[['🅿️','AVM otoparkı · '+ECO.park.mall+'🪙',()=>{if(!payOk(ECO.park.mall)){CX.park={bad:true,d:dd};return}pay(ECO.park.mall);CX.park={bad:false,d:dd};toast('🅿️ Kapalı otoparka park ettin · fiş alındı')}],['🚧','Yol kenarına (bedava · ceza riski)',()=>{CX.park={bad:true,d:dd};toast('🚧 Yol kenarına park ettin… umarım polis görmez')}]]),900)}
+  else if(Math.random()<.3)setTimeout(()=>actionMenu('🅿️ Otopark dolu! · boş yer bul',[['🔎','Biraz ilerde boş yer ara (yasal)',()=>{CX.park={bad:false,d:dd};NEED.en=clamp(NEED.en-2,0,100);toast('🅿️ İki sokak ötede boş yer buldun')}],['🚧','Kaldırıma park et (ceza riski)',()=>{CX.park={bad:true,d:dd};toast('🚧 Kaldırıma park ettin')}]]),900);
+  else CX.park={bad:false,d:dd}}
+/* ---------- sigorta faturası + ceza gecikmesi (gün başında) ---------- */
+{const _nd=newDay;newDay=function(){const r=_nd.apply(this,arguments);try{['trafik','kasko'].forEach(t=>{const until=CX.ins[t];if(until&&until<HOME.day&&CX.ins[t+'Auto']){const p=ECO.ins[t];if(coins>=p){coins-=p;CX.ins[t]=HOME.day+ECO.ins.every-1;CX.log.push({d:HOME.day,t:(t==='kasko'?'Kasko':'Trafik sigortası')+' yenileme',a:-p});toast('🛡️ '+(t==='kasko'?'Kasko':'Trafik sigortası')+' yenilendi · −'+fmt116(p)+'🪙')}else{CX.ins[t+'Auto']=false;toast('🛡️ Bakiye yetmedi · '+(t==='kasko'?'kasko':'trafik sigortası')+' yenilenemedi')}}});
+  const due=CX.fines.filter(f=>!f.paid&&HOME.day===f.due+1);if(due.length)notify('🏛️ e-Kapı','⏰ '+due.length+' trafik cezasının son ödeme günü geçti · tutar arttı',[{t:'Öde',fn:()=>phoneApp('ekapi')},{t:'Sonra',fn:()=>{}}])}catch(e){}return r}}
+function buyIns116(t){const p=ECO.ins[t];if(!payOk(p))return;pay(p);CX.ins[t]=Math.max(CX.ins[t]||0,HOME.day-1)+ECO.ins.every;CX.ins[t+'Auto']=true;CX.log.push({d:HOME.day,t:t==='kasko'?'Kasko':'Trafik sigortası',a:-p});sfx('coin');toast('🛡️ '+(t==='kasko'?'Kasko':'Trafik sigortası')+' Gün '+CX.ins[t]+'\'e kadar geçerli · otomatik yenileme açık')}
+/* ---------- benzinlik: dünya yapısı + yakıt akışı (tür, litre, tutar, pompa) ---------- */
+function station116(x,z){const g=new T.Group();g.position.set(x,0,z);W.add(g);const wm=std(0xf2f2f2,{roughness:.7}),rd=std(0xd8322c,{roughness:.6}),gm=std(0x3a3f48,{roughness:.6});
+  [[-3,-1.8],[3,-1.8],[-3,1.8],[3,1.8]].forEach(p=>box(.28,3.6,.28,wm,p[0],1.8,p[1],g));box(7.2,.4,4.8,wm,0,3.8,0,g);box(7.3,.14,4.9,rd,0,3.56,0,g);
+  const pumps=[-1.4,1.4].map(px=>{box(1.5,.16,.9,std(0xa8a8b0),px,.08,0,g);const p=box(.62,1.5,.48,rd,px,.83,0,g);box(.5,.36,.04,gm,px,1.25,.25,g);box(.08,.55,.08,gm,px+.36,.95,.16,g);return p});
+  ground(x,z,8,6,std(0x8a8f98,{roughness:.9}),.044);const sg=new T.Mesh(new T.PlaneGeometry(6.6,.7),new T.MeshBasicMaterial({map:textSign('⛽ AKARYAKIT · LPG · ŞARJ',6.6,.7,'#d8322c','#ffffff')}));sg.position.set(0,3.8,2.47);g.add(sg);
+  const tw=new T.Group();tw.position.set(4.6,0,1.8);g.add(tw);box(.3,5,.3,gm,0,2.5,0,tw);const pn=new T.Mesh(new T.PlaneGeometry(1.4,1.6),new T.MeshBasicMaterial({map:textSign('⛽ '+ECO.fuelP.benzin+' · 🛢️ '+ECO.fuelP.dizel,1.4,1.6,'#1d2a4a','#ffd84a')}));pn.position.set(0,4.3,.17);tw.add(pn);
+  C.boxes.push({x:x-1.4,z:z,hx:.4,hz:.3},{x:x+1.4,z:z,hx:.4,hz:.3},{x:x-3,z:z-1.8,hx:.2,hz:.2},{x:x+3,z:z-1.8,hx:.2,hz:.2},{x:x-3,z:z+1.8,hx:.2,hz:.2},{x:x+3,z:z+1.8,hx:.2,hz:.2},{x:x+4.6,z:z+1.8,hx:.2,hz:.2});
+  C.spots.push({x:x,z:z+1.4,r:2.8,t:'E: ⛽ Benzinlik · yakıt al',fn:()=>fuelMenu116()})}
+function fuelMenu116(){if(!carHere57()){toast('🚗 Önce arabanla bu mahalleye gelmelisin (araç burada park etmeli)');return}const k=carK116(),c=carS116(k),T0=tankOf116(k);
+  actionMenu('⛽ Benzinlik · depo '+c.fuel.toFixed(1)+' / '+T0+' '+(c.type==='elektrik'?'kWh':'L'),Object.keys(ECO.fuelP).map(f=>[FUELN116[f].split(' ')[0],nm116(FUELN116[f])+' · '+ECO.fuelP[f]+'🪙/'+(f==='elektrik'?'kWh':'L')+(f===c.type?' ✓ aracının yakıtı':''),()=>{
+    if(f!==c.type){toast('⚠️ Bu araç '+nm116(FUELN116[c.type]).toLowerCase()+' kullanıyor · yanlış yakıt motoru bozar!');return}setTimeout(()=>litreMenu116(f),60)}]))}
+function litreMenu116(f){const k=carK116(),c=carS116(k),room=Math.max(0,tankOf116(k)-c.fuel),pr=ECO.fuelP[f],u=f==='elektrik'?'kWh':'L';if(room<.5){toast('⛽ Depo zaten dolu');return}
+  const opts=[10,20].filter(l=>l<room).map(l=>[l,l+' '+u+' · '+fmt116(l*pr)+'🪙']);opts.push([room,'Depoyu doldur · '+room.toFixed(1)+' '+u+' · '+fmt116(room*pr)+'🪙']);
+  actionMenu('⛽ '+nm116(FUELN116[f])+' · kaç '+u+'?',opts.map(o=>['⛽',o[1],()=>pump116(f,o[0])]))}
+function pump116(f,L){const pr=ECO.fuelP[f],cost=Math.round(L*pr);if(!payOk(cost))return;const c=carS116(),u=f==='elektrik'?'kWh':'L',dur=clamp(2.5+L*.12,3,9);let shown=-1;
+  startAct({name:'Pompa çalışıyor ⛽',ic:'⛽',dur:dur,tm:1,pose:'work',tick:(dt,t)=>{const k=Math.min(1,ACT.t/dur),l=L*k;const q=Math.floor(l*2);if(q!==shown){shown=q;say(player,'⛽ '+l.toFixed(1)+' '+u+' · '+fmt116(l*pr)+'🪙',.8)}},
+    end:()=>{pay(cost);c.fuel=Math.min(tankOf116(),c.fuel+L);CX.log.push({d:HOME.day,t:'Yakıt '+L.toFixed(1)+' '+u,a:-cost});sfx('coin');toast('⛽ '+L.toFixed(1)+' '+u+' '+nm116(FUELN116[f]).toLowerCase()+' · '+fmt116(cost)+'🪙 · depo '+c.fuel.toFixed(1)+' '+u)}})}
+/* ---------- modifiye atölyesi ---------- */
+const MODC116={color:[['Fabrika',null],['Gece siyahı',0x15161a],['Buz beyazı',0xe8ecef],['Yarış kırmızısı',0xc8102e],['Elektrik mavisi',0x1e64d8],['Zümrüt',0x0f7a4a],['Turuncu',0xf06a1c],['Mor metalik',0x6a3aa8]],
+  rim:[['Fabrika',null],['Krom',0xf2f4f8],['Mat siyah',0x2a2a2e],['Altın',0xd4a64a],['Kırmızı',0xe02a2a],['Beyaz',0xffffff]],tint:[['Yok',0],['Açık film %35',.35],['Koyu film %70',.7]],
+  spoiler:[['Yok',0],['Spoiler',1]],neon:[['Yok',null],['Mavi',0x3a8aff],['Mor',0xa04aff],['Yeşil',0x3aff8a],['Pembe',0xff4ac8]]};
+const nm116=s=>String(s).split(' ').slice(1).join(' ');const MODN116={color:'🎨 Renk',rim:'🛞 Jant',tint:'🕶️ Cam filmi',spoiler:'🏁 Spoiler',neon:'💡 Neon alt ışık'};
+function modsOf116(k){return CX.mods[k||carK116()]||(CX.mods[k||carK116()]={color:null,rim:null,tint:0,spoiler:0,neon:null})}
+function modShop116(x,z){const g=new T.Group();g.position.set(x,0,z);W.add(g);const dk=std(0x24262e,{roughness:.6}),ac=std(0xff4ac8,{roughness:.5});box(8,4.2,6,dk,0,2.1,-.5,g);box(5,3,.1,std(0x3a3f48),0,1.5,2.52,g);box(8.2,.18,6.2,ac,0,4.25,-.5,g);
+  const sg=new T.Mesh(new T.PlaneGeometry(6,.9),new T.MeshBasicMaterial({map:textSign('NEON GARAGE · MODİFİYE',6,.9,'#15161a','#ff6ad8')}));sg.position.set(0,3.6,2.58);g.add(sg);ground(x,z+1,9,8,std(0x6a6f78,{roughness:.9}),.044);
+  C.boxes.push({x:x,z:z-.5,hx:4.1,hz:3.1});C.spots.push({x:x,z:z+3.6,r:2.8,t:'E: 🔧 Modifiye atölyesi',fn:()=>modMenu116()})}
+function modMenu116(){if(!carHere57()){toast('🚗 Önce arabanla buraya gelmelisin');return}const M=modsOf116();
+  actionMenu('🔧 Neon Garage · modifiye',Object.keys(MODN116).map(k=>{const cur=MODC116[k].find(o=>o[1]===M[k])||MODC116[k][0];return [MODN116[k].split(' ')[0],nm116(MODN116[k])+' · şu an: '+cur[0]+' · '+fmt116(ECO.mod[k])+'🪙',()=>setTimeout(()=>{
+    actionMenu(MODN116[k],MODC116[k].map(o=>['•',o[0]+(o[1]===M[k]?' ✓':''),()=>{if(o[1]===M[k])return;const p=(o[1]===null||o[1]===0)?0:ECO.mod[k];if(p&&!payOk(p))return;if(p)pay(p);M[k]=o[1];CX.log.push({d:HOME.day,t:'Modifiye · '+nm116(MODN116[k])+': '+o[0],a:-p});sfx('coin');toast('🔧 '+nm116(MODN116[k])+': '+o[0]+(p?' · −'+fmt116(p)+'🪙':''));try{memAdd('🔧','Arabama '+nm116(MODN116[k]).toLowerCase()+' yaptırdım: '+o[0])}catch(e){}}]))},60)]}))}
+/* aracın görünümüne uygula (dünyadaki kendi araban; sürüş sahnesine dokunulmaz) */
+let CARFS116=null;
+function applyMods116(g,k){const M=modsOf116(k),sig=k+JSON.stringify(M);if(g.userData.mod116===sig)return;g.userData.mod116=sig;const body=g.children[0];if(!body||!body.material)return;
+  const def=!M.color&&!M.rim&&!M.tint&&!M.spoiler&&!M.neon;
+  if(body.material.isShaderMaterial){let m=body.material;if(!m.userData.own116){if(!CARFS116)CARFS116='uniform float uGlassK;'+CAR_FS.replace('vec3 glass=vec3(.03,.045,.065)+sky*(.18+.55*fr)','vec3 glass=(vec3(.03,.045,.065)+sky*(.18+.55*fr))*(1.-uGlassK*.85)');
+      const u={};Object.keys(m.uniforms).forEach(q=>{const v=m.uniforms[q].value;u[q]={value:v&&v.clone&&!v.isTexture?v.clone():v}});u.uGlassK={value:0};const m2=new T.ShaderMaterial({uniforms:u,vertexShader:m.vertexShader,fragmentShader:CARFS116,fog:true,side:m.side});m2.color=u.uTint.value;m2.userData.own116=1;m2.userData.base0=u.uBase.value.clone();m2.userData.roof0=u.uRoof.value.clone();body.material=m2;m=m2;try{const e=carMeshes.find(q=>q.mesh===body);if(e)e.own116=1}catch(er){}}
+    const U=m.uniforms;if(M.color!=null){const c=new T.Color(M.color);U.uBase.value.set(c.r,c.g,c.b);U.uRoof.value.set(c.r*.9,c.g*.9,c.b*.9)}else{U.uBase.value.copy(m.userData.base0);U.uRoof.value.copy(m.userData.roof0)}U.uGlassK.value=M.tint||0}
+  (g.userData.wheels||[]).forEach(w=>{const f=w.children[1];if(!f||!f.material)return;if(!f.userData.m0)f.userData.m0=f.material;if(M.rim!=null){if(!f.userData.mR){f.userData.mR=f.userData.m0.clone()}f.userData.mR.color.setHex(M.rim);f.material=f.userData.mR}else f.material=f.userData.m0});
+  let sp=g.getObjectByName('spoiler116');if(M.spoiler&&!sp){sp=new T.Group();sp.name='spoiler116';const bb=new T.Box3().setFromObject(body),top=(bb.max.y-g.position.y)/Math.max(.001,g.scale.y),cm=std(M.color!=null?M.color:0x1d1f24,{roughness:.4});
+      const w=new T.Mesh(new T.BoxGeometry(.32,.06,CW*.84),cm);w.position.set(-CL/2+.22,top*.82,0);sp.add(w);[-1,1].forEach(s=>{const p=new T.Mesh(new T.BoxGeometry(.07,.2,.06),cm);p.position.set(-CL/2+.25,top*.82-.12,s*CW*.28);sp.add(p)});g.add(sp)}
+  if(sp){sp.visible=!!M.spoiler;if(M.spoiler)sp.children.forEach(c=>c.material.color.setHex(M.color!=null?M.color:0x1d1f24))}
+  let ne=g.getObjectByName('neon116');if(M.neon!=null&&!ne){ne=new T.Mesh(new T.PlaneGeometry(CL*1.02,CW*1.05),new T.MeshBasicMaterial({color:M.neon,transparent:true,opacity:.5,blending:T.AdditiveBlending,depthWrite:false}));ne.name='neon116';ne.rotation.x=-Math.PI/2;ne.position.y=.035;g.add(ne)}
+  if(ne){ne.visible=M.neon!=null;if(M.neon!=null)ne.material.color.setHex(M.neon)}}
+{const _cs=citySpecials;citySpecials=function(){_cs.apply(this,arguments);const n=C.name;try{
+  if(['cigli','karsiyaka','bostanli','karabaglar','kocaeli','merkez'].indexOf(n)>=0){const p=rsv57(6,n==='merkez'?[50,20]:[40,-20]);if(p)station116(p[0],p[1])}
+  if(n==='karsiyaka'||n==='cigli'){const p=rsv57(6,[-10,30]);if(p)modShop116(p[0],p[1])}}catch(e){showErrOnce(e)}}}
+/* ---------- HUD: araba ikonunda yakıt göstergesi; kendi aracında modlar ---------- */
+(function(){const b=$('carb');if(!b)return;b.style.position='relative';const f=document.createElement('span');f.id='fuel116';f.innerHTML='<i></i>';b.appendChild(f);const st=document.createElement('style');
+  st.textContent='#fuel116{position:absolute;left:7px;right:7px;bottom:4px;height:4px;border-radius:3px;background:rgba(0,0,0,.45);overflow:hidden;pointer-events:none}#fuel116 i{display:block;height:100%;width:60%;background:linear-gradient(90deg,#3fbf6a,#8ae0a0);border-radius:3px}#fuel116.low i{background:linear-gradient(90deg,#e0484a,#ff8a6a)}#carb.strand116{box-shadow:0 0 0 2px #e0484a}';document.head.appendChild(st)})();
+{const _h=hudTick;hudTick=function(dt){const r=_h.apply(this,arguments);try{const c=carS116(),p=clamp(c.fuel/tankOf116()*100,0,100),e=$('fuel116');if(e){e.firstChild.style.width=p+'%';e.classList.toggle('low',p<15)}const b=$('carb');if(b){b.title='Aracını çağır · yakıt %'+Math.round(p)+(CX.stranded?' · YOLDA KALDI':'');b.classList.toggle('strand116',!!CX.stranded)}
+  if(myCar&&me)applyMods116(myCar,carK116());const ne=myCar&&myCar.getObjectByName('neon116');if(ne&&ne.visible)ne.material.opacity=.32+.45*cur.night}catch(e){}return r}}
+/* ---------- e-Kapı (telefon): araç, sigorta, cezalar, çekici ---------- */
+APPS.push(['ekapi','🏛️','e-Kapı','#b3122e,#e85a5a']);
+{const _pa=phoneApp;phoneApp=function(id){if(id!=='ekapi')return _pa.apply(this,arguments);$('phone').classList.add('on');$('phdot').style.display='none';const b=$('phbody');b.innerHTML='';$('phback').style.visibility='visible';$('phtitle').textContent='🏛️ e-Kapı';bankCss67();
+  const w=el('div','bk67');b.appendChild(w);const C2=t=>{const c=el('div','card');if(t)c.appendChild(el('b','',t));w.appendChild(c);return c},R=(c,a,v)=>{const r=el('div','row');r.appendChild(el('span','',a));r.appendChild(el('b','',v));c.appendChild(r)},B=(c,t,fn,g)=>{const x=el('button','btn'+(g?' g':''),t);x.onclick=()=>{fn();setTimeout(()=>phoneApp('ekapi'),50)};c.appendChild(x)};
+  const k=carK116(),c=carS116(k),M=modsOf116(k),nm=(CARLIST.find(q=>q[0]===k)||[0,(PREMC[k]||[k])[0]])[1];
+  const a=C2('🚗 Aracım');R(a,'Araç',nm);R(a,'Yakıt',c.fuel.toFixed(1)+' / '+tankOf116(k)+' '+(c.type==='elektrik'?'kWh':'L')+' · '+nm116(FUELN116[c.type]));R(a,'Kilometre',fmt116((X57&&X57.car&&X57.car.km)||0)+' km');R(a,'Konum',CX.stranded?'⚠️ Yolda kaldı':(carAt&&D[carAt]?D[carAt].label||carAt:'—'));
+  R(a,'Modifiye',Object.keys(MODN116).filter(q=>M[q]).map(q=>MODN116[q].split(' ')[0]).join(' ')||'—');if(CX.stranded)B(a,'🚛 Çekici çağır · '+fmt116(ECO.tow)+'🪙',tow116,1);
+  const s=C2('🛡️ Sigorta');[['trafik','Zorunlu trafik sigortası','Karşı tarafın zararını karşılar · yoksa yol kontrolünde ceza'],['kasko','Kasko','Kaza ve arızada masrafın %'+Math.round(ECO.ins.cover*100)+'\'i']].forEach(q=>{R(s,q[1],insOn116(q[0])?'✅ Gün '+CX.ins[q[0]]+'\'e kadar':'❌ Yok');s.appendChild(el('div','sub',q[2]+' · '+fmt116(ECO.ins[q[0]])+'🪙 / '+ECO.ins.every+' gün'));if(!insOn116(q[0]))B(s,q[1]+' al · '+fmt116(ECO.ins[q[0]])+'🪙',()=>buyIns116(q[0]),1);else{const x=el('button','btn',CX.ins[q[0]+'Auto']?'Otomatik yenileme: açık':'Otomatik yenileme: kapalı');x.onclick=()=>{CX.ins[q[0]+'Auto']=!CX.ins[q[0]+'Auto'];phoneApp('ekapi')};s.appendChild(x)}});
+  const fz=C2('🧾 Trafik cezaları');const open=CX.fines.filter(f=>!f.paid);if(!open.length)fz.appendChild(el('div','sub','Ödenmemiş cezan yok ✅'));
+  open.forEach(f=>{const amt=fineAmt116(f),late=HOME.day>f.due;R(fz,f.t,fmt116(amt)+'🪙'+(late?' ⏰':''));fz.appendChild(el('div','sub','Gün '+f.day+(f.why?' · '+f.why:'')+' · son ödeme Gün '+f.due+(late?' · gecikme zammı':'')));B(fz,'Öde · '+fmt116(amt)+'🪙',()=>payFine116(f),1)});
+  if(open.length>1){const tot=open.reduce((s2,f)=>s2+fineAmt116(f),0);B(fz,'Tümünü öde · '+fmt116(tot)+'🪙',()=>{if(!payOk(tot))return;open.forEach(f=>{pay(fineAmt116(f));f.paid=true;f.paidDay=HOME.day});toast('🧾 Tüm cezalar ödendi')},1)}
+  const paid=CX.fines.filter(f=>f.paid).slice(-4);if(paid.length){const h=C2('Ödenenler');paid.forEach(f=>R(h,f.t,'Gün '+f.paidDay))}
+  const L=CX.log.slice(-6).reverse();if(L.length){const h=C2('Son araç giderleri');L.forEach(q=>R(h,'Gün '+q.d+' · '+q.t,(q.a>0?'+':'')+fmt116(q.a)+'🪙'))}}}
+/* ---------- kayıt ---------- */
+{const _s=save25;save25=function(){const o=_s.apply(this,arguments);try{o.x116=CX}catch(e){}return o}}
+{const _l=load25;load25=function(x){const r=_l.apply(this,arguments);try{const z=x&&x.x116;if(z&&typeof z==='object'){['cars','mods','ins'].forEach(k=>{if(z[k]&&typeof z[k]==='object')CX[k]=z[k]});if(Array.isArray(z.fines))CX.fines=z.fines;if(Array.isArray(z.log))CX.log=z.log.slice(-30);CX.park=z.park||null;CX.stranded=z.stranded||null;CX.nid=z.nid||CX.fines.length+1}}catch(e){}return r}}
+window.__a116={CX:CX,fuel:v=>{carS116().fuel=v},strand:()=>strand116(activeD&&activeD.name),tow:()=>tow116(),fine:(t)=>addFine116(t||'hiz','Test cezası',1600),fuelMenu:()=>fuelMenu116(),pump:(L)=>pump116(carS116().type,L||5),mod:(k,v)=>{modsOf116()[k]=v},after:(km,hits,dd,v)=>afterTrip116({km:km,maxV:v||0},hits||0,dd||'cigli'),ins:t=>buyIns116(t),car:()=>({k:carK116(),s:carS116(),mods:modsOf116(),sig:myCar&&myCar.userData.mod116,carAt:carAt}),stations:()=>activeD?activeD.spots.filter(s=>/Benzinlik|Modifiye/.test(s.t)).map(s=>[s.t,+s.x.toFixed(1),+s.z.toFixed(1)]):[]};
 /* ================= v90: bahçe & tarım görsel yenileme — tekrarsız çim, sürülmüş toprak, taş yol, lamba, bank, 3 evreli instanced bitkiler, rüzgâr, hasat animasyonu ================= */
 const U90={t:{value:0}};
 function sway90(col,o,amp){const m=std(col,Object.assign({roughness:.75},o||{}));const A=(amp||.03).toFixed(3);
