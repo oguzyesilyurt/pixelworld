@@ -12278,7 +12278,7 @@ function refCall119(ck,cand,cb){if(!me||VC||mode==='drive'||busy)return false;co
   const ok=vcall(c,true,'ref_bx');if(!ok){REF119.c=null;REF119.tree=null;return false}
   const chk=setInterval(()=>{if(!VC){clearInterval(chk);setTimeout(()=>{REF119.c=null;REF119.tree=null},500)}},500);return true}
 {const _ct=ctree103;ctree103=function(c){if(REF119.tree&&REF119.cc===c)return REF119.tree;return _ct.apply(this,arguments)}}
-Object.assign(window.PWB,{refCall:refCall119,charName:k=>CHN119[k],
+Object.assign(window.PWB,{notify:(f,t)=>{try{notify(f,t,[{t:'Tamam',fn:()=>{}}])}catch(e){toast(t)}},refCall:refCall119,charName:k=>CHN119[k],
   charImg(k){try{const key='ch_vc_'+k;if(!PORT[key]||PORT[key].length<3000)PORT[key]=portrait(lookOf(k));return PORT[key].length<3000?null:PORT[key]}catch(e){return null}},
   bond(k){const b=BONDS[CHB119[k]];return b?b.v:50},charSal(k){try{const S=readSave(k);const j=S&&S.x&&S.x.x39&&S.x.x39.lnk&&S.x.x39.lnk.job;return j&&j.sal?j.sal:ECO.sal[k]}catch(e){return ECO.sal[k]}},
   charJob(k){try{const S=readSave(k);const j=S&&S.x&&S.x.x39&&S.x.x39.lnk&&S.x.x39.lnk.job;return j?j.co:CUROF[k]}catch(e){return CUROF[k]}},

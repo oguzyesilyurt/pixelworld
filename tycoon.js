@@ -67,13 +67,12 @@ function log(t){const S=st();S.log.unshift({d:S.day,h:P().GT|0,t:t});S.log.lengt
 /* ---------------- ürün puanı, memnuniyet ---------------- */
 function featScore(p){const T=TYPES[p.type];let s=0;Object.keys(p.feat).forEach(k=>{const lv=p.feat[k];if(!lv)return;const w=T.w[k]!=null?T.w[k]:.25;s+=w*(lv*6+lv*lv*1.5)});return Math.round(s)}
 function compBest(p){return Math.max(...TYPES[p.type].comp.map(c=>c[1]))}
-function capOf(){const S=st();return Math.round(SRV[S.server].cap*(1+Math.min(1,sumLv('ops')*.1)))}
-function satisfaction(p){const fs=featScore(p),cb=compBest(p),featK=clamp(fs/(cb*1.1),0,1.25);const bugK=Math.min(.45,p.bugs*.045);const load=p.users/capOf(),speedK=load<=1?0:Math.min(.5,(load-1)*.35);
+function satisfaction(p){const fs=featScore(p),cb=compBest(p),featK=clamp(fs/(cb*1.1),0,1.25);const bugK=Math.min(.45,p.bugs*.045);const load=p.users/Math.max(1,capOf()),speedK=load<=1?0:load<1.6?Math.min(.5,(load-1)*.35):.65;
   return {total:Math.round(clamp(30+featK*62-bugK*100-speedK*100,0,100)),feat:Math.round(featK*100),bug:Math.round(bugK*100),speed:Math.round(speedK*100),load:load}}
 
 /* ---------------- üretim: işçi görevleri ---------------- */
 /* görev: {k:'comp'|'mod'|'fix', id} — tekrar eder; modül için bileşen stoktan düşülür */
-function rate(e,k,id){const s=(k==='comp'?e.sk[COMP[id].sk]:k==='mod'?Math.max(e.sk.fe||0,e.sk.be||0):Math.max(e.sk.be||0,(e.sk.qa||0)*1.5))||0;const mot=e.mot!=null?e.mot:e.mood;return .5*s*(.75+.25*mot/100)*trMul(e,k,id)}/* iş puanı / oyun dakikası */
+function rate(e,k,id){const s=(k==='comp'?e.sk[COMP[id].sk]:k==='mod'?Math.max(e.sk.fe||0,e.sk.be||0):Math.max(e.sk.be||0,(e.sk.qa||0)*1.5))||0;const mot=e.mot!=null?e.mot:e.mood;const dk=st().of?deskOf(e):1;return .5*s*(.75+.25*mot/100)*trMul(e,k,id)*(dk?(dk.pc!=null?PCT[dk.pc][1]:1):.5)*(1+(st().of?meetBoost():0))}/* iş puanı / oyun dakikası */
 function workNeed(k,id){return k==='comp'?COMP[id].w:k==='mod'?MOD[id].w:40}
 function canStart(k,id){const S=st();if(k!=='mod')return true;const n=MOD[id].need;return Object.keys(n).every(c=>S.inv.comp[c]>=n[c])}
 function takeFor(k,id){const S=st();if(k==='mod'){const n=MOD[id].need;Object.keys(n).forEach(c=>S.inv.comp[c]-=n[c])}}
@@ -95,9 +94,9 @@ function release(){const S=st(),p=S.product;if(!p||p.live)return;const nf=Object
   p.live=true;p.ver=1.0;p.users=Math.round(40+featScore(p)*3);p.relDay=S.day;log('🚀 '+p.name+' yayında! İlk gün '+fmt(p.users)+' kullanıcı');P().toast('🚀 '+p.name+' yayınlandı!');P().sfx('coin');try{P().mem('🚀',p.name+' adlı ürünümü yayınladım')}catch(e){}render()}
 
 /* ---------------- gün sonu: kullanıcı, gelir, gider, hatalar ---------------- */
-function daily(){const S=st(),p=S.product;let inc=0,exp=SRV[S.server].cost;let nu=0;
+function daily(){const S=ensureOS(),p=S.product;let inc=0,exp=srvCost()+OFF().rent;let nu=0;incDaily();
   if(p&&p.live){const T=TYPES[p.type],sat=satisfaction(p),share=clamp(featScore(p)/(featScore(p)+T.comp.reduce((s,c)=>s+c[1],0)),0,1),room=Math.max(0,T.market*share-p.users);
-    const g=T.growth*(sat.total-45)/100*(sat.total>45?1+Math.min(.6,sumLv('mkt')*.04):1);nu=Math.round(Math.max(-p.users*.12,(g>0?room*.025*g+p.users*.06*g:p.users*g*.5))+(sat.total>50?5:0));p.users=Math.max(0,p.users+nu);
+    const g=T.growth*(sat.total-45)/100*(sat.total>45?1+Math.min(.6,sumLv('mkt')*.04):1);nu=Math.round(Math.max(-p.users*.12,(g>0?room*.025*g+p.users*.06*g:p.users*g*.5))+(sat.total>50?5:0));p.users=Math.max(0,p.users+nu);if(sat.load>1.6){const lost=Math.round(p.users*.08);p.users-=lost;nu-=lost;log('💥 Site çöktü! Kapasite yetmiyor · −'+fmt(lost)+' kullanıcı')}
     /* gelir: abonelik %6 ödeyen × aylık fiyat/30 · reklam kullanıcı başı günlük gösterim · lisans yeni kullanıcının %2'si satın alır · komisyon %2 alışveriş × sepet × %5 */
     if(T.model==='abonelik')inc=p.users*.06*T.price/30;else if(T.model==='reklam')inc=p.users*T.price*.05;else if(T.model==='lisans')inc=Math.max(0,nu)*T.price*.02+p.users*.002*T.price/30;else inc=p.users*.02*T.price*.05;
     inc*=1+Math.min(.4,sumLv('sales')*.03);/* yeni hatalar: kullanıcıya ve koda göre */if(Math.random()<Math.min(.7,(.08+p.users/20000)*bugMul()))p.bugs++;p.sat=sat.total;p.peak=Math.max(p.peak||0,p.users)}
@@ -105,7 +104,7 @@ function daily(){const S=st(),p=S.product;let inc=0,exp=SRV[S.server].cost;let n
   if(p&&p.live)log('📅 Gün '+S.day+': '+(nu>=0?'+':'')+fmt(nu)+' kullanıcı · gelir '+fmt(inc)+'🪙 · gider '+fmt(exp)+'🪙');
   if(S.cash<0&&!S.warned){S.warned=1;P().toast('⚠️ Buludex kasası ekside! Finans → şirkete para aktar')}}
 /* oyun saati ilerledikçe (açık ya da kapalı) */
-function tick(min,atDesk){const S=st();if(min<=0)return;work(min,atDesk);const d=P().day;while(S.lastDay<d){S.lastDay++;S.day=S.lastDay;daily()}if(OPEN)renderSoft()}
+function tick(min,atDesk){const S=st();if(min<=0)return;work(min,atDesk);try{incTick(min)}catch(e){}const d=P().day;while(S.lastDay<d){S.lastDay++;S.day=S.lastDay;daily()}if(OPEN)renderSoft()}
 
 /* ---------------- arayüz ---------------- */
 let OPEN=false,TAB='panel',root=null,loopId=0,lastT=0,softT=0;
@@ -266,7 +265,7 @@ function buyComfort(k){const S=st(),C={chair:[4000,'🪑 Ergonomik sandalyeler']
 function dailyIK(){const S=ensureIK();let pay=0;const accK=1-Math.min(.2,sumLv('acc')*.02),soc=S.team.filter(e=>e.traits.indexOf('sosyal')>=0).length,hrK=Math.min(.5,sumLv('hr')*.05);
   S.team.forEach(e=>{if(e.founder)return;pay+=e.sal/10;
     if(e.away&&S.day>=e.away){e.away=0;e.lv=e.trainTo||e.lv;e.sk=mkSkills(e.rk,e.lv);log('🎓 '+e.n+' eğitimden döndü · seviye '+e.lv)}
-    const mkt=ROLES[e.rk].base*(.55+e.lv*.1),salK=(e.sal/mkt-1)*8;let d=-.8*(1-hrK)+salK*.5+comfortLv()*.04+soc*.4+(e.ot?-2.2:0)+(e.traits.indexOf('tembel')>=0?-.6:0)+(S.cash<0?-4:0)+(e.traits.indexOf('hirsli')>=0&&S.day-e.promo>20?-1.2:0);
+    const mkt=ROLES[e.rk].base*(.55+e.lv*.1),salK=(e.sal/mkt-1)*8;let d=-.8*(1-hrK)+salK*.5+comfortLv()*.04+soc*.4+(e.ot?-2.2:0)+(e.traits.indexOf('tembel')>=0?-.6:0)+(S.cash<0?-4:0)+(deskOf(e)?0:-2)+(e.traits.indexOf('hirsli')>=0&&S.day-e.promo>20?-1.2:0);
     e.mot=clamp(e.mot+d,0,100);if(e.mot<25&&rnd()<.08+(25-e.mot)*.01){P().toast('🚪 '+e.n+' istifa etti! (moral düşüktü)');fire(e,'istifa')}});
   pay=Math.round(pay*accK);S.cash-=pay;if(pay)S.lastPay=pay;
   S.ads=S.ads.filter(a=>a.until>=S.day);S.ads.forEach(a=>{const n=(rnd()<.6?1:0)+(rnd()<hrK+.15?1:0);for(let i=0;i<n;i++)S.cands.push(newCand(a.rk))});
@@ -313,13 +312,128 @@ VIEWS.ik=function(m){const S=ensureIK();m.appendChild(el('h2','','🧑‍💼 İ
 VIEWS.ofis=function(m){const S=ensureIK();m.appendChild(el('h2','','🏢 Ofis'));m.appendChild(el('div','card','<b>'+S.office+'</b><p class="muted">Konfor puanı '+comfortLv()+' · motivasyonu her gün artırır. Ofis kiralama bir sonraki adımda.</p>'));
   const g=el('div','grid');m.appendChild(g);[['chair',4000,'🪑 Ergonomik sandalyeler'],['coffee',6000,'☕ Kahve makinesi'],['plants',1500,'🪴 Bitkiler'],['game',9000,'🎮 Oyun köşesi']].forEach(q=>{const c=el('div','card');c.innerHTML='<b>'+q[2]+'</b><div class="muted">Seviye '+S.comfort[q[0]]+'/3</div>';const b=el('button','btn s','Al · '+fmt(q[1])+'🪙');b.disabled=S.comfort[q[0]]>=3;b.onclick=()=>buyComfort(q[0]);c.appendChild(b);g.appendChild(c)})};
 
+/* =====================================================================
+   OFİS (2D plan, sürükle-bırak, taşınma kademeleri) · SUNUCULAR (ev, rack, bulut, veri merkezi) · KESİNTİLER + nöbet mini oyunu
+   ===================================================================== */
+const OFFICES=[
+  {k:'ev',n:'Ev odası',ic:'🏠',w:6,h:5,rent:0,dep:0,move:0,racks:1,note:'Oğuz\'un çalışma odası'},
+  {k:'garaj',n:'Garaj ofis',ic:'🚗',w:9,h:7,rent:400,dep:4000,move:3000,racks:2,note:'Karabağlar\'da kiralık garaj'},
+  {k:'kucuk',n:'Küçük ofis · Bayraklı',ic:'🏢',w:12,h:9,rent:1500,dep:30000,move:8000,racks:4,note:'Bayraklı\'da 2+1 ofis katı'},
+  {k:'plazakat',n:'Plaza katı',ic:'🏙️',w:18,h:12,rent:5000,dep:100000,move:20000,racks:8,note:'Bayraklı plazasında bir kat'},
+  {k:'plaza',n:'Tüm plaza',ic:'🌆',w:26,h:16,rent:16000,dep:400000,move:60000,racks:20,note:'Plazanın tamamı'},
+  {k:'gokdelen',n:'Buludex Tower · Halkapınar',ic:'🗼',w:34,h:22,rent:8000,dep:0,move:120000,buy:12000000,racks:40,note:'Kendi gökdelenin (satın alma + bakım)'}];
+const ITEMS={
+  desk:{n:'Masa + bilgisayar',ic:'🖥️',w:2,h:1,c:2500,desk:true},chair:{n:'Ergonomik sandalye',ic:'🪑',w:1,h:1,c:1500,cf:2},plant:{n:'Bitki',ic:'🪴',w:1,h:1,c:600,cf:2},
+  coffee:{n:'Kahve makinesi',ic:'☕',w:1,h:1,c:6000,cf:8},kitchen:{n:'Mutfak',ic:'🍳',w:2,h:2,c:15000,cf:10},game:{n:'Oyun alanı',ic:'🎮',w:2,h:2,c:12000,cf:8},
+  meet:{n:'Toplantı odası',ic:'🗣️',w:3,h:3,c:25000,cf:6,prod:.04}};
+const PCT=[['Ofis bilgisayarı',1,0],['İş istasyonu',1.12,6000],['Üst düzey iş istasyonu',1.25,15000]];
+function ensureOS(){const S=st();if(!S.of){S.of={tier:0,items:[],store:[]};S.of.items.push({id:'i1',t:'desk',x:0,y:0,pc:0});S.nid=S.nid||2}
+  if(!S.srv)S.srv={racks:[],cloud:0,dc:{land:0,power:0,cooling:0,gen:0},inc:null,incLog:[]};S.nid=S.nid||100;
+  /* v119 eski konfor sayaçları → plan eşyası */if(S.comfort&&!S.comfortMig){S.comfortMig=1;const m={chair:'chair',coffee:'coffee',plants:'plant',game:'game'};Object.keys(m).forEach(k=>{for(let i=0;i<(S.comfort[k]||0);i++)S.of.store.push({id:'i'+(S.nid++),t:m[k]})})}
+  return S}
+function OFF(){return OFFICES[ensureOS().of.tier]}
+function cellsOf(it){const I=ITEMS[it.t],r=it.r?1:0;return {w:r?I.h:I.w,h:r?I.w:I.h}}
+function fits(it,x,y,ignore){const S=st(),o=OFF(),c=cellsOf(it);if(x<0||y<0||x+c.w>o.w||y+c.h>o.h)return false;for(const q of S.of.items){if(q===ignore||q===it)continue;const d=cellsOf(q);if(x<q.x+d.w&&x+c.w>q.x&&y<q.y+d.h&&y+c.h>q.y)return false}return true}
+function placeFree(it){const o=OFF();for(let y=0;y<o.h;y++)for(let x=0;x<o.w;x++){if(fits(it,x,y)){it.x=x;it.y=y;return true}}return false}
+function desks(){return st().of.items.filter(i=>ITEMS[i.t].desk)}
+/* masa ataması: çalışan sırasına göre; masası olmayan yavaş çalışır ve morali düşer */
+function deskOf(e){const S=st(),i=S.team.indexOf(e),D=desks().slice().sort((a,b)=>a.y-b.y||a.x-b.x);return D[i]||null}
+function comfortLv(){const S=ensureOS();let c=0;const cnt={};S.of.items.forEach(i=>{const I=ITEMS[i.t];if(!I.cf)return;cnt[i.t]=(cnt[i.t]||0)+1;const per=Math.max(1,Math.ceil(S.team.length/4));c+=I.cf*(cnt[i.t]<=per?1:.3)});return Math.round(c)}
+function meetBoost(){return st().of.items.some(i=>i.t==='meet')?ITEMS.meet.prod:0}
+function buyItem(t){const S=ensureOS(),I=ITEMS[t];if(S.cash<I.c){P().toast('Kasa yetmiyor');return}const it={id:'i'+(S.nid++),t:t,pc:0};if(!placeFree(it)){P().toast('📦 Ofiste yer yok · depoya kondu (taşınınca yerleştir)');S.of.store.push(it)}else S.of.items.push(it);S.cash-=I.c;log(I.ic+' '+I.n+' alındı · −'+fmt(I.c)+'🪙');render()}
+function sellItem(it){const S=st();S.of.items=S.of.items.filter(q=>q!==it);S.cash+=Math.round(ITEMS[it.t].c*.4);OSEL=null;render()}
+function upgradePC(it){const S=st();if(it.pc>=2)return;const c=PCT[it.pc+1][2];if(S.cash<c){P().toast('Kasa yetmiyor');return}S.cash-=c;it.pc++;log('🖥️ Bilgisayar yükseltildi: '+PCT[it.pc][0]+' · −'+fmt(c)+'🪙');render()}
+function moveTo(k){const S=ensureOS(),i=OFFICES.findIndex(o=>o.k===k),O=OFFICES[i];if(i<=S.of.tier)return;const cost=(O.buy||0)+O.dep+O.move;if(S.cash<cost){P().toast('Kasa yetmiyor · '+fmt(cost)+'🪙 gerekli');return}
+  const old=OFFICES[S.of.tier];S.cash-=cost;S.cash+=Math.round(old.dep*.8);S.of.tier=i;const all=S.of.items.concat(S.of.store);S.of.items=[];S.of.store=[];all.sort((a,b)=>(ITEMS[b.t].w*ITEMS[b.t].h)-(ITEMS[a.t].w*ITEMS[a.t].h)).forEach(it=>{if(placeFree(it))S.of.items.push(it);else S.of.store.push(it)});
+  log(O.ic+' Taşındık: '+O.n+' · '+(O.buy?'satın alma '+fmt(O.buy)+' + ':'')+(O.dep?'depozito '+fmt(O.dep)+' + ':'')+'taşınma '+fmt(O.move)+'🪙'+(old.dep?' · eski depozitonun %80\'i iade':''));P().toast(O.ic+' Buludex taşındı: '+O.n);P().sfx('coin');try{P().mem(O.ic,'Buludex '+O.n+'\'na taşındı')}catch(e){}render()}
+/* ---------------- sunucular ---------------- */
+const CPU=[['4 çekirdek',1,8000],['8 çekirdek',2.3,18000],['16 çekirdek',5,40000]],RAM=[['32 GB',1,3000],['128 GB',1.5,9000],['512 GB',2,28000]],DISK=[['2 TB',2,2000],['8 TB',8,6000],['32 TB',32,18000]];
+const DCB={land:['🏞️ Arsa (Kemalpaşa OSB)',450000],power:['⚡ Enerji altyapısı',180000],cooling:['❄️ Soğutma',140000],gen:['🔋 Yedek jeneratör',90000]};
+const CLOUD={users:6000,tb:5,cost:600};
+function dcOn(){const d=ensureOS().srv.dc;return d.land&&d.power&&d.cooling}
+function rackCap(r){return Math.round(1200*CPU[r.c][1]*RAM[r.r][1])}
+function rackLimit(){return dcOn()?200:OFF().racks}
+function storageNeed(p){if(!p||!p.live)return 0;return p.users*(p.type==='bulut'?.0015:.0002)}/* TB · bulutta kullanıcı başı ~1,5 GB */
+function storageHave(){const S=ensureOS();return 2+S.srv.racks.reduce((s,r)=>s+DISK[r.d][1],0)+S.srv.cloud*CLOUD.tb}
+function capRaw(){const S=ensureOS();return 800+S.srv.racks.reduce((s,r)=>s+rackCap(r),0)+S.srv.cloud*CLOUD.users}
+const INCF={disk:.6,ddos:.35,alarm:.8,guc:.2};
+function capOf(){const S=ensureOS();let c=capRaw()*(1+Math.min(1,sumLv('ops')*.1));const I=S.srv.inc;if(I&&!I.done)c*=INCF[I.t];const p=S.product,need=storageNeed(p),have=storageHave();if(need>have)c*=Math.max(.3,have/need);return Math.round(c)}
+function srvCost(){const S=ensureOS(),pw=dcOn()?70:120;return 15+S.srv.racks.length*pw+S.srv.cloud*CLOUD.cost+(dcOn()?1500:0)}
+function buyRack(c,r,d){const S=ensureOS();if(S.srv.racks.length>=rackLimit()){P().toast(dcOn()?'Veri merkezi dolu':'Ofiste rack yeri kalmadı · taşın ya da veri merkezi kur');return}const cost=CPU[c][2]+RAM[r][2]+DISK[d][2];if(S.cash<cost){P().toast('Kasa yetmiyor');return}
+  S.cash-=cost;const k={id:'r'+(S.nid++),c:c,r:r,d:d,day:S.day};S.srv.racks.push(k);log('🖧 Rack sunucu: '+CPU[c][0]+' · '+RAM[r][0]+' · '+DISK[d][0]+' · +'+fmt(rackCap(k))+' kullanıcı · −'+fmt(cost)+'🪙');P().sfx('coin');render()}
+function sellRack(k){const S=st();S.srv.racks=S.srv.racks.filter(q=>q!==k);S.cash+=Math.round((CPU[k.c][2]+RAM[k.r][2]+DISK[k.d][2])*.35);render()}
+function cloudSet(n){const S=ensureOS();S.srv.cloud=Math.max(0,n);render()}
+function buildDC(k){const S=ensureOS(),c=DCB[k][1];if(S.srv.dc[k])return;if(k!=='land'&&!S.srv.dc.land){P().toast('Önce arsa al');return}if(S.cash<c){P().toast('Kasa yetmiyor');return}S.cash-=c;S.srv.dc[k]=1;log(DCB[k][0]+' tamam · −'+fmt(c)+'🪙'+(dcOn()&&k!=='gen'?' · 🏭 veri merkezi çalışıyor':''));render()}
+/* ---------------- kesintiler ---------------- */
+const INC={disk:{n:'💽 Disk arızası',d:'Bir rack sunucuda disk bozuldu, RAID bozuk modda'},ddos:{n:'🌊 DDoS saldırısı',d:'Binlerce IP\'den sahte trafik geliyor'},alarm:{n:'⏰ Gece yarısı alarmı',d:'Yedekleme işi patladı, disk doldu'},guc:{n:'⚡ Elektrik kesintisi',d:'Veri merkezinde/ofiste güç gitti'}};
+const NOB={
+  disk:[{log:['[02:13] ata3.00: failed command: READ FPDMA QUEUED','[02:13] md0: Disk failure on sdb, disabling device','[02:13] md0: Operation continuing on 1 devices'],q:'İlk ne yaparsın?',o:[['Arızalı diski diziden çıkar, yedek diski ekleyip RAID rebuild başlat',1],['Sunucuyu hemen yeniden başlat',0],['Veritabanını silip yedekten kur',0],['Sabah bakarım, şimdi uyu',0]]},
+        {log:['[02:31] md0: recovery 34% ... finish=41min','[02:31] app: p95 latency 2.1s'],q:'Rebuild sürerken?',o:[['Durum sayfasına bakım notu yaz, ağır raporları kuyruğa al',1],['Rebuild\'i durdurup tekrar başlat',0],['Tüm trafiği kapat',0]]}],
+  ddos:[{log:['[21:04] nginx: 48211 req/s (normal 900)','[21:04] top: CPU 99% · load 64.2','[21:04] 3.214 farklı IP · aynı User-Agent'],q:'İlk ne yaparsın?',o:[['CDN/WAF koruma modunu aç, IP başına oran sınırı koy',1],['Sunucuyu kapat, saldırgan sıkılsın',0],['Bütün IP\'leri tek tek elle engelle',0],['Fiyatları düşür',0]]},
+        {log:['[21:12] waf: 41k req/s blocked','[21:12] saldırı yeni subnet\'ten devam ediyor'],q:'Saldırı sürüyor, sonra?',o:[['Şüpheli bölge trafiğine geçici CAPTCHA/engelleme koy',1],['WAF\'ı kapat, belki geçer',0],['Veritabanını yeniden başlat',0]]}],
+  alarm:[{log:['[00:00] cron: backup.sh FAILED (exit 28)','[00:00] df: /var 100% used','[00:01] app: cannot write session file'],q:'Gece yarısı ne yaparsın?',o:[['Eski logları sıkıştırıp arşive taşı, yedeği yeniden çalıştır',1],['Uygulama klasörünü sil',0],['Alarmı sustur, yat',0],['Sunucuyu formatla',0]]},
+        {log:['[00:22] df: /var 41% used','[00:22] backup.sh OK'],q:'Tekrar olmasın diye?',o:[['Log rotasyonu ve disk doluluk uyarısı (%80) kur',1],['Yedeklemeyi tamamen kapat',0],['Daha çok kahve iç',0]]}],
+  guc:[{log:['[03:40] ups: on battery · 9 min left','[03:40] pdu: input power lost'],q:'Jeneratör yok, ne yaparsın?',o:[['Kritik olmayan servisleri kapat, veritabanını güvenle durdur',1],['Hiçbir şey yapma, UPS yeter',0],['Tüm sunucuları aynı anda yeniden başlat',0]]},
+       {log:['[04:55] power restored','[04:55] db: crash recovery needed?'],q:'Güç geldi:',o:[['Veritabanını tutarlılık kontrolüyle başlat, sonra uygulamayı aç',1],['Her şeyi aynı anda aç',0],['Bir gün bekle',0]]}]};
+function incStart(t){const S=ensureOS();if(S.srv.inc&&!S.srv.inc.done)return;const ops=S.team.filter(e=>e.rk==='ops'&&!e.away).sort((a,b)=>b.lv-a.lv)[0];
+  S.srv.inc={t:t,day:S.day,min:0,done:false,ops:ops?ops.n:null,need:ops?Math.round((9-Math.min(7,ops.lv*.8))*60):null,step:0,wrong:0};log('🚨 '+INC[t].n+' · '+INC[t].d+(ops?' · '+ops.n+' müdahale ediyor':' · nöbet sende!'));
+  const msg=INC[t].n+(ops?' · '+ops.n+' ilgileniyor':' · sistem yöneticin yok, bilgisayara geçip nöbeti sen tut!');if(OPEN){P().toast('🚨 '+msg);render()}else try{P().notify('🚨 Buludex',msg)}catch(e){P().toast('🚨 '+msg)}}
+function incTick(min){const S=st();const I=S.srv&&S.srv.inc;if(!I||I.done)return;I.min+=min;if(I.need&&I.min>=I.need)incEnd(I.ops+' sorunu çözdü')}
+function incEnd(by){const S=st(),I=S.srv.inc;if(!I||I.done)return;I.done=true;S.srv.incLog.unshift({t:I.t,d:I.day,dur:Math.round(I.min),by:by});S.srv.incLog.length=Math.min(12,S.srv.incLog.length);log('✅ '+INC[I.t].n+' çözüldü · '+by+' · '+Math.round(I.min)+' dk');P().toast('✅ Kesinti çözüldü: '+INC[I.t].n);if(OPEN)render()}
+function incDaily(){const S=ensureOS(),p=S.product;if(!p||!p.live)return;const I=S.srv.inc;if(I&&!I.done){p.bugs+=0;return}
+  const r=Math.random(),hasHW=S.srv.racks.length>0;if(hasHW&&r<.05+S.srv.racks.length*.008)incStart('disk');else if(p.users>1500&&r<.11)incStart('ddos');else if(r<.16)incStart('alarm');else if(hasHW&&!S.srv.dc.gen&&r<.19)incStart('guc')}
+/* nöbet mini oyunu */
+let NOBET=null;
+function nobet(){const S=st(),I=S.srv.inc;if(!I||I.done)return;NOBET={t:I.t,step:I.step||0};drawNobet()}
+function drawNobet(){const S=st(),I=S.srv.inc;let ov=document.getElementById('nob112');if(!ov){ov=el('div','');ov.id='nob112';ov.style.cssText='position:absolute;inset:0;background:rgba(1,4,9,.82);display:grid;place-items:center;z-index:5';root.appendChild(ov)}ov.innerHTML='';if(!I||I.done||!NOBET){ov.remove();return}
+  const st2=NOB[I.t][NOBET.step],box=el('div','card');box.style.cssText='width:min(640px,92%);background:#0d1117;border-color:#f85149';box.innerHTML='<b>🚨 Nöbet · '+INC[I.t].n+'</b> <span class="muted">adım '+(NOBET.step+1)+'/'+NOB[I.t].length+(I.wrong?' · yanlış hamle '+I.wrong:'')+'</span>';
+  const pre=el('pre','');pre.style.cssText='background:#010409;color:#7ee787;padding:10px;border-radius:8px;font:12px/1.5 ui-monospace,Consolas,monospace;white-space:pre-wrap;margin:10px 0';pre.textContent=st2.log.join('\n');box.appendChild(pre);box.appendChild(el('div','','<b>'+st2.q+'</b>'));
+  st2.o.slice().sort(()=>Math.random()-.5).forEach(o=>{const b=el('button','btn s',o[0]);b.style.cssText='display:block;width:100%;text-align:left;margin:6px 0';b.onclick=()=>{if(o[1]){NOBET.step++;I.step=NOBET.step;P().sfx('blip');if(NOBET.step>=NOB[I.t].length){NOBET=null;incEnd('Oğuz nöbette çözdü');try{P().mem('🚨','Gece nöbetinde '+INC[I.t].n.slice(3).toLowerCase()+' sorununu çözdüm')}catch(e){}drawNobet();return}}
+      else{I.wrong++;I.min+=45;P().toast('❌ Yanlış hamle · kesinti uzadı (+45 dk)');const p=S.product;if(p)p.users=Math.max(0,Math.round(p.users*.99))}drawNobet()};box.appendChild(b)});
+  const x=el('button','btn s','Sonra dönerim');x.onclick=()=>{NOBET=null;drawNobet()};box.appendChild(x);ov.appendChild(box)}
+/* ---------------- görünümler ---------------- */
+let OSEL=null,DRAG=null;
+VIEWS.ofis=function(m){const S=ensureOS(),O=OFF(),D=desks().length,need=S.team.length;m.appendChild(el('h2','','🏢 Ofis · '+O.ic+' '+O.n));
+  const top=el('div','grid');m.appendChild(top);[['Masa / çalışan',D+' / '+need+(D<need?' ⚠️':'')],['Konfor',comfortLv()],['Günlük kira',fmt(O.rent)+'🪙'],['Rack yeri',ensureOS().srv.racks.length+' / '+rackLimit()]].forEach(q=>{const c=el('div','card');c.innerHTML='<div class="kpi">'+q[1]+'<small>'+q[0]+'</small></div>';top.appendChild(c)});
+  if(D<need)m.appendChild(el('div','card','⚠️ '+(need-D)+' çalışanın masası yok · %50 yavaş çalışır ve morali düşer. Masa al ya da daha büyük ofise taşın.'));
+  /* palet */const pal=el('div','card');pal.style.marginTop='10px';pal.innerHTML='<b>🛒 Eşya al</b> <span class="muted">· boş yere konur, sürükleyerek taşı; tıkla: seç</span><br>';Object.keys(ITEMS).forEach(k=>{const I=ITEMS[k],b=el('button','btn s',I.ic+' '+I.n+' · '+fmt(I.c)+'🪙');b.style.margin='4px 6px 0 0';b.onclick=()=>buyItem(k);pal.appendChild(b)});m.appendChild(pal);
+  /* plan */const wrap=el('div','card');wrap.style.marginTop='10px';wrap.style.overflow='auto';m.appendChild(wrap);const cs=Math.max(22,Math.min(44,Math.floor((Math.min(innerWidth,1400)-330)/O.w)));
+  const g=el('div','');g.style.cssText='position:relative;width:'+(O.w*cs)+'px;height:'+(O.h*cs)+'px;background-color:#1b222c;background-image:linear-gradient(#2d3540 1px,transparent 1px),linear-gradient(90deg,#2d3540 1px,transparent 1px);background-size:'+cs+'px '+cs+'px;border:2px solid #58a6ff55;border-radius:6px;touch-action:none';wrap.appendChild(g);
+  const deskList=desks().slice().sort((a,b)=>a.y-b.y||a.x-b.x);
+  S.of.items.forEach(it=>{const I=ITEMS[it.t],c=cellsOf(it),d=el('div','');const owner=I.desk?S.team[deskList.indexOf(it)]:null;
+    d.style.cssText='position:absolute;left:'+(it.x*cs+2)+'px;top:'+(it.y*cs+2)+'px;width:'+(c.w*cs-4)+'px;height:'+(c.h*cs-4)+'px;border-radius:6px;display:grid;place-items:center;font-size:'+Math.round(cs*.55)+'px;cursor:grab;user-select:none;background:'+(I.desk?'#2f81f7aa':I.cf?'#3fb95066':'#d2992266')+';'+(OSEL===it?'outline:2px solid #fff;':'');
+    d.innerHTML=I.ic+(I.desk?'<span style="position:absolute;bottom:1px;left:3px;font-size:9px;color:#fff;max-width:90%;overflow:hidden;white-space:nowrap">'+(owner?owner.n.split(' ')[0]:'boş')+' · '+['I','II','III'][it.pc]+'</span>':'');d.title=I.n;
+    d.onpointerdown=e=>{e.preventDefault();DRAG={it:it,el:d,sx:e.clientX,sy:e.clientY,ox:it.x,oy:it.y,moved:false};d.setPointerCapture(e.pointerId)};
+    d.onpointermove=e=>{if(!DRAG||DRAG.it!==it)return;const dx=Math.round((e.clientX-DRAG.sx)/cs),dy=Math.round((e.clientY-DRAG.sy)/cs);if(dx||dy)DRAG.moved=true;const nx=DRAG.ox+dx,ny=DRAG.oy+dy,ok=fits(it,nx,ny,it);d.style.left=(nx*cs+2)+'px';d.style.top=(ny*cs+2)+'px';d.style.opacity=ok?1:.45;DRAG.nx=nx;DRAG.ny=ny;DRAG.ok=ok};
+    d.onpointerup=e=>{if(!DRAG||DRAG.it!==it)return;const D2=DRAG;DRAG=null;if(D2.moved&&D2.ok){it.x=D2.nx;it.y=D2.ny}else if(!D2.moved){OSEL=OSEL===it?null:it}render()};g.appendChild(d)});
+  if(OSEL&&S.of.items.indexOf(OSEL)>=0){const I=ITEMS[OSEL.t],c=el('div','card');c.style.marginTop='8px';c.innerHTML='<b>'+I.ic+' '+I.n+'</b>'+(I.desk?' <span class="tag">'+PCT[OSEL.pc][0]+' · hız ×'+PCT[OSEL.pc][1]+'</span>':'')+(I.cf?' <span class="tag">konfor +'+I.cf+'</span>':'')+(I.prod?' <span class="tag">ekip hızı +%'+I.prod*100+'</span>':'');
+    const B=(t,f)=>{const x=el('button','btn s',t);x.style.marginLeft='6px';x.onclick=f;c.appendChild(x)};if(I.desk&&OSEL.pc<2)B('⬆ '+PCT[OSEL.pc+1][0]+' · '+fmt(PCT[OSEL.pc+1][2])+'🪙',()=>upgradePC(OSEL));if(cellsOf(OSEL).w!==cellsOf(OSEL).h)B('⟳ Döndür',()=>{OSEL.r=!OSEL.r;if(!fits(OSEL,OSEL.x,OSEL.y,OSEL)){OSEL.r=!OSEL.r;P().toast('Döndürmeye yer yok')}render()});B('💸 Sat (%40)',()=>sellItem(OSEL));m.appendChild(c)}
+  if(S.of.store.length){const c=el('div','card');c.style.marginTop='8px';c.innerHTML='<b>📦 Depo</b> ';S.of.store.forEach(it=>{const b=el('button','btn s',ITEMS[it.t].ic+' yerleştir');b.style.marginLeft='6px';b.onclick=()=>{if(placeFree(it)){S.of.store=S.of.store.filter(q=>q!==it);S.of.items.push(it);render()}else P().toast('Yer yok')};c.appendChild(b)});m.appendChild(c)}
+  m.appendChild(el('h3','','🚚 Taşınma'));const t=el('table','');t.innerHTML='<tr><th>Ofis</th><th>Alan</th><th>Rack</th><th>Kira/gün</th><th>Taşınma toplamı</th><th></th></tr>';
+  OFFICES.forEach((o,i)=>{const tr=el('tr','');const tot=(o.buy||0)+o.dep+o.move;tr.innerHTML='<td>'+o.ic+' '+o.n+'<div class="muted">'+o.note+'</div></td><td>'+o.w+'×'+o.h+'</td><td>'+o.racks+'</td><td>'+fmt(o.rent)+'</td><td>'+(i?(o.buy?'satın alma '+fmt(o.buy)+' + ':'')+(o.dep?'depozito '+fmt(o.dep)+' + ':'')+'taşınma '+fmt(o.move)+' = <b>'+fmt(tot)+'🪙</b>':'—')+'</td>';
+    const td=el('td','');if(i===S.of.tier)td.appendChild(el('span','tag ok','Buradasın'));else if(i>S.of.tier){const b=el('button','btn b','Taşın');b.disabled=S.cash<tot;b.onclick=()=>{if(confirm(o.n+' ofisine taşınılsın mı? '+fmt(tot)+'🪙'))moveTo(o.k)};td.appendChild(b)}tr.appendChild(td);t.appendChild(tr)});const tc=el('div','card');tc.appendChild(t);m.appendChild(tc)};
+VIEWS.sunucu=function(m){const S=ensureOS(),p=S.product,cap=capOf(),raw=capRaw(),I=S.srv.inc;m.appendChild(el('h2','','🖧 Sunucular'));
+  const load=p&&p.live?p.users/Math.max(1,cap):0,need=storageNeed(p),have=storageHave();const g=el('div','grid');m.appendChild(g);
+  [['Kapasite',fmt(cap)+' kullanıcı'+(cap<raw?' (kesinti/disk etkisi)':'')],['Yük','%'+Math.round(load*100)+(load>1.6?' · ÇÖKTÜ':load>1?' · yavaş':'')],['Depolama',need.toFixed(1)+' / '+have.toFixed(1)+' TB'],['Günlük gider',fmt(srvCost())+'🪙']].forEach(q=>{const c=el('div','card');c.innerHTML='<div class="kpi" style="color:'+(q[0]==='Yük'&&load>1?'#f85149':'inherit')+'">'+q[1]+'<small>'+q[0]+'</small></div>';g.appendChild(c)});
+  if(I&&!I.done){const c=el('div','card');c.style.cssText='margin-top:10px;border-color:#f85149';c.innerHTML='<b>🚨 '+INC[I.t].n+'</b> · '+INC[I.t].d+' · kapasite ×'+INCF[I.t]+' · '+Math.round(I.min)+' dk sürüyor'+(I.ops?' · '+I.ops+' ilgileniyor (~'+Math.max(0,Math.round((I.need-I.min)))+' dk)':'');if(!I.ops||I.min>60){const b=el('button','btn','🛠️ Nöbeti devral');b.style.marginLeft='8px';b.onclick=nobet;c.appendChild(b)}m.appendChild(c)}
+  m.appendChild(el('h3','','🏠 Ev bilgisayarı · 800 kullanıcı (her zaman)'));
+  m.appendChild(el('h3','','🗄️ Rack sunucular ('+S.srv.racks.length+' / '+rackLimit()+(dcOn()?' · veri merkezinde':' · ofiste')+')'));const rc=el('div','card');
+  const mk=(L,lbl)=>{const s=document.createElement('select');s.innerHTML=L.map((q,i)=>'<option value="'+i+'">'+lbl+': '+q[0]+' · '+fmt(q[2])+'🪙</option>').join('');s.style.margin='0 6px 6px 0';return s};const sc=mk(CPU,'CPU'),sr=mk(RAM,'RAM'),sd=mk(DISK,'Disk');[sc,sr,sd].forEach(x=>rc.appendChild(x));
+  const info=el('span','muted','');const upd=()=>{const r={c:+sc.value,r:+sr.value,d:+sd.value};info.textContent=' → '+fmt(rackCap(r))+' kullanıcı · '+DISK[r.d][1]+' TB · '+fmt(CPU[r.c][2]+RAM[r.r][2]+DISK[r.d][2])+'🪙';};[sc,sr,sd].forEach(x=>x.onchange=upd);upd();const bb=el('button','btn','Satın al');bb.onclick=()=>buyRack(+sc.value,+sr.value,+sd.value);rc.appendChild(bb);rc.appendChild(info);
+  S.srv.racks.forEach(k=>{const r=el('div','row');r.innerHTML='<span>🖧 '+CPU[k.c][0]+' · '+RAM[k.r][0]+' · '+DISK[k.d][0]+'</span><span class="muted">'+fmt(rackCap(k))+' kullanıcı</span>';const x=el('button','btn s','Sat');x.onclick=()=>sellRack(k);r.appendChild(x);rc.appendChild(r)});m.appendChild(rc);
+  m.appendChild(el('h3','','☁️ Bulut kiralama (esnek)'));const cl=el('div','card');cl.innerHTML='<div class="row"><span>'+S.srv.cloud+' birim · birim başı '+fmt(CLOUD.users)+' kullanıcı + '+CLOUD.tb+' TB · '+fmt(CLOUD.cost)+'🪙/gün</span></div>';[-1,1,5].forEach(d=>{const b=el('button','btn s',(d>0?'+':'')+d);b.style.marginRight='6px';b.onclick=()=>cloudSet(S.srv.cloud+d);cl.appendChild(b)});m.appendChild(cl);
+  m.appendChild(el('h3','','🏭 Kendi veri merkezin'));const dc=el('div','card');dc.appendChild(el('div','muted','Arsa + enerji + soğutma ile çalışır: 200 rack yeri, rack başı enerji 70🪙/gün (ofiste 120), bakım 1.500🪙/gün. Jeneratör elektrik kesintisini önler.'));
+  Object.keys(DCB).forEach(k=>{const r=el('div','row');r.innerHTML='<span>'+DCB[k][0]+'</span>';if(S.srv.dc[k])r.appendChild(el('span','tag ok','Kuruldu'));else{const b=el('button','btn s',fmt(DCB[k][1])+'🪙');b.onclick=()=>buildDC(k);r.appendChild(b)}dc.appendChild(r)});m.appendChild(dc);
+  if(S.srv.incLog.length){m.appendChild(el('h3','','Kesinti geçmişi'));const h=el('div','card log');S.srv.incLog.forEach(q=>h.appendChild(el('div','','Gün '+q.d+' · '+INC[q.t].n+' · '+q.dur+' dk · '+q.by)));m.appendChild(h)}};
+
+{const _pv=VIEWS.panel;VIEWS.panel=function(m){const S=st(),I=S.srv&&S.srv.inc;if(I&&!I.done){const c=el('div','card');c.style.cssText='border-color:#f85149;margin-bottom:10px';c.innerHTML='🚨 <b>'+INC[I.t].n+'</b> · '+INC[I.t].d+(I.ops?' · '+I.ops+' ilgileniyor':' · sistem yöneticisi yok');const b=el('button','btn','🛠️ Nöbeti devral');b.style.marginLeft='8px';b.onclick=nobet;c.appendChild(b);m.appendChild(c)}_pv(m)}}
 /* ---------------- aç / kapat · zaman döngüsü ---------------- */
 function loop(){if(!OPEN)return;const now=performance.now(),dt=Math.min(.25,(now-lastT)/1000);lastT=now;const S=st();
   if(S.speed>0){const min=dt*1*S.speed;/* 1x = saniyede 1 oyun dakikası (dünyanın 2 katı) */P().advance(min);tick(min,true)}else renderSoft();loopId=requestAnimationFrame(loop)}
-function open(){const S=ensureIK();ensureUI();OPEN=true;root.classList.add('on');P().pause(true);lastT=performance.now();if(S.lastDay>P().day)S.lastDay=P().day;render();cancelAnimationFrame(loopId);loopId=requestAnimationFrame(loop);P().sfx('blip')}
+function open(){const S=ensureIK();ensureOS();ensureUI();OPEN=true;root.classList.add('on');P().pause(true);lastT=performance.now();if(S.lastDay>P().day)S.lastDay=P().day;render();cancelAnimationFrame(loopId);loopId=requestAnimationFrame(loop);P().sfx('blip')}
 function close(){OPEN=false;if(root)root.classList.remove('on');cancelAnimationFrame(loopId);P().pause(false);P().save()}
 /* köprüye kaydol */
 P().bt={get:()=>BT,set:o=>{BT=(o&&typeof o==='object'&&o.v)?Object.assign(fresh(),o):null},tick:(min,desk)=>{try{tick(min,!!desk)}catch(e){console.error(e)}},open:open,close:close,get isOpen(){return OPEN},
-  _t:{ensureIK:ensureIK,postAd:postAd,ask:ask,offer:offer,hire:hire,charOffer:charOffer,dailyIK:dailyIK,promote:promote,train:train,fire:fire,bonus:bonus,teamEvent:teamEvent,newCand:newCand,st:st,work:work,daily:daily,build:build,release:release,setTask:setTask,satisfaction:satisfaction,featScore:featScore,TYPES:TYPES,render:render,go:t=>{TAB=t;render()}}};
+  _t:{ensureOS:ensureOS,buyItem:buyItem,moveTo:moveTo,buyRack:buyRack,cloudSet:cloudSet,buildDC:buildDC,incStart:incStart,incEnd:incEnd,nobet:nobet,capOf:capOf,deskOf:deskOf,comfortLv:comfortLv,fits:fits,ensureIK:ensureIK,postAd:postAd,ask:ask,offer:offer,hire:hire,charOffer:charOffer,dailyIK:dailyIK,promote:promote,train:train,fire:fire,bonus:bonus,teamEvent:teamEvent,newCand:newCand,st:st,work:work,daily:daily,build:build,release:release,setTask:setTask,satisfaction:satisfaction,featScore:featScore,TYPES:TYPES,render:render,go:t=>{TAB=t;render()}}};
 if(P().pendingBT!==undefined){P().bt.set(P().pendingBT);P().pendingBT=undefined}
 })();
