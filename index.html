@@ -386,7 +386,7 @@ try{
 const T=THREE,$=id=>document.getElementById(id);
 function hudMoney(v){v=Math.floor(+v||0);const sg=v<0?'-':'',n=Math.abs(v),f=(x,d)=>x.toFixed(d).replace('.',',');if(n<1e5)return sg+n.toLocaleString('tr-TR');if(n<1e6)return sg+f(Math.floor(n/100)/10,1)+'B';return sg+f(Math.floor(n/1e4)/100,2)+'M'}
 function mulberry(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
-const rnd=mulberry(20260);
+let rnd=mulberry(20260);
 const R=(a,b)=>a+(b-a)*rnd(),clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),pick=a=>a[rnd()*a.length|0];
 
 /* ---------- sahneler ---------- */
@@ -1335,7 +1335,7 @@ function nearCrossing(A,x,z){return (A.crossings||[]).some(c=>Math.abs(x-c.x)<(c
 /* ---------- araçlar: yol takibi, ışıkta durma, yayaya durma, korna ---------- */
 let honkCd=0;
 function driversTick(A,dt){sigTick(A,dt);honkCd-=dt;const now=performance.now()/1000;
-  A.drivers.forEach(c=>{const path=c.path||A.ring.curve,L=c.L||A.ring.len,dir=c.path?1:c.dir;if(c.v==null)c.v=c.s;let sp=c.s;const len=c.len||4.4;
+  A.drivers.forEach(c=>{const path=c.path||A.ring.curve,L=c.L||A.ring.len,dir=c.path?1:c.dir;if(c.v==null)c.v=c.s;let sp=c.s;const len=c.len||4.4;{const fp=c.c.position,fx=fp.x-(camT.x-A.ox),fz=fp.z-(camT.z-A.oz);if(!(c.wait>0)&&fx*fx+fz*fz>FAR110){c.fz110=(c.fz110||0)+dt;c.u=(c.u+c.v*dir*dt/L+1)%1;if(c.fz110<1)return;c.fz110=0}}
     if(c.wait>0){c.wait-=dt;sp=0}
     else if(c.stops){for(const su of c.stops){let du=(su-c.u)*dir;if(du<0)du+=1;const dm=du*L;if(dm<14)sp=Math.min(sp,Math.max(.25,dm/14)*c.s);if(dm<.35&&c.lastStop!==su){c.wait=4.5;c.lastStop=su;sp=0}}}
     if(A.sig&&c.sigU&&A.sig.st!=='g')for(const su of c.sigU){let du=(su-c.u)*dir;if(du<0)du+=1;const dm=du*L;if(dm<16&&dm>(A.sig.st==='y'?3:.2))sp=Math.min(sp,Math.max(0,(dm-.8)/9)*c.s)}
@@ -4827,7 +4827,7 @@ function wkSetup(n,i){const r=n.who?'walk':ROLES38[(i*7+((n.sp*1e4)|0))%ROLES38.
   else if(r==='news')n.prop=box(.36,.27,.02,std(0xeeeae0),0,-.88,.16,AR[1]);else if(r==='jog')n.spK=1.9}
 let SIMITG=null;
 function walkersTick38(A,dt,t){const cx=camT.x-A.ox,cz=camT.z-A.oz,far=zoom*2.4+14;A.wf=(A.wf||0)+1;
-  A.walkers.forEach((n,i)=>{if(!n.p.visible)return;if(n.role==null)wkSetup(n,i);const dx=n.p.position.x-cx,dz=n.p.position.z-cz,isFar=dx*dx+dz*dz>far*far;
+  A.walkers.forEach((n,i)=>{if(!n.p.visible)return;if(n.role==null)wkSetup(n,i);const dx=n.p.position.x-cx,dz=n.p.position.z-cz,isFar=dx*dx+dz*dz>far*far;if(dx*dx+dz*dz>FAR110){n.acc=0;return}
     if(isFar&&(A.wf+i)%5){n.acc=(n.acc||0)+dt;return}const d=Math.min(.5,dt+(n.acc||0));n.acc=0;
     n.tt-=d;if(n.tt<=0){if(n.st===0&&n.role!=='jog'&&n.role!=='walk'&&rnd()<.6){n.st=1;n.tt=2.5+rnd()*4.5}else{n.st=0;n.tt=5+rnd()*10}}
     const moving=n.st===0||!!n.who;
@@ -11508,7 +11508,7 @@ const tx109=k=>pTex109(k,K109[k],k==='macro'?(isTouch?128:256):null);
 const KD109={stucco:{s:6,k:.4,mo:[.8,.78,.74],b:.45},brick:{s:4.4,k:.7,mo:[.82,.79,.74],b:1.2},stone:{s:4.6,k:.45,mo:[.74,.72,.68],b:1.1},glass:{s:6,k:.7,mo:[.86,.89,.92],b:0},tile:{s:3,k:.85,mo:[.5,.4,.36],b:1.4},
   membrane:{s:9,k:.7,mo:[.5,.5,.5],b:.5},grass:{s:3.2,k:.6,mo:[.5,.5,.5],b:.6},dirt:{s:3,k:.7,mo:[.5,.5,.5],b:.9},paver:{s:3,k:.7,mo:[.42,.4,.37],b:.9},curb:{s:4,k:.55,mo:[.42,.42,.45],b:.8},none:{s:5,k:0,mo:[.5,.5,.5],b:0}};
 const BON109={value:0},DET109={value:1},GL2_109=!!renderer.capabilities.isWebGL2;
-const OBC109=function(sh){const U=this.userData.u109;if(!U)return;Object.assign(sh.uniforms,U);sh.uniforms.uBon109=BON109;sh.uniforms.uDet109=DET109;
+let OBC109=function(sh){const U=this.userData.u109;if(!U)return;Object.assign(sh.uniforms,U);sh.uniforms.uBon109=BON109;sh.uniforms.uDet109=DET109;
   sh.vertexShader='attribute vec3 aTB109;varying vec3 vW109;varying vec3 vN109;varying vec3 vTB109;\n'+sh.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\n vW109=(modelMatrix*vec4(transformed,1.0)).xyz;vN109=normalize(mat3(modelMatrix)*objectNormal);vTB109=aTB109;');
   sh.fragmentShader=(GL2_109?'#define BUMP109\n':'')+'uniform sampler2D tD109,tD2109,tM109;uniform float uS109,uWallOn109,uAO109,uBS109,uBon109,uDet109;uniform vec2 uOff109;uniform vec4 uK109,uBox109;uniform vec3 uMort109,uWall109,uEdge109,uEdgeC109;varying vec3 vW109;varying vec3 vN109;varying vec3 vTB109;\n'
    +'vec3 pn109(vec3 sp,vec3 sn,vec2 dH,float fd){vec3 sx=dFdx(sp),sy=dFdy(sp);vec3 R1=cross(sy,sn),R2=cross(sn,sx);float det=dot(sx,R1)*fd;vec3 gr=sign(det)*(dH.x*R1+dH.y*R2);return normalize(abs(det)*sn-gr);}\n'
@@ -11581,6 +11581,150 @@ function texDistrict109(A){if(!A||!A.G||A.tx109)return;A.tx109=1;const t0=perfor
 {const _sd=setDistrict;setDistrict=function(n){const r=_sd.apply(this,arguments);try{const A=activeD;if(A&&!A.tx109b){A.tx109b=1;setTimeout(()=>{try{A.tx109=0;texDistrict109(A)}catch(e){}},1800)}}catch(e){}return r}}
 {const _a=apply108;apply108=function(){const r=_a.apply(this,arguments);BON109.value=Q108.tier>=2?1:0;DET109.value=Q108.tier>=1?1:0;return r}}
 window.__t109={TX:TX109,det:v=>{DET109.value=v},run:()=>{const A=activeD;if(A){A.tx109=0;texDistrict109(A)}return TX109.mats},mem:()=>({tex:TX109.n,MB:+(TX109.bytes/1048576).toFixed(1),size:TX109.S,mats:TX109.mats,kinds:TX109.kinds,ms:TX109.ms,gpuTex:renderer.info.memory.textures,geo:renderer.info.memory.geometries,prog:renderer.info.programs?renderer.info.programs.length:0})};
+/* ================= v110: stabilite turu · hata toplayıcı · kayıt uyumluluğu · performans sayacı · bellek (LRU mahalle, iç mekân dispose) ================= */
+/* --- v109 düzeltmesi: dokulu malzemeler Sims görüş kesitini (cutPatch) de alsın --- */
+const CUTF110=(()=>{const d=new T.MeshStandardMaterial();cutPatch(d);const f=d.onBeforeCompile;d.dispose();return Object.prototype.hasOwnProperty.call(d,'onBeforeCompile')?f:null})();
+{const _o=OBC109;OBC109=function(sh){_o.call(this,sh);if(CUTF110)try{CUTF110.call(this,sh)}catch(e){}}}
+{const _mk=mk109;mk109=function(m){const r=_mk.apply(this,arguments);m.onBeforeCompile=OBC109;m.userData.cut38=1;return r}}
+/* cutPatch'li (ama dokusuz) malzemeyi de dokulayabil: cut38 tek başına engel değil */
+{const _t=texDistrict109;texDistrict109=function(A){const fix=[];try{if(A&&A.G)A.G.traverse(o=>{if(!o.isMesh)return;(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{if(m&&m.userData.cut38&&!m.userData.u109&&Object.prototype.hasOwnProperty.call(m,'onBeforeCompile')&&fix.indexOf(m)<0){fix.push(m);m.__ob110=m.onBeforeCompile;m.onBeforeCompile=DEFOBC109}})})}catch(e){}
+  const r=_t.apply(this,arguments);fix.forEach(m=>{if(!m.userData.u109&&m.__ob110)m.onBeforeCompile=m.__ob110;delete m.__ob110});return r}}
+/* --- 1) hata toplayıcı (showErrOnce dahil) --- */
+const ERR110={on:false,list:[],where:''};
+function errPush110(src,e){const msg=String(e&&e.message||e||'').split('\n')[0].slice(0,220);if(!msg)return;const w=ERR110.where||(mode==='int'&&curI?'iç:'+curI.name:activeD?'mahalle:'+activeD.name:mode);
+  const k=w+'|'+msg;if(ERR110.list.some(q=>q.k===k))return;ERR110.list.push({k:k,yer:w,kaynak:src,mesaj:msg});if(ERR110.list.length>300)ERR110.list.shift()}
+{const _se=showErrOnce;showErrOnce=function(e){try{errPush110('showErrOnce',e)}catch(x){}return _se.apply(this,arguments)}}
+{const _ce=console.error.bind(console);console.error=function(){try{const a=[].slice.call(arguments).map(x=>x&&x.message?x.message:String(x)).join(' ');if(!/favicon|ServiceWorker|sw\.js/i.test(a))errPush110('console',a)}catch(x){}return _ce.apply(null,arguments)}}
+addEventListener('error',ev=>errPush110('window',ev.error||ev.message));addEventListener('unhandledrejection',ev=>errPush110('promise',ev.reason));
+/* --- iç mekân anahtarları: door() ve enter() kayıt --- */
+const DOORK110=new Set();
+{const _d=door;door=function(x,z,kind){try{DOORK110.add(kind)}catch(e){}return _d.apply(this,arguments)}}
+{const _en=enter;enter=function(kind){try{if(typeof kind==='string')DOORK110.add(kind)}catch(e){}return _en.apply(this,arguments)}}
+const STATIC110=['of1','of2','of3','ev_cigli','ev_karabaglar','ev_koc_ust','ev_koc_alt','hastane','karakol','havalimani','aspava','dovme','tatli','tursucu','mall_hilltown','mall_hilltown2','mall_hilltown3','dagevi','aksaz_han','otel_marmaris'];
+const RIDE110=/^(ucak|rest_|tekne_|ride|bus|metro|tram|ev_p_)/;  /* yolculuk sahneleri: kendi akışından açılır, turda atlanır */
+const sleep110=ms=>new Promise(r=>setTimeout(r,ms));
+async function until110(f,ms){const t0=performance.now();while(performance.now()-t0<ms){try{if(f())return true}catch(e){}await sleep110(100)}return false}
+function calm110(){try{closeModal()}catch(e){}try{const o=document.querySelector('#scnov.on .no');if(o)o.click()}catch(e){}try{if(BUILD.on)buildClose()}catch(e){}try{if(typeof closeMenu==='function')closeMenu()}catch(e){}}
+async function toWorld110(){if(mode==='int'){calm110();await until110(()=>!busy,4000);try{leave()}catch(e){errPush110('tur',e)}await until110(()=>mode==='world'&&!busy,6000)}}
+const TOUR110={run:false,res:null};
+async function tour110(opt){opt=opt||{};if(TOUR110.run)return;TOUR110.run=true;ERR110.list.length=0;const t0=performance.now();const W8=opt.wait||2000,res={mahalle:[],ic:[],hata:[]};
+  const ping=setInterval(()=>{const o=document.querySelector('#scnov.on .no');if(o)o.click()},400);
+  const GT0=GT;GT=600;try{toast('🧪 Test turu başladı · mahalleler ve iç mekânlar sırayla açılıyor');await toWorld110();
+    const DL=AUDD107.concat(AUDD107.slice(0,3));  /* ilk 3'ü sonda tekrar: LRU boşaltma sonrası yeniden kurulum */
+    for(const n of DL){calm110();await until110(()=>!busy,4000);ERR110.where='mahalle:'+n;const e0=ERR110.list.length,f0=performance.now();
+      try{setDistrict(n);const A=D[n];if(A&&A.spawn){pl.x=A.spawn[0];pl.z=A.spawn[1];snapCam()}}catch(e){errPush110('tur',e)}await sleep110(W8);
+      res.mahalle.push({ad:n,hata:ERR110.list.length-e0,bellekte:Object.keys(D).length,ms:Math.round(performance.now()-f0-W8)})}
+    const base=me&&me.home&&D[me.home]?me.home:'cigli';ERR110.where='mahalle:'+base;setDistrict(base);await sleep110(600);
+    const kinds=[...new Set([...DOORK110,...Object.keys(INT),...STATIC110])].filter(k=>!RIDE110.test(k));
+    const again=[];for(const k of kinds){calm110();await until110(()=>!busy,4000);if(mode!=='world'){await toWorld110()}ERR110.where='iç:'+k;const e0=ERR110.list.length;let ok=false;
+      try{enter(k);ok=await until110(()=>mode==='int'&&curI&&!busy,6000)}catch(e){errPush110('tur',e)}
+      if(ok)await sleep110(W8);else errPush110('tur','iç mekâna girilemedi: '+k);await toWorld110();await sleep110(300);
+      const disp=!INT[k];if(disp&&again.length<4)again.push(k);res.ic.push({ad:k,girdi:ok,hata:ERR110.list.length-e0,dispose:disp})}
+    for(const k of again){ERR110.where='iç(yeniden):'+k;const e0=ERR110.list.length;let ok=false;try{enter(k);ok=await until110(()=>mode==='int'&&curI&&!busy,6000)}catch(e){errPush110('tur',e)}
+      await sleep110(800);await toWorld110();res.ic.push({ad:k+' (yeniden kurulum)',girdi:ok,hata:ERR110.list.length-e0,dispose:!INT[k]})}
+  }catch(e){errPush110('tur',e)}finally{GT=GT0;clearInterval(ping);ERR110.where='';TOUR110.run=false}
+  res.hata=ERR110.list.map(q=>({yer:q.yer,kaynak:q.kaynak,mesaj:q.mesaj}));res.sure=Math.round((performance.now()-t0)/1000);TOUR110.res=res;
+  try{console.groupCollapsed('🧪 Test turu · '+res.hata.length+' hata · '+res.sure+' sn');console.table(res.mahalle);console.table(res.ic);console.table(res.hata);console.groupEnd()}catch(e){}
+  if(!opt.quiet)tourShow110(res);return res}
+function tourShow110(res){openModal('🧪 Test turu sonucu',b=>{b.appendChild(el('div','sub',res.mahalle.length+' mahalle · '+res.ic.length+' iç mekân · '+res.sure+' sn · '+res.hata.length+' hata'));
+  const box=el('div','');box.style.cssText='max-height:52vh;overflow:auto;font-size:12px;text-align:left;margin-top:8px';
+  if(!res.hata.length)box.appendChild(el('div','','✅ Hata yok'));res.hata.forEach(q=>{const d=el('div','');d.style.cssText='padding:4px 0;border-bottom:1px solid rgba(127,127,127,.25)';d.textContent='['+q.yer+'] '+q.mesaj;box.appendChild(d)});b.appendChild(box)})}
+/* --- 3) kayıt uyumluluğu: bozuk/eksik alanları varsayılana çevir --- */
+const isO110=v=>v&&typeof v==='object'&&!Array.isArray(v),isN110=v=>typeof v==='number'&&isFinite(v);
+function normalizeSave110(S){if(!isO110(S))return null;const fix=[];const num=(o,k,lo,hi,def)=>{if(!isO110(o))return;if(!(k in o))return;if(!isN110(o[k])){o[k]=def;fix.push(k)}else if(o[k]<lo||o[k]>hi){o[k]=Math.max(lo,Math.min(hi,o[k]));fix.push(k)}};
+  if(!isN110(S.v)){S.v=1;fix.push('v')}num(S,'coins',-1e6,1e8,120);num(S,'hunger',0,100,70);num(S,'mood',0,100,70);
+  if('lookv' in S&&S.lookv!==2)delete S.lookv;if('looks' in S&&!isO110(S.looks)){delete S.looks;delete S.lookv;fix.push('looks')}if(isO110(S.looks))Object.keys(S.looks).forEach(k=>{if(!isO110(S.looks[k])){delete S.looks[k];fix.push('looks.'+k)}});
+  if('bonds' in S){if(!isO110(S.bonds)){delete S.bonds;fix.push('bonds')}else Object.keys(S.bonds).forEach(k=>{if(!isN110(S.bonds[k])){delete S.bonds[k];fix.push('bonds.'+k)}else S.bonds[k]=Math.max(0,Math.min(100,S.bonds[k]))})}
+  if('home' in S){if(!isO110(S.home)){delete S.home;fix.push('home')}else{const h=S.home;num(h,'day',1,1e5,1);if('day' in h)h.day=Math.max(1,Math.round(h.day));['hyg','dishes','laundry'].forEach(k=>num(h,k,0,1e4,0));
+    if(!('own' in h)||!isO110(h.own)){h.own={};fix.push('home.own')}if('rent' in h&&h.rent!=null&&typeof h.rent!=='object'&&!isN110(h.rent)){delete h.rent;fix.push('home.rent')}if('loan' in h&&h.loan!=null&&typeof h.loan!=='object'){h.loan=null;fix.push('home.loan')}}}
+  if('own' in S&&!Array.isArray(S.own)){delete S.own;fix.push('own')}if(Array.isArray(S.own))S.own=S.own.filter(x=>typeof x==='string');
+  if('furn' in S){if(!isO110(S.furn)){delete S.furn;fix.push('furn')}else Object.keys(S.furn).forEach(k=>{const L=S.furn[k];if(!Array.isArray(L)){delete S.furn[k];fix.push('furn.'+k);return}S.furn[k]=L.filter(f=>isO110(f)&&typeof f.key==='string'&&isN110(f.x)&&isN110(f.z))})}
+  if('x' in S){if(!isO110(S.x)){delete S.x;fix.push('x')}else{const x=S.x;const arr=['know','mem','depo','inv','ord'],obj=['x51','x49','x44','x39','x38','nb','stats','ach','tk','need','sk','x57','x58','x59','x64','x67','x68','x70','x71','x73','x74','x76','x78','x80','x100','x102','x103','x105'];
+    arr.forEach(k=>{if(k in x&&!Array.isArray(x[k])){delete x[k];fix.push('x.'+k)}});obj.forEach(k=>{if(k in x&&!isO110(x[k])){delete x[k];fix.push('x.'+k)}});
+    if('gt' in x&&!isN110(x.gt)){delete x.gt;fix.push('x.gt')}else if(isN110(x.gt))x.gt=((x.gt%1440)+1440)%1440;if('trips' in x&&!isN110(x.trips)){delete x.trips;fix.push('x.trips')}
+    if(isO110(x.x80)&&'scn' in x.x80&&!isO110(x.x80.scn)){delete x.x80.scn;fix.push('x.x80.scn')}if(isO110(x.x80)&&isO110(x.x80.scn)){const s=x.x80.scn;if(!Array.isArray(s.tasks))s.tasks=[];if(!isO110(s.done))s.done={};if(!isO110(s.timers))s.timers={};if(!isO110(s.v))s.v={}}
+    if(isO110(x.need))Object.keys(x.need).forEach(k=>{if(!isN110(x.need[k]))delete x.need[k]});if('cur' in x&&typeof x.cur!=='string')delete x.cur}}
+  S.fix110=fix;return S}
+{const _r=readSaveSafe;readSaveSafe=function(k){const o=_r.apply(this,arguments);try{return o?normalizeSave110(o):o}catch(e){errPush110('kayıt',e);return null}}}
+/* oyun durumu değişmezleri: yüklemeden sonra hep doğru olmalı */
+function saveInv110(){const bad=[];if(!isN110(coins))bad.push('coins');if(!isN110(hunger))bad.push('hunger');if(!isN110(mood))bad.push('mood');if(!isO110(HOME.own))bad.push('HOME.own');if(!isN110(HOME.day)||HOME.day<1)bad.push('HOME.day');
+  if(!isO110(SCN)||!Array.isArray(SCN.tasks))bad.push('SCN');if(!Array.isArray(KNOW))bad.push('KNOW');if(!Array.isArray(MEM))bad.push('MEM');if(!isN110(GT))bad.push('GT');Object.keys(BONDS).forEach(k=>{if(!isN110(BONDS[k].v))bad.push('BONDS.'+k)});return bad}
+function saveTest110(opt){opt=opt||{};const key='__t110',SK=saveKey(key),res=[];if(me)try{saveGame()}catch(e){}
+  const cases=[['v1 (eski, yalnız temel alanlar)',{v:1,coins:500,hunger:60,mood:70}],
+   ['lookv 2 · home.own yok · SCN yok',{v:1,lookv:2,coins:900,looks:{sen:{shirt:0x334455}},home:{day:4,hyg:50,dishes:2,laundry:1},x:{gt:600,name:'Test'}}],
+   ['bozuk tipler',{v:1,coins:'abc',hunger:'x',mood:1e9,bonds:{ogus:'a',cicom:55},home:{day:'yarın',own:[1,2],loan:5,hyg:null},own:'zz',looks:5,furn:{ev_cigli:'bozuk',ev_karabaglar:[{key:3},{key:'kanepe',x:1,z:2}]},x:{know:'oops',mem:5,gt:'öğlen',depo:{},inv:7,x80:{scn:'bad'},x102:7,x67:[],need:{en:'çok'},cur:9}}],
+   ['SCN eksik alanlar',{v:1,coins:10,x:{x80:{scn:{base:'cigli'}}}}],
+   ['v alanı yok',{coins:300}],['dizi kök',[1,2,3]],['boş nesne',{}]];
+  const ok=x=>({sonuc:x.length?'❌ '+x.join(', '):'✅'});
+  for(const [ad,obj] of cases){let thrown=null,fx=[];try{PWStore.set(SK,JSON.stringify(obj));const S=readSaveSafe(key);fx=S&&S.fix110||[];loadGame(key)}catch(e){thrown=e}
+    let bad=saveInv110();if(thrown)bad=['ÇÖKTÜ: '+(thrown.message||thrown)].concat(bad);res.push(Object.assign({durum:ad,duzeltilen:fx.join(', ')||'—'},ok(bad)));
+    try{if(!isN110(coins))coins=120;if(!isO110(HOME.own))HOME.own={};if(!isN110(HOME.day)||HOME.day<1)HOME.day=1;if(!isN110(GT))GT=540}catch(e){}}
+  PWStore.del(SK);try{console.table(res)}catch(e){}
+  if(!opt.quiet){openModal('💾 Kayıt uyumluluk testi',b=>{res.forEach(r=>{const d=el('div','sub',r.sonuc+' · '+r.durum+(r.duzeltilen!=='—'?' · varsayılana dönen: '+r.duzeltilen:''));d.style.textAlign='left';b.appendChild(d)});
+    b.appendChild(el('div','sub','Test kayıtları oyuna uygulandı; asıl kaydına dönmek için sayfa yenilenecek.'));const x=el('button','btn','🔄 Asıl kayda dön');x.onclick=()=>{location.reload()};b.appendChild(x)});
+    window.removeEventListener('beforeunload',saveGame);try{removeEventListener('pagehide',saveGame)}catch(e){}SAVEBLOCK110=true}
+  return res}
+let SAVEBLOCK110=false;{const _sg=saveGame;saveGame=function(){if(SAVEBLOCK110)return;return _sg.apply(this,arguments)}}
+/* --- 4) performans sayacı: FPS, draw call, üçgen --- */
+renderer.info.autoReset=false;const PH110={el:null,t:0,calls:0,tris:0};
+{const _fb=frameBody;frameBody=function(){renderer.info.reset();const r=_fb.apply(this,arguments);PH110.calls=renderer.info.render.calls;PH110.tris=renderer.info.render.triangles;
+  if(SET.fpsHud){PH110.t-=1/60;if(PH110.t<=0){PH110.t=.25;if(!PH110.el){const d=document.createElement('div');d.id='fps110';d.style.cssText='position:fixed;left:8px;bottom:8px;z-index:120;padding:5px 9px;border-radius:9px;background:rgba(10,8,20,.72);color:#bfffd0;font:600 11px/1.35 ui-monospace,Consolas,monospace;pointer-events:none;white-space:pre';document.body.appendChild(d);PH110.el=d}
+    PH110.el.style.display='block';const m=renderer.info.memory;PH110.el.textContent=Math.round(DYN.fps)+' FPS · '+PH110.calls+' çizim · '+(PH110.tris>=1e6?(PH110.tris/1e6).toFixed(2)+'M':Math.round(PH110.tris/1e3)+'k')+' üçgen\n'+m.geometries+' geo · '+m.textures+' doku · '+Object.keys(D).length+' mahalle · '+Object.keys(INT).length+' iç'}}
+  else if(PH110.el&&PH110.el.style.display!=='none')PH110.el.style.display='none';return r}}
+/* --- 4b) birleştirme genişletmesi: dokulu (v109) malzemeler ve statik gruplar (b2, merged) da birleşir --- */
+const MGOK110=new Set(['cut38','k109','u109','tile109']),MGANC110=new Set(['b2','merged','noMerge','tx109']);
+{const _ok=mgMatOK;mgMatOK=function(m){if(m&&m.userData&&m.userData.u109&&!m.map){for(const k in m.userData)if(!MGOK110.has(k))return false;if(m.transparent||m.vertexColors||m.opacity<1||m.alphaTest>0)return false;if(MGX.ban&&MGX.ban.has(m))return false;if(m.emissive&&(m.emissive.r+m.emissive.g+m.emissive.b)>.003)return false;return m.isMeshStandardMaterial}return _ok.apply(this,arguments)}}
+{const _k=mgKey;mgKey=function(o,m){let k=_k.apply(this,arguments);const U=m.userData&&m.userData.u109;if(U)k+='|'+m.userData.k109+'|'+U.uS109.value+'|'+U.uK109.value.toArray().join(',')+'|'+U.uAO109.value+'|'+U.uBS109.value;return k}}
+{const _c=mgCandidates;mgCandidates=function(A){const out=[],G=A.G;const dyn=A.mgDyn||(A.mgDyn=new Set());
+  const walk=(o,ok)=>{if(!o.visible)return;if(o!==G){for(const k in o.userData){if(!MGANC110.has(k)){ok=false;break}}if(o.isSprite||o.isPoints||o.isLine)return}
+    if(o.isMesh&&ok&&!o.isInstancedMesh&&!o.isSkinnedMesh&&!dyn.has(o)&&o.layers.mask===1&&o.renderOrder===0&&o.geometry&&o.geometry.isBufferGeometry&&o.geometry.attributes.position&&o.geometry.attributes.normal&&!o.geometry.morphAttributes.position&&o.geometry.attributes.position.count<6000&&!o.geometry.attributes.aTB109&&mgMatOK(o.material))out.push(o);
+    for(const c of o.children)walk(c,ok)};walk(G,true);return out}}
+{const _b=mgBuild;mgBuild=function(A){const r=_b.apply(this,arguments);try{(A.mgB||[]).forEach(b=>{const m0=b.L[0]&&b.L[0].material,U=m0&&m0.userData.u109;if(!U||b.mesh.material.userData.u109)return;const mm=b.mesh.material;
+    const cp={};Object.keys(U).forEach(k=>{const v=U[k].value;cp[k]={value:v&&v.clone&&!v.isTexture?v.clone():v}});mm.userData={u109:cp,k109:m0.userData.k109,cut38:1};mm.onBeforeCompile=OBC109;mm.needsUpdate=true})}catch(e){errPush110('merge',e)}return r}}
+/* --- 4c) kameradan 60+ birim uzaktaki NPC ve araçlar: animasyon dondurulur (araçlar yolda ilerlemeye devam eder, konumu saniyede bir güncellenir) --- */
+const FAR110=60*60;
+/* --- 4d/5) dispose yardımcıları --- */
+function liveSets110(){const mats=new Set(),objs=new Set(),geos=new Set(),texs=new Set();const add=o=>{objs.add(o);if(o.geometry)geos.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{if(!m||mats.has(m))return;mats.add(m);for(const k in m){const v=m[k];if(v&&v.isTexture)texs.add(v)}const U=m.userData&&m.userData.u109;if(U)Object.values(U).forEach(u=>{if(u&&u.value&&u.value.isTexture)texs.add(u.value)})})};
+  [scene,iscene].forEach(s=>s.traverse(add));Object.values(INT).forEach(I=>{if(I&&I.G)I.G.traverse(add)});Object.values(D).forEach(A=>{if(A&&A.G)A.G.traverse(add)});return {mats:mats,objs:objs,geos:geos,texs:texs}}
+const TEXKEEP110=()=>{const s=new Set(Object.values(TX109.cache));[grassTex,sandTex,paverTex,asphaltTex,glowTex,shallowTex,foamTex,poolTex108].forEach(t=>t&&s.add(t));Object.values(MT).forEach(m=>{['map','emissiveMap'].forEach(k=>m[k]&&s.add(m[k]))});return s};
+function prune110(){const L=liveSets110(),keepM=new Set(Object.values(MT).concat(Object.values(facadeCache)));const pr=(arr,f)=>{const n=arr.length,k=arr.filter(f);arr.length=0;k.forEach(v=>arr.push(v));return n-k.length};let n=0;
+  n+=pr(facades,m=>L.mats.has(m)||keepM.has(m));n+=pr(signMats,m=>L.mats.has(m)||keepM.has(m));if(typeof spriteMats!=='undefined')n+=pr(spriteMats,m=>L.mats.has(m)||keepM.has(m));n+=pr(glows,g=>L.objs.has(g.sp));if(typeof FACES!=='undefined')n+=pr(FACES,F=>L.objs.has(F.g));
+  n+=pr(VEND,v=>!v.objs||v.objs.some(o=>L.objs.has(o)));n+=pr(carMeshes,c=>!c.mesh||L.objs.has(c.mesh)||!c.mesh.parent);V3S.forEach(g=>{if(!L.objs.has(g)&&g.parent){V3S.delete(g);n++}});
+  Object.keys(C_REF).forEach(k=>{const A=C_REF[k];if(A&&A.G&&!L.objs.has(A.G)){delete C_REF[k];n++}});return n}
+function disposeTree110(root,skip){const geos=new Set(),mats=new Set(),texs=new Set(),keepT=TEXKEEP110(),keepM=new Set(Object.values(MT).concat(Object.values(facadeCache)));
+  root.traverse(o=>{if(skip&&skip.has(o))return;if(o.geometry)geos.add(o.geometry);const ms=o.material?(Array.isArray(o.material)?o.material:[o.material]):[];ms.forEach(m=>{if(!m||keepM.has(m))return;mats.add(m);for(const k in m){const v=m[k];if(v&&v.isTexture&&!keepT.has(v))texs.add(v)}})});
+  const L=liveSets110();let g=0,mm=0,t=0;geos.forEach(x=>{if(!L.geos.has(x)){try{x.dispose();g++}catch(e){}}});mats.forEach(m=>{if(!L.mats.has(m)){try{m.dispose();mm++}catch(e){}}});texs.forEach(x=>{if(!L.texs.has(x)){try{x.dispose();t++}catch(e){}}});return {g:g,m:mm,t:t}}
+const KEEPOBJ110=()=>{const s=[player,dog,typeof myCar!=='undefined'?myCar:null,OG&&OG.p].filter(Boolean);try{Object.values(MP.rem||{}).forEach(r=>r&&r.p&&s.push(r.p))}catch(e){}return s};
+const isDesc110=(o,root)=>{while(o){if(o===root)return true;o=o.parent}return false};
+/* iç mekân: çıkışta dispose (ev, ofis ve komşu evleri hariç: durumları var) */
+const MEM110={intDisp:0,distUnload:0,last:null,order:[]};
+function intDisposable110(k,I){if(!I||!I.G||I===curI)return false;if(/^(ev_|of\d|komsu_)/.test(k)||I.keep)return false;if(KEEPOBJ110().some(o=>isDesc110(o,I.G)))return false;return true}
+function disposeInteriors110(){if(SET.intDispose===false)return 0;let n=0;Object.keys(INT).forEach(k=>{const I=INT[k];if(!intDisposable110(k,I))return;try{if(I.G.parent)I.G.parent.remove(I.G);delete INT[k];const r=disposeTree110(I.G);r.g+=dropReg110('int:'+k);n++;MEM110.last={ic:k,geo:r.g,mat:r.m,doku:r.t}}catch(e){errPush110('dispose',e)}});if(n){MEM110.intDisp+=n;prune110()}return n}
+{const _lv=leave;leave=function(){const r=_lv.apply(this,arguments);let n=0;const tryD=()=>{if(busy&&n++<12){setTimeout(tryD,500);return}try{disposeInteriors110()}catch(e){errPush110('dispose',e)}};setTimeout(tryD,900);return r}}
+/* mahalle: en fazla 3 tanesi bellekte; en eski boşaltılır, geri gelince aynı tohumla yeniden kurulur */
+const MAXD110=3;
+/* kurulum sırasında oluşan tüm geometriler kayda alınır: gruptan çıkarılmış (birleştirilmiş/temizlenmiş) parçalar da boşaltmada dispose edilir; yoksa renderer tamponlarını tutar → heap sızıntısı */
+let CURB110=null;const REG110={};{const _sa=T.BufferGeometry.prototype.setAttribute;T.BufferGeometry.prototype.setAttribute=function(n,a){if(CURB110&&!this.__r110){this.__r110=1;(REG110[CURB110]||(REG110[CURB110]=new Set())).add(this)}return _sa.call(this,n,a)}}
+function dropReg110(key){const R=REG110[key];if(!R)return 0;delete REG110[key];const L=liveSets110();let n=0;R.forEach(g=>{if(!L.geos.has(g)){try{g.dispose();n++}catch(e){}}});return n}
+{const _in=interior;interior=function(kind){const fresh=!INT[kind],prev=CURB110;if(fresh)CURB110='int:'+kind;try{return _in.apply(this,arguments)}finally{CURB110=prev}}}
+function seed110(n){let h=2166136261;for(let i=0;i<n.length;i++){h^=n.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+function unloadDistrict110(n){const A=D[n];if(!A||A===activeD||!A.G)return false;if(ret&&ret.d===n)return false;
+  KEEPOBJ110().forEach(o=>{if(isDesc110(o,A.G)&&o.parent)o.parent.remove(o)});if(A.G.parent)A.G.parent.remove(A.G);
+  try{mgUndo(A)}catch(e){}delete D[n];if(activeD===A)activeD=null;const r=disposeTree110(A.G);r.g+=dropReg110(n);MEM110.distUnload++;MEM110.last={mahalle:n,geo:r.g,mat:r.m,doku:r.t};prune110();return true}
+{const _sd=setDistrict;setDistrict=function(name){const fresh=!D[name];let saved=null;const pb=CURB110;if(fresh){saved=rnd;rnd=mulberry(seed110(name));CURB110=name}
+  let r;try{r=_sd.apply(this,arguments)}finally{if(saved)rnd=saved;CURB110=pb}
+  try{if(fresh&&typeof carAt!=='undefined'&&carAt===name&&myCar&&!isDesc110(myCar,D[name].G)&&D[name].carSpot)placeCar(name)}catch(e){errPush110('araba',e)}
+  try{const O=MEM110.order;const i=O.indexOf(name);if(i>=0)O.splice(i,1);O.push(name);Object.keys(D).forEach(k=>{if(O.indexOf(k)<0)O.unshift(k)});
+    if(SET.distLRU!==false){let guard=20;while(Object.keys(D).length>MAXD110&&guard-->0){const old=O.find(k=>D[k]&&k!==name&&!(ret&&ret.d===k));if(!old)break;O.splice(O.indexOf(old),1);if(!unloadDistrict110(old))break}}}catch(e){errPush110('lru',e)}
+  return r}}
+/* --- Ayarlar → 🧪 Test: Test turu, kayıt testi, FPS göster --- */
+{const _os=openSettings;openSettings=function(){const r=_os.apply(this,arguments);try{const b=$('mbody');const g=[...b.querySelectorAll('.sg')].find(x=>/Test/.test((x.querySelector('h4')||{}).textContent||''))||b.appendChild(el('div','sg'));
+  const mk=(t,sub,fn)=>{const x=el('button','btn',t);x.style.cssText='border:0;border-radius:10px;padding:8px 12px;background:#6b5bd6;color:#fff;font:inherit;cursor:pointer;margin-top:8px';x.onclick=fn;g.appendChild(x);g.appendChild(el('div','sub',sub))};
+  mk('🚦 Test turu','Tüm mahalleler ve iç mekânlar sırayla açılır (her biri 2 sn); konsol hataları toplanıp listelenir.',()=>{try{closeModal()}catch(e){}setTimeout(()=>tour110(),250)});
+  mk('💾 Kayıt uyumluluk testi','Eski/bozuk kayıt biçimlerini yükler; bozuk alanlar varsayılana döner. Sonra sayfa yenilenir.',()=>saveTest110());
+  swRow(g,'📊 FPS göster','FPS, çizim çağrısı ve üçgen sayısı (sol alt)','fpsHud',()=>{})}catch(e){}return r}}
+window.__s110={tour:o=>tour110(o),get res(){return TOUR110.res},get err(){return ERR110.list},save:o=>saveTest110(o),norm:S=>normalizeSave110(S),mem:()=>({D:Object.keys(D),INT:Object.keys(INT),geo:renderer.info.memory.geometries,tex:renderer.info.memory.textures,heap:performance.memory?Math.round(performance.memory.usedJSHeapSize/1048576):null,unload:MEM110.distUnload,intDisp:MEM110.intDisp,last:MEM110.last,facades:facades.length,glows:glows.length}),
+  ph:()=>({calls:PH110.calls,tris:PH110.tris,fps:Math.round(DYN.fps)}),doors:()=>[...DOORK110],mg:()=>{const A=activeD;return A?{done:A.mgDone,n:A.mgN,b:(A.mgB||[]).length}:null},unload:n=>unloadDistrict110(n),dispInt:()=>disposeInteriors110()};
 /* ================= v90: bahçe & tarım görsel yenileme — tekrarsız çim, sürülmüş toprak, taş yol, lamba, bank, 3 evreli instanced bitkiler, rüzgâr, hasat animasyonu ================= */
 const U90={t:{value:0}};
 function sway90(col,o,amp){const m=std(col,Object.assign({roughness:.75},o||{}));const A=(amp||.03).toFixed(3);
