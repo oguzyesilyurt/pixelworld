@@ -4831,7 +4831,7 @@ function mgBuild(A){MGX.ban=new Set([].concat(typeof facades!=='undefined'?facad
   const snap=A.mgSnap||new Map();A.G.updateMatrixWorld(true);const inv=new T.Matrix4().copy(A.G.matrixWorld).invert();const groups=new Map(),wp=new T.Vector3();let used=0;
   mgCandidates(A).forEach(o=>{const s=snap.get(o);if(!s||!mgSame(s,o.matrixWorld.elements)){A.mgDyn.add(o);return}
     wp.setFromMatrixPosition(o.matrixWorld).applyMatrix4(inv);const cell=Math.floor(wp.x/MGX.cell)+','+Math.floor(wp.z/MGX.cell);const k=mgKey(o,o.material)+'#'+cell;let L=groups.get(k);if(!L){L=[];groups.set(k,L)}L.push(o)});
-  A.mgB=[];groups.forEach((L,k)=>{if(L.length<3)return;const M=new T.Matrix4(),parts=L.map(o=>{const c=o.material.color;return [o.geometry,new T.Matrix4().multiplyMatrices(inv,o.matrixWorld),[c.r,c.g,c.b]]});
+  A.mgB=[];groups.forEach((L,k)=>{if(L.length<2)return;const M=new T.Matrix4(),parts=L.map(o=>{const c=o.material.color;return [o.geometry,new T.Matrix4().multiplyMatrices(inv,o.matrixWorld),[c.r,c.g,c.b]]});
     const m0=L[0].material,o0=L[0];let mat;const base={vertexColors:true,side:m0.side,flatShading:!!m0.flatShading};
     if(m0.isMeshStandardMaterial)mat=new T.MeshStandardMaterial(Object.assign(base,{roughness:m0.roughness,metalness:m0.metalness}));else if(m0.isMeshLambertMaterial)mat=new T.MeshLambertMaterial(base);
     else if(m0.isMeshPhongMaterial)mat=new T.MeshPhongMaterial(Object.assign(base,{shininess:m0.shininess,specular:m0.specular.clone()}));else mat=new T.MeshBasicMaterial(base);
@@ -11540,19 +11540,26 @@ const tx109=k=>pTex109(k,K109[k],k==='macro'?(isTouch?128:256):null);
 /* tür → ölçek (metre/tekrar), detay gücü, derz rengi, bump */
 const KD109={stucco:{s:6,k:.4,mo:[.8,.78,.74],b:.45},brick:{s:4.4,k:.7,mo:[.82,.79,.74],b:1.2},stone:{s:4.6,k:.45,mo:[.74,.72,.68],b:1.1},glass:{s:6,k:.7,mo:[.86,.89,.92],b:0},tile:{s:3,k:.85,mo:[.5,.4,.36],b:1.4},
   membrane:{s:9,k:.7,mo:[.5,.5,.5],b:.5},grass:{s:3.2,k:.6,mo:[.5,.5,.5],b:.6},dirt:{s:3,k:.7,mo:[.5,.5,.5],b:.9},paver:{s:3,k:.7,mo:[.42,.4,.37],b:.9},curb:{s:4,k:.55,mo:[.42,.42,.45],b:.8},none:{s:5,k:0,mo:[.5,.5,.5],b:0}};
-const BON109={value:0},DET109={value:1},GL2_109=!!renderer.capabilities.isWebGL2;
-let OBC109=function(sh){const U=this.userData.u109;if(!U)return;Object.assign(sh.uniforms,U);sh.uniforms.uBon109=BON109;sh.uniforms.uDet109=DET109;
+const NIGHT109={value:0},BON109={value:0},DET109={value:1},GL2_109=!!renderer.capabilities.isWebGL2;
+let OBC109=function(sh){const U=this.userData.u109;if(!U)return;Object.assign(sh.uniforms,U);if(!U.uWin109)sh.uniforms.uWin109={value:new T.Vector4()};sh.uniforms.uNight109=NIGHT109;sh.uniforms.uBon109=BON109;sh.uniforms.uDet109=DET109;
   sh.vertexShader='attribute vec3 aTB109;varying vec3 vW109;varying vec3 vN109;varying vec3 vTB109;\n'+sh.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\n vW109=(modelMatrix*vec4(transformed,1.0)).xyz;vN109=normalize(mat3(modelMatrix)*objectNormal);vTB109=aTB109;');
-  sh.fragmentShader=(GL2_109?'#define BUMP109\n':'')+'uniform sampler2D tD109,tD2109,tM109;uniform float uS109,uWallOn109,uAO109,uBS109,uBon109,uDet109;uniform vec2 uOff109;uniform vec4 uK109,uBox109;uniform vec3 uMort109,uWall109,uEdge109,uEdgeC109;varying vec3 vW109;varying vec3 vN109;varying vec3 vTB109;\n'
+  sh.fragmentShader=(GL2_109?'#define BUMP109\n':'')+'uniform sampler2D tD109,tD2109,tM109;uniform float uS109,uWallOn109,uAO109,uBS109,uBon109,uDet109,uNight109;uniform vec4 uWin109;uniform vec2 uOff109;uniform vec4 uK109,uBox109;uniform vec3 uMort109,uWall109,uEdge109,uEdgeC109;varying vec3 vW109;varying vec3 vN109;varying vec3 vTB109;\n'
    +'vec3 pn109(vec3 sp,vec3 sn,vec2 dH,float fd){vec3 sx=dFdx(sp),sy=dFdy(sp);vec3 R1=cross(sy,sn),R2=cross(sn,sx);float det=dot(sx,R1)*fd;vec3 gr=sign(det)*(dH.x*R1+dH.y*R2);return normalize(abs(det)*sn-gr);}\n'
-   +sh.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\n float h109=.5;if(uDet109>0.){vec3 n=normalize(vN109),an=abs(n);vec2 q=an.y>.6?vW109.xz:(an.x>an.z?vW109.zy:vW109.xy);q=q/uS109+uOff109;vec4 d=uK109.x>0.?texture2D(tD109,q):vec4(.5,0.,.5,1.);'
+   +sh.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\n float h109=.5;float win109L=0.;if(uDet109>0.){vec3 n=normalize(vN109),an=abs(n);vec2 q=an.y>.6?vW109.xz:(an.x>an.z?vW109.zy:vW109.xy);q=q/uS109+uOff109;vec4 d=uK109.x>0.?texture2D(tD109,q):vec4(.5,0.,.5,1.);'
      +'if(uK109.z>0.&&vW109.y<uK109.z&&an.y<.6)d=texture2D(tD2109,q*1.4);float k=uK109.x;'
      +'\n#ifdef USE_MAP\n if(uWallOn109>.5)k*=1.-smoothstep(.05,.14,distance(texelColor.rgb,uWall109));if(uK109.w>0.)h109=dot(texelColor.rgb,vec3(.333))*uK109.w+.5*(1.-uK109.w);\n#endif\n'
      +'diffuseColor.rgb*=mix(1.,d.r*2.,k);diffuseColor.rgb=mix(diffuseColor.rgb,uMort109*(.55+.45*diffuseColor.rgb),d.g*k*.55);if(k>0.)h109=mix(h109,d.b,k);'
      +'float mv=texture2D(tM109,vW109.xz*.021+uOff109*.13).r;diffuseColor.rgb*=1.+(mv-.5)*uK109.y;'
      +'if(vTB109.z>.5)diffuseColor.rgb*=(1.-.34*exp(-vTB109.x/.5))*(1.-.18*exp(-vTB109.y/.7));'     /* saçak altı + zemin teması */
      +'if(uAO109>0.){if(an.y<.6&&vTB109.z<.5)diffuseColor.rgb*=1.-.2*uAO109*exp(-max(vW109.y,0.)/.6);if(n.y<-.5)diffuseColor.rgb*=1.-.38*uAO109;}' /* balkon/saçak altı koyu */
+     +'\n#ifdef BUMP109\n if(uWin109.x>0.&&an.y<.6){float u=(an.x>an.z?vW109.z:vW109.x)/uWin109.z,v=(vW109.y-uWin109.w)/uWin109.y;float topOK=vTB109.z>.5?step(1.1,vTB109.x):1.;'
+     +'if(v>0.&&topOK>0.){float fu=fract(u),fv=fract(v);vec2 fw=vec2(fwidth(u),fwidth(v));float lod=1.-smoothstep(.1,.28,max(fw.x,fw.y));float ax=fw.x*1.5+.002,ay=fw.y*1.5+.002;'
+     +'float wm=smoothstep(.22,.22+ax,fu)*(1.-smoothstep(.78-ax,.78,fu))*smoothstep(.24,.24+ay,fv)*(1.-smoothstep(.8-ay,.8,fv));float fm=smoothstep(.17,.17+ax,fu)*(1.-smoothstep(.83-ax,.83,fu))*smoothstep(.19,.19+ay,fv)*(1.-smoothstep(.86-ay,.86,fv));'
+     +'vec2 cl=floor(vec2(u,v));float hs=fract(sin(dot(cl+uOff109*37.,vec2(12.9898,78.233)))*43758.5453);vec3 gl=mix(vec3(.12,.17,.25),vec3(.36,.47,.6),clamp(fv*.7+hs*.25,0.,1.));'
+     +'diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*.72,(fm-wm)*lod);diffuseColor.rgb=mix(diffuseColor.rgb,gl,wm*lod);win109L=wm*lod*step(.42,hs);}'
+     +'if(vW109.y<.42)diffuseColor.rgb*=.8;}\n#endif\n'
      +'if(uEdge109.z>0.){float e=min(min(vW109.x-uBox109.x,uBox109.z-vW109.x),min(vW109.z-uBox109.y,uBox109.w-vW109.z));e+=(mv-.5)*uEdge109.z*.9;diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*uEdgeC109,(1.-smoothstep(0.,uEdge109.z,e))*.85);}}')
+   .replace('#include <emissivemap_fragment>','#include <emissivemap_fragment>\n totalEmissiveRadiance+=vec3(1.,.78,.45)*win109L*uNight109*1.15;')
    .replace('#include <normal_fragment_maps>','#include <normal_fragment_maps>\n#ifdef BUMP109\n if(uBon109>0.&&uBS109>0.){normal=pn109(-vViewPosition,normal,vec2(dFdx(h109),dFdy(h109))*uBS109,gl_FrontFacing?1.:-1.);}\n#endif\n')};
 const OBCB109=function(sh){const U=this.userData.u109;if(!U)return;sh.uniforms.tM109=U.tM109;  /* şerit/zebra: hafif aşınma */
   sh.vertexShader='varying vec3 vW109;\n'+sh.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\n vW109=(modelMatrix*vec4(transformed,1.0)).xyz;');
@@ -11562,7 +11569,7 @@ function hsl109(m){const o={};m.color.getHSL(o);return o}
 function mk109(m,kind,o){o=o||{};const K=KD109[kind]||KD109.none,r=mulberry((m.id*2654435761)>>>0);
   m.userData.u109={tD109:{value:tx109(kind==='none'?'stucco':kind)},tD2109:{value:tx109(o.k2||'stone')},tM109:{value:tx109('macro')},uS109:{value:o.s||K.s},uOff109:{value:new T.Vector2(r(),r())},
     uK109:{value:new T.Vector4(o.k!=null?o.k:K.k,o.mk!=null?o.mk:.22,o.gf||0,o.lb||0)},uMort109:{value:new T.Color().setRGB(...K.mo)},uWall109:{value:o.wall?new T.Color(o.wall):new T.Color()},uWallOn109:{value:o.wall?1:0},
-    uAO109:{value:o.ao||0},uBS109:{value:o.b!=null?o.b:K.b},uEdge109:{value:new T.Vector3(0,0,o.edge||0)},uBox109:{value:o.box||new T.Vector4()},uEdgeC109:{value:new T.Color().setRGB(...(o.edgeC||[.78,.66,.5]))}};
+    uAO109:{value:o.ao||0},uBS109:{value:o.b!=null?o.b:K.b},uEdge109:{value:new T.Vector3(0,0,o.edge||0)},uBox109:{value:o.box||new T.Vector4()},uEdgeC109:{value:new T.Color().setRGB(...(o.edgeC||[.78,.66,.5]))},uWin109:{value:o.win?new T.Vector4(1,o.win[0],o.win[1],o.win[2]):new T.Vector4()}};
   m.userData.k109=kind;m.onBeforeCompile=OBC109;m.needsUpdate=true;TX109.mats++;TX109.kinds[kind]=(TX109.kinds[kind]||0)+1}
 /* düz renkli bina gövdesi → tür */
 function facKind109(m,seed){const h=hsl109(m);if((m.metalness||0)>.15||(m.roughness!=null&&m.roughness<.45))return 'glass';if(h.h<.1&&h.s>.35&&h.l>.22&&h.l<.62)return 'brick';if(h.s<.18&&h.l<.62)return seed%2?'stone':'stucco';return seed%3===0&&h.s<.4?'stone':'stucco'}
@@ -11599,7 +11606,7 @@ function texDistrict109(A){if(!A||!A.G||A.tx109)return;A.tx109=1;const t0=perfor
       mk109(m,'stucco',{k:.4});return}
     if(arr){const i=L[0].i;if(i===2||i===3){if(sy>=2.2)mk109(m,'membrane');return}}
     const isBox=o.geometry.type==='BoxGeometry'||(o.geometry.type==='BufferGeometry'&&o.geometry.attributes.position.count%36===0&&!o.geometry.index);
-    if(isBox&&sy>=2.2&&sx>=2&&sz>=2&&minY<1.5){const k=facKind109(m,seed);mk109(m,k,{ao:1});L.forEach(q=>{if(Array.isArray(q.o.material)||q.o.geometry.type==='BoxGeometry')aoAttr109(q.o)});return}
+    if(isBox&&sy>=2.2&&sx>=2&&sz>=2&&minY<1.5){const k=facKind109(m,seed);mk109(m,k,{ao:1,win:k==='glass'?null:[3.2,2.6,1.0]});L.forEach(q=>{if(Array.isArray(q.o.material)||q.o.geometry.type==='BoxGeometry')aoAttr109(q.o)});return}
     if(isBox&&minY>1.6&&sy<.65&&Math.max(sx,sz)>=1.2){mk109(m,'stucco',{k:.4,ao:1});return}  /* balkon, saçak, kornişler: alt yüz koyu */
     if(minY>1.8&&h.h<.08&&h.s>.45&&o.geometry.type!=='BoxGeometry'){mk109(m,'tile');return}
   }catch(e){}});
@@ -11707,7 +11714,7 @@ renderer.info.autoReset=false;const PH110={el:null,t:0,calls:0,tris:0};
 /* --- 4b) birleştirme genişletmesi: dokulu (v109) malzemeler ve statik gruplar (b2, merged) da birleşir --- */
 const MGOK110=new Set(['cut38','k109','u109','tile109']),MGANC110=new Set(['b2','merged','noMerge','tx109']);
 {const _ok=mgMatOK;mgMatOK=function(m){if(m&&m.userData&&m.userData.u109&&!m.map){for(const k in m.userData)if(!MGOK110.has(k))return false;if(m.transparent||m.vertexColors||m.opacity<1||m.alphaTest>0)return false;if(MGX.ban&&MGX.ban.has(m))return false;if(m.emissive&&(m.emissive.r+m.emissive.g+m.emissive.b)>.003)return false;return m.isMeshStandardMaterial}return _ok.apply(this,arguments)}}
-{const _k=mgKey;mgKey=function(o,m){let k=_k.apply(this,arguments);const U=m.userData&&m.userData.u109;if(U)k+='|'+m.userData.k109+'|'+U.uS109.value+'|'+U.uK109.value.toArray().join(',')+'|'+U.uAO109.value+'|'+U.uBS109.value;return k}}
+{const _k=mgKey;mgKey=function(o,m){let k=_k.apply(this,arguments);const U=m.userData&&m.userData.u109;if(U)k+='|'+m.userData.k109+'|'+(U.uWin109?U.uWin109.value.x:0)+'|'+U.uS109.value+'|'+U.uK109.value.toArray().join(',')+'|'+U.uAO109.value+'|'+U.uBS109.value;return k}}
 {const _c=mgCandidates;mgCandidates=function(A){const out=[],G=A.G;const dyn=A.mgDyn||(A.mgDyn=new Set());
   const walk=(o,ok)=>{if(!o.visible)return;if(o!==G){for(const k in o.userData){if(!MGANC110.has(k)){ok=false;break}}if(o.isSprite||o.isPoints||o.isLine)return}
     if(o.isMesh&&ok&&!o.isInstancedMesh&&!o.isSkinnedMesh&&!dyn.has(o)&&o.layers.mask===1&&o.renderOrder===0&&o.geometry&&o.geometry.isBufferGeometry&&o.geometry.attributes.position&&o.geometry.attributes.normal&&!o.geometry.morphAttributes.position&&o.geometry.attributes.position.count<6000&&!o.geometry.attributes.aTB109&&mgMatOK(o.material))out.push(o);
@@ -11973,6 +11980,51 @@ function intWallsTick113(){if(mode!=='int'||!curI)return;const W=intWalls113(cur
 {const _ap=au97Pos;au97Pos=function(x,z){const o=_ap.apply(this,arguments);try{const dx=x-pl.x,dz=z-pl.z;o.pan=clamp((dx*CAMR113.x+dz*CAMR113.z)/14,-1,1)}catch(e){}return o}}
 camApply113();
 window.__r113={R:ROT113,toggle:on=>rotToggle113(on),set:(y,p)=>{ROT113.yaw=y;if(p!=null)ROT113.dp=p;ROT113.v=0},step:k=>{ROT113.ik=((ROT113.ik+k)%4+4)%4},reset:()=>{ROT113.ret=true},occ:()=>({occ:OCC113.occ,k:+OCC113.k.toFixed(2)}),walls:()=>{const W=curI&&curI.walls113;return W?Object.fromEntries(Object.keys(W.S).map(s=>[s,W.S[s].length+':'+(W.S[s][0]?W.S[s][0].visible:'-')])):null},F:()=>[+CAMF113.x.toFixed(2),+CAMF113.z.toFixed(2)]};
+/* ================= v114: 4 yüzlü binalar · düz cepheye pencere ızgarası (shader, v109), tabelalara arka panel, dükkân arka/yan detayları ================= */
+{const _t=tick108;tick108=function(dt){const r=_t.apply(this,arguments);try{NIGHT109.value=cur.night}catch(e){}return r}}
+const M114R={roughness:.7};/* tek pürüzlülük: mg38 hepsini hücre başına tek çizimde birleştirir */const M114={door:std(0x3b414c,M114R),frame:std(0x8a8f98,M114R),ac:std(0xdfe2e4,M114R),fan:std(0x4d5258,M114R),pipe:std(0x9aa0a6,M114R),
+  bin:std(0x2f6a3a,M114R),binL:std(0x24502c,M114R),bin2:std(0x3a4a8a,M114R),win:std(0x26303e,M114R),sill:std(0xcfc8bc,M114R),
+  panel:std(0x2b2733,M114R),post:[std(0xd9534f,M114R),std(0xf0ad4e,M114R),std(0x5bc0de,M114R),std(0x8e6ad8,M114R),std(0x6ab04c,M114R)],light:std(0xfff2c8,M114R)};
+const ST114={signs:0,backs:0,sides:0,bins:0};
+/* --- tabelalar: arkadan ters yazı görünmesin → tek yüz + arkasına düz panel --- */
+function signBacks114(A){const add=[];const _n=new T.Vector3(),_q=new T.Quaternion();A.G.updateMatrixWorld(true);
+  A.G.traverse(o=>{if(!o.isMesh||!o.geometry||o.geometry.type!=='PlaneGeometry'||o.userData.back114)return;const m=o.material;if(!m||Array.isArray(m)||!m.map||m.transparent&&m.opacity<.99)return;
+    const pa=o.geometry.parameters,sx=pa.width*Math.abs(o.scale.x),sy=pa.height*Math.abs(o.scale.y);if(sx<.7||sy<.25||sx>40)return;
+    o.getWorldQuaternion(_q);_n.set(0,0,1).applyQuaternion(_q);if(Math.abs(_n.y)>.3)return;/* yatay planlar değil */
+    let p=o.parent,skip=false;while(p&&p!==A.G){if(p.userData&&(p.userData.legs||p.userData.wheels||p.userData.face43))skip=true;p=p.parent}if(skip)return;add.push(o)});
+  add.forEach(o=>{const m=o.material;if(m.side===T.DoubleSide){m.side=T.FrontSide;m.needsUpdate=true}o.userData.back114=1;
+    const b=new T.Mesh(o.geometry,M114.panel);b.position.copy(o.position);b.quaternion.copy(o.quaternion);b.rotateY(Math.PI);b.scale.copy(o.scale);
+    _n.set(0,0,1).applyQuaternion(o.quaternion);b.position.addScaledVector(_n,-.012);b.castShadow=true;b.receiveShadow=true;o.parent.add(b);ST114.signs++})}
+/* --- dükkân/mekân: arkada servis kapısı + klima dış ünitesi + çöp konteyneri; yanlarda küçük pencere ya da afiş --- */
+function inBox114(A,x,z,pad,ex){for(const b of A.boxes){if(b===ex)continue;if(Math.abs(x-b.x)<b.hx+pad&&Math.abs(z-b.z)<b.hz+pad)return true}return false}
+function onRoad114(A,x,z){for(const s of A.roadSamples){if(Math.hypot(x-s.x,z-s.z)<s.r-.3)return true}return false}
+function heights114(A){const L=[],bb=new T.Box3(),inv=new T.Matrix4().copy(A.G.matrixWorld).invert();A.G.updateMatrixWorld(true);
+  A.G.traverse(o=>{if(!o.isMesh||o.isInstancedMesh||!o.geometry)return;if(o.geometry.type!=='BoxGeometry'&&!o.userData.mg38)return;bb.setFromObject(o);if(bb.isEmpty())return;bb.applyMatrix4(inv);if(bb.max.y-bb.min.y<2.2||bb.min.y>1.2)return;L.push([bb.min.x,bb.max.x,bb.min.z,bb.max.z,bb.max.y])});return L}
+function shopBacks114(A){if(!A.boxes||!A.spots)return;const H=heights114(A),r=mulberry(seed110?seed110(A.name)+114:114),W0=W;W=A.G;let n=0;
+  try{A.boxes.slice().forEach(b=>{if(b.hx<1.6||b.hz<1.6||b.hx>16||b.hz>16||b.npc||b.koli104)return;
+    const sp=A.spots.find(s=>/^E: /.test(String(s.t))&&Math.abs(s.x-b.x)<b.hx+3.2&&Math.abs(s.z-b.z)<b.hz+3.2&&!(Math.abs(s.x-b.x)<b.hx-.2&&Math.abs(s.z-b.z)<b.hz-.2));if(!sp)return;
+    /* yükseklik: bu taban izinde dikilen en yüksek kutu */let h=0;for(const q of H){if(b.x>q[0]&&b.x<q[1]&&b.z>q[2]&&b.z<q[3]&&q[4]>h)h=q[4]}if(h<2.6)return;
+    const dx=(sp.x-b.x)/b.hx,dz=(sp.z-b.z)/b.hz,ax=Math.abs(dx)>Math.abs(dz)?'x':'z',sg=ax==='x'?Math.sign(dx)||1:Math.sign(dz)||1;
+    /* arka yüz: önün tersi; gerçek duvar kutunun ~.3 içinde (çarpışma kutusu şişkin) */
+    const ins=.3,bx=ax==='x'?b.x-sg*(b.hx-ins):b.x,bz=ax==='z'?b.z-sg*(b.hz-ins):b.z,nx=ax==='x'?-sg:0,nz=ax==='z'?-sg:0,half=ax==='x'?b.hz-ins:b.hx-ins,tx=nz?1:0,tz=nx?1:0;
+    const free=(d,pad)=>!inBox114(A,bx+nx*d,bz+nz*d,pad,b)&&!onRoad114(A,bx+nx*d,bz+nz*d);
+    if(!free(.6,.05))return;/* arka yüz başka binaya yaslı: atla */
+    const rotY=nx?Math.PI/2:0,P=(x,z)=>[bx+nx*x+tx*z,bz+nz*x+tz*z],S=(w,d)=>nx?[d,w]:[w,d];
+    /* servis kapısı + çerçeve + üstünde lamba */
+    const o1=half*.45*(r()<.5?-1:1),[dxp,dzp]=P(.05,o1);{const[w,d]=S(1,.1);box(w,2.1,d,M114.door,dxp,1.05,dzp)}{const[w,d]=S(1.25,.06);const[px,pz]=P(.03,o1);box(w,.14,d,M114.frame,px,2.2,pz)}{const[w,d]=S(.3,.14);const[px,pz]=P(.1,o1);box(w,.12,d,M114.light,px,2.45,pz)}
+    /* klima dış ünitesi (duvarda) + boru */
+    if(h>3.2){const o2=-o1*.55+(r()-.5)*.4,[cx,cz]=P(.28,o2),[w,d]=S(.9,.42);box(w,.62,d,M114.ac,cx,Math.min(h-.9,2.6+r()*.6),cz);const[fx,fz]=P(.5,o2);const[fw,fd]=S(.46,.04);box(fw,.46,fd,M114.fan,fx,Math.min(h-.9,2.6)+.02,fz);const[qx,qz]=P(.06,o2+.35);box(.08,1.6,.08,M114.pipe,qx,1.8,qz)}
+    /* çöp konteyneri (önü boşsa) */
+    if(free(1.6,.2)){const o3=o1>0?-half*.4:half*.4,[kx,kz]=P(1.05,o3),[w,d]=S(1.6,.95);const bm=r()<.6?M114.bin:M114.bin2;box(w,1.05,d,bm,kx,.55,kz);const[lw,ld]=S(1.68,1.02);box(lw,.08,ld,M114.binL,kx,1.12,kz);ST114.bins++;A.boxes.push({x:kx,z:kz,hx:w/2+.05,hz:d/2+.05})}
+    ST114.backs++;
+    /* yan yüzler: kör duvarda küçük pencere ya da afiş */
+    [-1,1].forEach(s=>{const sxn=tx*s,szn=tz*s,wx=b.x+sxn*((ax==='x'?b.hx:b.hz)*0+(nx?b.hz:b.hx)-ins),wz=b.z+szn*((nx?b.hz:b.hx)-ins);const wx2=nx?b.x:wx,wz2=nx?wz:b.z;
+      const fx2=nx?b.x:b.x+s*(b.hx-ins),fz2=nx?b.z+s*(b.hz-ins):b.z;if(inBox114(A,fx2+sxn*.6,fz2+szn*.6,.05,b))return;
+      const along=(r()-.5)*((ax==='x'?b.hx:b.hz)*.8),px=fx2+(ax==='x'?along:0)+sxn*.04,pz=fz2+(ax==='z'?along:0)+szn*.04,thin=(w,hh,yy,m)=>{const ww=sxn?.06:w,dd=sxn?w:.06;box(ww,hh,dd,m,px,yy,pz)};
+      if(r()<.55){thin(.9,.9,Math.min(h-1,2),M114.win);thin(1.05,.08,Math.min(h-1,2)-.5,M114.sill)}else{thin(1.3,1.7,1.45,M114.post[(r()*M114.post.length)|0]);thin(1.42,.06,2.33,M114.frame)}ST114.sides++})
+    n++})}catch(e){showErrOnce(e)}finally{W=W0}return n}
+{const _e=endD;endD=function(){const A=C;const r=_e.apply(this,arguments);try{if(A&&A.G&&!A.b114){A.b114=1;signBacks114(A);shopBacks114(A)}}catch(e){showErrOnce(e)}return r}}
+window.__b114={ST:ST114,night:v=>{NIGHT109.value=v}};
 /* ================= v90: bahçe & tarım görsel yenileme — tekrarsız çim, sürülmüş toprak, taş yol, lamba, bank, 3 evreli instanced bitkiler, rüzgâr, hasat animasyonu ================= */
 const U90={t:{value:0}};
 function sway90(col,o,amp){const m=std(col,Object.assign({roughness:.75},o||{}));const A=(amp||.03).toFixed(3);
