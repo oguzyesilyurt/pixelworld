@@ -11774,6 +11774,140 @@ function ecoMigrate111(){const k=ECO.job.k,lo=ECO.job.migrateBelow;
 window.__eco111={migTest:()=>{const c0=coins,d0=CARD.debt,l0=CARD.limit,j0=LNK.job;LNK.job={id:'t',t:'Test',co:'X',d:'merkez',sal:3000};CARD.limit=20000;ecoMigrate111();const out={coinsBefore:c0,coinsAfter:coins,debt:[d0,CARD.debt],jobSal:LNK.job.sal,SAL:SAL[me.key],cardLimit:CARD.limit};LNK.job=j0;CARD.limit=l0;SAL[me.key]=ECO.sal[me.key];return out},ECO:ECO,pas:PAS111,sal:()=>salary67(),list:()=>LIST.map(L=>({id:L.id,n:L.n,deal:L.deal,price:L.price,rent:L.rent})),cars:()=>CARLIST.map(c=>[c[1],c[2]]).concat(Object.values(PREMC).map(c=>[c[0],c[2]])),
   loan:()=>({konut:maxLoan67('konut'),tasit:maxLoan67('tasit'),ihtiyac:maxLoan67('ihtiyac')}),jobs:()=>{try{return jobsFor().map(j=>j.sal)}catch(e){return []}},passive:v=>passive111(v),kfBr:()=>KF_BR,sr:()=>SR_RENT,
   menus:()=>({cafe:MENU_CAFE.map(i=>i.p),food:MENU_FOOD.map(i=>i.p),aspava:MENU_ASPAVA.map(i=>i.p)}),fault:()=>SS_FAULTS.map(f=>f[1]),svc:()=>SVC,card:()=>CARD,state:()=>({coins:coins,LNK:LNK.job,SAL:SAL[me&&me.key]})};
+/* ================= v112: canlı karakterler · yüz ifadeleri (yumuşak geçiş), boşta animasyonlar, yürüyüş/koşu salınımı, etkileşim animasyonları ================= */
+/* --- 1) yüz dokusu varyantları: faceTex ile aynı yerleşim, ifadeye göre kaş/göz/ağız/yanak --- */
+const FX112={};const EXPR112=['neutral','happy','sad','angry','surprised','shy','tired','yawn'];
+function faceTexE112(skin,lip,blush,e){if(e==='neutral')return faceTex(skin,lip,blush);const k=skin+'_'+(lip||0)+'_'+(blush?1:0)+'_'+e;if(FX112[k])return FX112[k];
+  const t=canvasTex(256,128,(g,w,h)=>{g.fillStyle=hex(skin);g.fillRect(0,0,w,h);const cx=w*.25,sk=hex(skin);
+    const bl=e==='shy'?.62:e==='happy'?.3:blush?.35:0;if(bl){g.fillStyle='rgba(255,110,135,'+bl+')';[-1,1].forEach(s=>{g.beginPath();g.ellipse(cx+s*22,h*.65,e==='shy'?11:9,e==='shy'?6.5:5,0,0,7);g.fill()})}
+    [-1,1].forEach(s=>{const ex=cx+s*13,ey=h*.53,big=e==='surprised'||e==='yawn'&&0,rw=big?7.4:6.2,rh=big?9:7.5,py=e==='shy'?2.4:e==='sad'?1.6:0,px=e==='shy'?s*1.6:0,pr=big?3.6:4.4;
+      g.fillStyle='#ffffff';g.beginPath();g.ellipse(ex,ey,rw,rh,0,0,7);g.fill();g.fillStyle='#4a2e1c';g.beginPath();g.arc(ex+s*.4+px,ey+.8+py,pr,0,7);g.fill();
+      g.fillStyle='#111';g.beginPath();g.arc(ex+s*.4+px,ey+.8+py,pr*.55,0,7);g.fill();g.fillStyle='#fff';g.beginPath();g.arc(ex+s*.4+px-1.4,ey-1.2+py,1.3,0,7);g.fill();
+      /* göz kapakları: mutlu = alttan kısık, yorgun/esneme = üstten düşük, kızgın = üstten çatık */
+      g.fillStyle=sk;if(e==='happy'){g.beginPath();g.ellipse(ex,ey+rh*1.05,rw*1.3,rh*.78,0,0,7);g.fill()}
+      if(e==='tired'||e==='yawn'){g.fillRect(ex-rw-1,ey-rh-2,2*rw+2,rh*(e==='yawn'?1.25:.95))}
+      if(e==='angry'){g.beginPath();g.moveTo(ex-rw-1,ey-rh-2);g.lineTo(ex+rw+1,ey-rh-2);g.lineTo(s>0?ex-rw-1:ex+rw+1,ey-rh*.25);g.closePath();g.fill()}
+      /* kaşlar */
+      g.strokeStyle='rgba(60,36,24,.9)';g.lineWidth=e==='angry'?3.4:2.6;g.lineCap='round';g.beginPath();const ix=ex-6*s+s*1,ox=ex+6*s;
+      if(e==='sad'){g.moveTo(ix,ey-16);g.quadraticCurveTo(ex,ey-14,ox,ey-10)}
+      else if(e==='angry'){g.moveTo(ix,ey-8.5);g.lineTo(ox,ey-13.5)}
+      else if(e==='surprised'||e==='yawn'){g.moveTo(ix,ey-15);g.quadraticCurveTo(ex,ey-19,ox,ey-15)}
+      else if(e==='happy'){g.moveTo(ix,ey-12.5);g.quadraticCurveTo(ex,ey-16.5,ox,ey-12.5)}
+      else if(e==='shy'){g.moveTo(ix,ey-13);g.quadraticCurveTo(ex,ey-14.5,ox,ey-11)}
+      else{g.moveTo(ix,ey-11);g.quadraticCurveTo(ex,ey-14,ox,ey-11)}g.stroke()});
+    g.strokeStyle='rgba(150,90,70,.45)';g.lineWidth=2;g.beginPath();g.moveTo(cx-1,h*.6);g.quadraticCurveTo(cx+2,h*.65,cx-1,h*.67);g.stroke();
+    const lc=lip?hex(lip):'#b0584a';g.strokeStyle=lc;g.lineWidth=lip?3.4:2.4;g.lineCap='round';
+    if(e==='happy'){g.fillStyle='#7a2a2e';g.beginPath();g.moveTo(cx-9,h*.705);g.quadraticCurveTo(cx,h*.84,cx+9,h*.705);g.quadraticCurveTo(cx,h*.745,cx-9,h*.705);g.fill();g.fillStyle='#fff';g.fillRect(cx-6,h*.715,12,2.4);g.beginPath();g.moveTo(cx-9,h*.705);g.quadraticCurveTo(cx,h*.84,cx+9,h*.705);g.stroke()}
+    else if(e==='sad'){g.beginPath();g.moveTo(cx-7,h*.78);g.quadraticCurveTo(cx,h*.71,cx+7,h*.78);g.stroke()}
+    else if(e==='angry'){g.beginPath();g.moveTo(cx-6,h*.755);g.quadraticCurveTo(cx,h*.735,cx+6,h*.755);g.stroke()}
+    else if(e==='surprised'){g.fillStyle='#5a2024';g.beginPath();g.ellipse(cx,h*.755,4.2,5.6,0,0,7);g.fill();g.stroke()}
+    else if(e==='yawn'){g.fillStyle='#5a2024';g.beginPath();g.ellipse(cx,h*.77,6.5,8.5,0,0,7);g.fill();g.fillStyle='#d86a7a';g.beginPath();g.ellipse(cx,h*.82,4,2.6,0,0,7);g.fill()}
+    else if(e==='shy'){g.beginPath();g.moveTo(cx-4,h*.73);g.quadraticCurveTo(cx,h*.765,cx+4,h*.73);g.stroke()}
+    else if(e==='tired'){g.beginPath();g.moveTo(cx-6,h*.745);g.lineTo(cx+6,h*.745);g.stroke()}},{});
+  t.minFilter=T.LinearFilter;t.generateMipmaps=false;return FX112[k]=t}
+/* --- 2) kafa malzemesi: iki doku arasında yumuşak geçiş (uE112) --- */
+const HOBC112=function(sh){const U=this.userData.u112;if(!U)return;sh.uniforms.tE112=U.tE;sh.uniforms.uE112=U.mix;
+  sh.fragmentShader='uniform sampler2D tE112;uniform float uE112;\n'+sh.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\n#ifdef USE_MAP\n if(uE112>0.001){vec4 e112=texture2D(tE112,vUv);diffuseColor.rgb=mix(diffuseColor.rgb,diffuse*e112.rgb,uE112);}\n#endif\n');
+  if(typeof CUTF110!=='undefined'&&CUTF110)try{CUTF110.call(this,sh)}catch(e){}};
+/* kişi başına kurulum (ilk görünüşte; modülden önce oluşanlar da dahil): eski rig = doku geçişi, V3 = geometri */
+function initF112(F){const g=F.g;F.ph=Math.random()*6.28;F.idle={g:null,t:0,next:3+Math.random()*8,ws:0,wsT:1+Math.random()*4,lp:null,still:0,sp:0};
+  if(g.userData.bones){const B=g.userData.bones,hd=(F.head.children||[]).find(c=>c.userData&&c.userData.lids);if(!hd)return false;F.v3=1;F.parts={torso:B.spine,sh:B.chest,hip:B.hips,neck:B.neck};
+    const brows=[],lips=[];hd.children.forEach(c=>{const pa=c.geometry&&c.geometry.parameters;if(!pa)return;if(c.geometry.type==='BoxGeometry'&&Math.abs(pa.width-.13)<.001)brows.push({m:c,y:c.position.y,rz:c.rotation.z,s:Math.sign(c.position.x)||1});
+      if(c.geometry.type==='SphereGeometry'&&(Math.abs(pa.radius-.07)<.0005||Math.abs(pa.radius-.068)<.0005))lips.push({m:c,y:c.position.y,sx:c.scale.x,lower:pa.radius<.069})});
+    const lids=hd.userData.lids||[],mo=hd.userData.mo,bm=new T.MeshBasicMaterial({color:0xff6f8c,transparent:true,opacity:0,depthWrite:false}),bg=new T.CircleGeometry(.05,14);
+    const blush=lids.map(l=>{const m=new T.Mesh(bg,bm);m.position.set(l.position.x*1.32,l.position.y-.1,l.position.z-.035);m.scale.set(1.2,.7,1);m.visible=false;hd.add(m);return m});
+    F.v3f={hd:hd,brows:brows,lips:lips,lids:lids,lidY:lids.map(l=>l.position.y),mo:mo,moS:mo?[mo.scale.x,mo.scale.y]:[1,.2],blush:blush,bm:bm,cur:Object.assign({},E3_112.neutral)};
+    F.ex={cur:'neutral',ev:null,until:0};return true}
+  if(!F.head||!F.head.material||!F.head.material.map)return false;const m=F.head.material;const mk=(m.map.image&&m.map.image)||null;
+  m.userData.u112={tE:{value:m.map},mix:{value:0}};m.userData.cut38=1;m.onBeforeCompile=HOBC112;m.needsUpdate=true;
+  const ent=Object.entries(faceTexCache).find(e=>e[1]===m.map),kk=ent?ent[0].split('_'):null;
+  F.ex={skin:kk?+kk[0]:0xf1c9a0,lip:kk&&kk[1]!=='0'?+kk[1]:0,blush:kk?kk[2]==='1':false,cur:'neutral',next:null,ev:null,until:0};
+  const P={};g.children.forEach(c=>{if(!c.isMesh)return;if(c.geometry===PG.torsoM||c.geometry===PG.torsoF)P.torso=c;else if(c.geometry===PG.sh)P.sh=c;else if(c.geometry===PG.hip)P.hip=c;else if(c.geometry===PG.neck)P.neck=c;else if(c.geometry===PG.hair)P.hair=c});F.parts=P;return true}
+/* V3 yüz parametreleri: kaş yüksekliği/iç uç açısı, dudak genişliği, alt dudak, ağız açıklığı, göz kapağı, yanak pembeliği */
+const E3_112={neutral:{bY:0,bR:0,lx:1,ly:0,mo:0,mx:1,my:.2,lid:0,lidY:0,bl:0},happy:{bY:.008,bR:-.04,lx:1.2,ly:-.007,mo:1,mx:1.3,my:.5,lid:.45,lidY:-.024,bl:.3},
+  sad:{bY:.005,bR:.34,lx:.88,ly:.006,mo:0,mx:1,my:.2,lid:.38,lidY:.022,bl:0},angry:{bY:-.013,bR:-.38,lx:.9,ly:.004,mo:0,mx:1,my:.2,lid:.42,lidY:.03,bl:0},
+  surprised:{bY:.03,bR:.06,lx:.94,ly:-.022,mo:1,mx:.75,my:1.2,lid:0,lidY:0,bl:0},shy:{bY:.004,bR:.14,lx:.94,ly:0,mo:0,mx:1,my:.2,lid:.3,lidY:-.02,bl:.8},
+  tired:{bY:-.004,bR:.1,lx:1,ly:0,mo:0,mx:1,my:.2,lid:.58,lidY:.022,bl:0},yawn:{bY:.02,bR:.1,lx:.95,ly:-.045,mo:1,mx:1.25,my:1.8,lid:.62,lidY:.022,bl:0}};
+function expr3Tick112(F,dt,now){const X=F.ex,V=F.v3f,want=(X.ev&&now<X.until)?X.ev:baseExpr112(F);if(X.ev&&now>=X.until)X.ev=null;X.cur=want;const tg=E3_112[want]||E3_112.neutral,c=V.cur,k=Math.min(1,dt*7);for(const q in tg)c[q]+=(tg[q]-c[q])*k;
+  V.brows.forEach(b=>{sv112(b.m,'py',b.y+c.bY);sv112(b.m,'rz',b.rz-b.s*c.bR)});V.lips.forEach(l=>{sv112(l.m,'sx',l.sx*c.lx);if(l.lower)sv112(l.m,'py',l.y+c.ly)});
+  if(V.mo){const on=c.mo>.05;if(on||V.mo.visible){sv112(V.mo,'sx',V.moS[0]*c.mx);sv112(V.mo,'sy',Math.max(V.moS[1],c.my*c.mo));REV112.push(V.mo,'visible',V.mo.visible);V.mo.visible=on||V.mo.visible}}
+  if(c.lid>.03)V.lids.forEach((l,i)=>{REV112.push(l,'visible',l.visible);const bs=l.visible?l.scale.y:0;l.visible=true;sv112(l,'sy',Math.max(bs,.05+c.lid*1.05));sv112(l,'py',V.lidY[i]+c.lidY)});
+  const on=c.bl>.03;V.bm.opacity=c.bl*.55;V.blush.forEach(m=>{m.visible=on})}
+/* ifade isteği: kişi, ifade, süre (sn) */
+function expr112(g,e,dur){const F=g&&g.userData&&g.userData.face43;if(!F||!F.ex||EXPR112.indexOf(e)<0)return;F.ex.ev=e;F.ex.until=performance.now()/1000+(dur||3)}
+function baseExpr112(F){const g=F.g;if(g===player){if(NEED.en<16)return 'tired';if(mood>72)return 'happy';if(mood<28)return 'sad';return 'neutral'}
+  if(OG.p&&g===OG.p){const v=BONDS.ogus?BONDS.ogus.v:60;return v>78?'happy':v<28?'sad':'neutral'}return F.npcE||'neutral'}
+function exprTick112(F,dt,now){const X=F.ex,U=F.head.material.userData.u112;if(!U)return;const want=(X.ev&&now<X.until)?X.ev:baseExpr112(F);if(X.ev&&now>=X.until)X.ev=null;
+  if(!X.next){if(want===X.cur)return;X.next=want;U.tE.value=faceTexE112(X.skin,X.lip,X.blush,want);U.mix.value=0}
+  U.mix.value=Math.min(1,U.mix.value+dt/.32);if(U.mix.value>=1){F.head.material.map=U.tE.value;U.mix.value=0;X.cur=X.next;X.next=null}}
+/* konuşma balonu: emojiye göre olay ifadesi */
+const EMO112=[[/😡|😠|😤|🤬|💢/,'angry'],[/😢|😭|😔|😞|🥺|💔|😩|😟/,'sad'],[/😮|😲|😱|😳|🤯|‼️|😯/,'surprised'],[/🙈|☺️|😚|🫣/,'shy'],[/🥱|😴/,'yawn'],[/😊|😄|😁|😂|🥰|😍|😘|❤️|💙|🤗|😎|🎉|😃|😆|🙂/,'happy']];
+{const _sy=say;say=function(o,txt,dur){const r=_sy.apply(this,arguments);try{const s=String(txt||'');for(const q of EMO112)if(q[0].test(s)){expr112(o,q[1],Math.max(2.4,(dur||3)+.6));break}}catch(e){}return r}}
+/* --- 3) etkileşim animasyonları: iki karakterde aynı saatle (senkron) --- */
+const IA112=new Map();
+function ia112(g,k,dur,t0,partner){if(!g)return;IA112.set(g,{k:k,t0:t0||performance.now()/1000,dur:dur,p:partner||null})}
+function holdNpc112(g,dur){try{const A=activeD;if(A&&mode==='world')A.walkers.forEach(w=>{if(w.p===g){w.st=1;w.tt=Math.max(w.tt||0,dur+.5)}});(curI&&curI.agents||[]).forEach(a=>{if(a.p===g&&!a.anim)a.anim={k:'wait112',t:dur}})}catch(e){}}
+function pair112(a,k,dur){const t0=performance.now()/1000;ia112(player,k,dur,t0,a);ia112(a,k,dur,t0,player);holdNpc112(a,dur)}
+{const _hw=hugWith;hugWith=function(a,kind){const r=_hw.apply(this,arguments);try{if(a&&a.p){const k=kind==='kiss'?'kiss':'hug';
+    const dx=a.p.position.x-player.position.x,dz=a.p.position.z-player.position.z,d=Math.hypot(dx,dz);if(d>1.05&&d<3.5&&a.x!=null){const nx=player.position.x+dx/d*1.0,nz=player.position.z+dz/d*1.0;a.x=nx;a.z=nz;a.p.position.x=nx;a.p.position.z=nz}
+    pair112(a.p,k,1.8);expr112(player,k==='kiss'?'shy':'happy',3.2);expr112(a.p,k==='kiss'?'shy':'happy',3.2)}}catch(e){}return r}}
+/* menüye: el salla · el sık · alkışla (sarılma seçeneği olan kişi menülerinde) */
+function nearPerson112(){let best=null,bd=3.6;FACES.forEach(F=>{const g=F.g;if(g===player||!g.parent||!g.visible||g.parent!==player.parent)return;const d=Math.hypot(g.position.x-player.position.x,g.position.z-player.position.z);if(d<bd){bd=d;best=g}});return best}
+function social112(k){const g=nearPerson112();if(g){pl.face=Math.atan2(g.position.x-pl.x,g.position.z-pl.z);const tq=performance.now()/1000+.15;ia112(player,k,k==='clap'?2.2:1.8,tq,g);
+    if(k==='clap'){ia112(g,'happyBounce',2.2,tq,player);expr112(g,'happy',3)}else{ia112(g,k,1.8,tq,player);holdNpc112(g,2)}expr112(player,'happy',2.6);if(k==='shake')say(g,pick(['Memnun oldum 🤝','Görüştüğümüze sevindim 🙂','Hoş geldin! 😊']),2.4);if(k==='wave')say(g,pick(['Selaam 👋','Merhaba! 😊','Heyy 👋']),2)}
+  else ia112(player,k,1.8);try{NEED.soc=clamp(NEED.soc+3,0,100);mood=clamp(mood+2,0,100)}catch(e){}}
+{const _am=actionMenu;actionMenu=function(title,acts){try{if(Array.isArray(acts)&&acts.some(a=>a&&a[0]==='🤗')&&!acts.some(a=>a&&a[0]==='🤝'))acts=acts.concat([['👋','El salla',()=>social112('wave')],['🤝','El sık',()=>social112('shake')],['👏','Alkışla',()=>social112('clap')]])}catch(e){}return _am.call(this,title,acts)}}
+{const _pa=playerAnim;playerAnim=function(k,d){const r=_pa.apply(this,arguments);try{if(k==='wave')ia112(player,'wave',d||1.4)}catch(e){}return r}}
+/* --- 4) render öncesi canlandırma katmanı: tüm değişiklikler render'dan sonra geri alınır (oyun mantığı ve pozlar bozulmaz) --- */
+const REV112=[];const _now112=()=>performance.now()/1000;
+function sv112(o,k,v){const c=k[0],a=k[1];const tgt=c==='r'?o.rotation:c==='p'?o.position:o.scale;REV112.push(tgt,a,tgt[a]);tgt[a]=v}
+const ad112=(o,k,dv)=>{if(!o||!dv)return;const c=k[0],a=k[1];const tgt=c==='r'?o.rotation:c==='p'?o.position:o.scale;sv112(o,k,tgt[a]+dv)};
+function restore112(){for(let i=REV112.length-3;i>=0;i-=3)REV112[i][REV112[i+1]]=REV112[i+2];REV112.length=0}
+const ANIM112={on:true,far:30,farBody:46,lastT:0,n:0,nFace:0};
+function camDist112(g){const w=g.getWorldPosition(_v112);return Math.hypot(w.x-camT.x,w.z-camT.z)}const _v112=new T.Vector3();
+function freePose112(g){const A=g.userData.arms,L=g.userData.legs;if(!A||!L)return false;if(Math.abs(g.rotation.x)>.01||Math.abs(L[0].rotation.x)>.05||Math.abs(L[1].rotation.x)>.05)return false;return Math.abs(A[0].rotation.x)<.05&&Math.abs(A[1].rotation.x)<.05}
+function anim112(){if(!ANIM112.on||(mode!=='world'&&mode!=='int'))return;const now=_now112(),dt=Math.min(.1,now-(ANIM112.lastT||now));ANIM112.lastT=now;let nB=0,nF=0;
+  for(let i=0;i<FACES.length;i++){const F=FACES[i],g=F.g;if(!g.parent||!g.visible||!g.userData.arms)continue;if(!F.idle&&!F.bad112){if(!initF112(F)){F.bad112=1;continue}}if(!F.ex)continue;let p=g.parent,ok=false;while(p){if(p===scene||p===iscene){ok=true;break}p=p.parent}if(!ok)continue;
+    const d=mode==='int'?0:camDist112(g);if(d>ANIM112.farBody){F.idle.lp=null;continue}nB++;
+    /* hız: koşu / yürüyüş / duruş */
+    const px=g.position.x,pz=g.position.z,I=F.idle;let sp=0;if(I.lp){sp=Math.hypot(px-I.lp[0],pz-I.lp[1])/Math.max(dt,1e-3)}I.lp=[px,pz];I.sp=(I.sp||0)+(sp-(I.sp||0))*Math.min(1,dt*8);
+    const A=g.userData.arms,L=g.userData.legs,P=F.parts,isP=g===player;
+    const ia=IA112.get(g);
+    if(ia){const t=now-ia.t0;if(t>ia.dur||(isP&&I.sp>1.5)){IA112.delete(g)}else if(t>=0)interact112(g,F,ia,t)}
+    else if(I.sp>.8&&Math.abs(L[0].rotation.x)>.01){ /* yürüyüş: omuz ve gövde karşı salınımı; koşu: öne eğilme + geniş kol */
+      const s=L[0].rotation.x/.7,run=I.sp>7;ad112(P.sh,'ry',s*.1);ad112(P.torso,'ry',-s*.07);ad112(P.hip,'ry',s*.05);
+      if(run){if(F.v3){ad112(P.torso,'rx',.24);ad112(P.neck,'rx',-.1)}else{[P.torso,P.sh,P.neck,P.hair].forEach(o=>ad112(o,'rx',.2));ad112(F.head,'pz',.05);ad112(P.sh,'pz',.05);A.forEach(a=>ad112(a,'pz',.05))}A.forEach(a=>ad112(a,'rx',a.rotation.x*.6))}
+      I.still=0}
+    else if(freePose112(g)){I.still+=dt;idle112(g,F,dt,now,isP)}else I.still=0;
+    /* yüz: yalnız kameraya yakın karakterlerde */
+    if(d<=ANIM112.far){nF++;if(F.v3)expr3Tick112(F,dt,now);else exprTick112(F,dt,now)}}
+  ANIM112.n=nB;ANIM112.nFace=nF}
+function idle112(g,F,dt,now,isP){const A=g.userData.arms,L=g.userData.legs,P=F.parts,I=F.idle,npc=!isP&&!(OG.p&&g===OG.p),br=Math.sin(now*1.75+F.ph);
+  /* nefes */if(F.v3){ad112(P.sh,'rx',-br*.018);A.forEach(a=>ad112(a,'rz',br*.01*(a.position.x<0?-1:1)))}else{ad112(P.torso,'sy',br*.016);ad112(P.sh,'py',br*.006);A.forEach(a=>ad112(a,'py',br*.006));ad112(F.head,'py',br*.005);ad112(P.hair,'py',br*.005)}
+  /* ağırlık verme: birkaç saniyede bir taraf değiştir */
+  I.wsT-=dt;if(I.wsT<=0){I.wsT=4+Math.random()*6;I.wsS=(I.wsS||1)*-1}I.ws+=((I.wsS||1)-I.ws)*Math.min(1,dt*1.6);const ws=I.ws*(npc?.6:1);
+  ad112(P.hip,'rz',ws*(F.v3?.03:.05));if(!F.v3)ad112(P.hip,'px',ws*.02);L[0].rotation.z!==undefined&&ad112(L[0],'rz',ws*.035);ad112(L[1],'rz',ws*.035);ad112(P.torso,'rz',-ws*.025);ad112(P.sh,'rz',-ws*.02);
+  /* jest: saate bakma, telefona bakma, esneme (yorgun), etrafa bakma */
+  if(I.still<1.2)return;if(!I.g){I.next-=dt;if(I.next<=0){const tired=isP?NEED.en<25:(GT>23*60||GT<6*60);const r=Math.random();
+      I.g=tired&&r<.4?'yawn':r<(npc?.3:.35)?'watch':r<(npc?.55:.7)?'phone':'look';I.t=0;I.gd=I.g==='phone'?3.4:I.g==='yawn'?2.4:I.g==='look'?2.6:2;I.next=(npc?10:6)+Math.random()*(npc?12:8);I.lookS=Math.random()<.5?-1:1;if(I.g==='yawn')expr112(g,'yawn',2.2)}return}
+  I.t+=dt;const k=Math.min(1,I.t/.35,(I.gd-I.t)/.35);if(I.t>=I.gd||k<0){I.g=null;if(I.ph112){I.ph112.visible=false}return}const e=k*k*(3-2*k);
+  if(I.g==='watch'){sv112(A[0],'rx',-1.35*e);sv112(A[0],'rz',.75*e);sv112(A[0],'ry',-.4*e)}
+  else if(I.g==='phone'){sv112(A[0],'rx',-1.25*e);sv112(A[0],'rz',.35*e);if(!I.ph112){const m=new T.Mesh(new T.BoxGeometry(.13,.24,.03),new T.MeshStandardMaterial({color:0x22242c,roughness:.3,emissive:0x4a6aa8,emissiveIntensity:.35}));m.position.set(0,-.9,.1);m.rotation.x=-.3;A[0].add(m);I.ph112=m}I.ph112.visible=e>.4}
+  else if(I.g==='yawn'){sv112(A[0],'rx',-2.7*e);sv112(A[1],'rx',-2.7*e);sv112(A[0],'rz',-.3*e);sv112(A[1],'rz',.3*e);ad112(P.torso,'rx',-.06*e)}
+  else if(I.g==='look'){I.lookYaw=I.lookS*.85*e}
+  if(I.g!=='look')I.lookYaw=0}
+function interact112(g,F,ia,t){const A=g.userData.arms,P=F.parts,k=ia.k,T0=Math.min(1,t/.3,(ia.dur-t)/.3),e=Math.max(0,T0),sw=Math.sin(t*3.2);
+  if(k==='hug'||k==='kiss'){sv112(A[0],'rx',-1.35);sv112(A[1],'rx',-1.35);sv112(A[0],'rz',.4+sw*.06);sv112(A[1],'rz',-.4-sw*.06);ad112(P.torso,'rx',.14*e);ad112(P.sh,'rx',.12*e);ad112(F.head,'rz',(k==='kiss'?.22:.12)*e*(g===player?1:-1));ad112(F.head,'pz',(k==='kiss'?.05:.02)*e);
+    ad112(P.torso,'rz',sw*.03*e);ad112(P.sh,'rz',sw*.035*e)}
+  else if(k==='wave'){sv112(A[1],'rx',-2.7*e);sv112(A[1],'rz',(-.3+Math.sin(t*10)*.35)*e)}
+  else if(k==='shake'){sv112(A[1],'rx',(-1.15+Math.sin(t*12)*.12*(t>.4&&t<1.4?1:0))*e);sv112(A[1],'rz',-.18*e);ad112(P.torso,'rx',.05*e)}
+  else if(k==='clap'){const c=Math.abs(Math.sin(t*9));sv112(A[0],'rx',-1.2*e);sv112(A[1],'rx',-1.2*e);sv112(A[0],'rz',(.55-.25*c)*e);sv112(A[1],'rz',(-.55+.25*c)*e)}
+  else if(k==='happyBounce'){ad112(g,'py',Math.abs(Math.sin(t*7))*.05*e);sv112(A[0],'rx',-.4*e);sv112(A[1],'rx',-.4*e)}}
+/* etrafa bakma: yüz sistemine sahte bir bakış hedefi ver */
+{const _lt=lookTarget;lookTarget=function(F){const I=F.idle;if(I&&I.g==='look'&&I.lookYaw){const g=F.g,a=g.rotation.y+I.lookYaw;return {position:{x:g.position.x+Math.sin(a)*2,z:g.position.z+Math.cos(a)*2},visible:true}}return _lt.apply(this,arguments)}}
+{const _p=post108;post108=function(sc,cm,inI){let ok=false;try{anim112();ok=true}catch(e){restore112();showErrOnce(e)}try{return _p.apply(this,arguments)}finally{if(ok)restore112()}}}
+window.__c112={A:ANIM112,expr:(who,e,d)=>{const g=who==='player'?player:who==='og'?OG.p:who;expr112(g,e,d)},face:g=>{const F=(g||player).userData.face43;return F&&F.ex?{v3:!!F.v3,cur:F.ex.cur,next:F.ex.next||null,mix:F.v3?F.v3f.cur.mo:F.head.material.userData.u112.mix.value,bR:F.v3?+F.v3f.cur.bR.toFixed(2):null,idle:F.idle.g,sp:+(F.idle.sp||0).toFixed(2),still:+F.idle.still.toFixed(1)}:null},
+  social:k=>social112(k),pair:k=>{const g=nearPerson112();if(g)pair112(g,k,1.8);return !!g},near:()=>{const g=nearPerson112();return g?{x:g.position.x,z:g.position.z}:null},idle:(g)=>{const F=(g||player).userData.face43;F.idle.still=5;F.idle.next=0},faces:()=>FACES.length,gesture:(k)=>{const F=player.userData.face43;F.idle.still=5;F.idle.g=k;F.idle.t=0;F.idle.gd=3;if(k==='yawn')expr112(player,'yawn',2.2)}};
 /* ================= v90: bahçe & tarım görsel yenileme — tekrarsız çim, sürülmüş toprak, taş yol, lamba, bank, 3 evreli instanced bitkiler, rüzgâr, hasat animasyonu ================= */
 const U90={t:{value:0}};
 function sway90(col,o,amp){const m=std(col,Object.assign({roughness:.75},o||{}));const A=(amp||.03).toFixed(3);
