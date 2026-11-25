@@ -1366,12 +1366,12 @@ function driversTick(A,dt){sigTick(A,dt);honkCd-=dt;const now=performance.now()/
     else if(c.stops){for(const su of c.stops){let du=(su-c.u)*dir;if(du<0)du+=1;const dm=du*L;if(dm<14)sp=Math.min(sp,Math.max(.25,dm/14)*c.s);if(dm<.35&&c.lastStop!==su){c.wait=4.5;c.lastStop=su;sp=0}}}
     if(A.sig&&c.sigU&&A.sig.st!=='g')for(const su of c.sigU){let du=(su-c.u)*dir;if(du<0)du+=1;const dm=du*L;if(dm<16&&dm>(A.sig.st==='y'?3:.2))sp=Math.min(sp,Math.max(0,(dm-.8)/9)*c.s)}
     for(const o of A.drivers){if(o===c||(o.path||null)!==(c.path||null)||(!c.path&&o.dir!==c.dir))continue;if(c.path&&Math.abs((o.lo||0)-(c.lo||0))>1)continue;let du=(o.u-c.u)*dir;if(du<0)du+=1;const dm=du*L,need=(len+(o.len||4.4))/2+2.5;if(dm<need+8)sp=Math.min(sp,Math.max(0,(dm-need)/8)*c.s)}
-    const p=path.getPointAt(c.u),tg=path.getTangentAt(c.u).multiplyScalar(dir),lo=c.path?(c.lo||0):1.7,px=p.x-tg.z*lo,pz=p.z+tg.x*lo;
+    const p=path.getPointAt(c.u,DV117[0]),tg=path.getTangentAt(c.u,DV117[1]).multiplyScalar(dir),lo=c.path?(c.lo||0):1.7,px=p.x-tg.z*lo,pz=p.z+tg.x*lo;
     if(mode==='world'&&activeD===A&&!busy){const rx=pl.x-px,rz=pl.z-pz,fw=rx*tg.x+rz*tg.z,lt=-rx*tg.z+rz*tg.x;
       if(fw>0&&fw<len/2+9&&Math.abs(lt)<1.9){sp=Math.min(sp,Math.max(0,(fw-len/2-1.4)/5)*c.s);
         const pedGreen=A.sig&&A.sig.st==='r'&&nearCrossing(A,pl.x,pl.z);if(!pedGreen&&fw<len/2+6&&(!c.honk||now-c.honk>3.5)&&honkCd<=0){c.honk=now;honkCd=1.2;sfx('horn');if(rnd()<.5)toast(pick(['📢 Korna! Yol onların, kenara çekil 🚗','🚗💨 "Abla yoldan!"','📢 Bip bip! Yaya geçidini kullan 🚸']))}}}
     c.v+=(sp-c.v)*Math.min(1,dt*(sp<c.v?3.2:1.2));c.u=(c.u+c.v*dir*dt/L+1)%1;
-    const q=path.getPointAt(c.u),tq=path.getTangentAt(c.u).multiplyScalar(dir);c.c.position.set(q.x-tq.z*lo,.05,q.z+tq.x*lo);c.c.userData.face(tq.x,tq.z);if(c.c.userData.spin)c.c.userData.spin(c.v*dt)})}
+    const q=path.getPointAt(c.u,DV117[2]),tq=path.getTangentAt(c.u,DV117[3]).multiplyScalar(dir);c.c.position.set(q.x-tq.z*lo,.05,q.z+tq.x*lo);c.c.userData.face(tq.x,tq.z);if(c.c.userData.spin)c.c.userData.spin(c.v*dt)})}
 function inVeh(c,x,z,r){const o=c.c.position,th=c.c.rotation.y,dx=x-o.x,dz=z-o.z,fw=dx*Math.cos(th)-dz*Math.sin(th),lt=dx*Math.sin(th)+dz*Math.cos(th);return Math.abs(fw)<(c.len||4.4)/2+r&&Math.abs(lt)<1.15+r}
 function vehBlock(x,z,r){const A=activeD;if(!A||!A.drivers||mode!=='world')return false;for(const c of A.drivers){if(inVeh(c,x,z,r)&&!inVeh(c,pl.x,pl.z,r*.6))return true}return false}
 function curbStrip(pts){const pos=[],nor=[],idx=[];const H=.16,Wd=.3;const n=pts.length;
@@ -12188,6 +12188,60 @@ APPS.push(['ekapi','🏛️','e-Kapı','#b3122e,#e85a5a']);
 {const _s=save25;save25=function(){const o=_s.apply(this,arguments);try{o.x116=CX}catch(e){}return o}}
 {const _l=load25;load25=function(x){const r=_l.apply(this,arguments);try{const z=x&&x.x116;if(z&&typeof z==='object'){['cars','mods','ins'].forEach(k=>{if(z[k]&&typeof z[k]==='object')CX[k]=z[k]});if(Array.isArray(z.fines))CX.fines=z.fines;if(Array.isArray(z.log))CX.log=z.log.slice(-30);CX.park=z.park||null;CX.stranded=z.stranded||null;CX.nid=z.nid||CX.fines.length+1}}catch(e){}return r}}
 window.__a116={CX:CX,fuel:v=>{carS116().fuel=v},strand:()=>strand116(activeD&&activeD.name),tow:()=>tow116(),fine:(t)=>addFine116(t||'hiz','Test cezası',1600),fuelMenu:()=>fuelMenu116(),pump:(L)=>pump116(carS116().type,L||5),mod:(k,v)=>{modsOf116()[k]=v},after:(km,hits,dd,v)=>afterTrip116({km:km,maxV:v||0},hits||0,dd||'cigli'),ins:t=>buyIns116(t),car:()=>({k:carK116(),s:carS116(),mods:modsOf116(),sig:myCar&&myCar.userData.mod116,carAt:carAt}),stations:()=>activeD?activeD.spots.filter(s=>/Benzinlik|Modifiye/.test(s.t)).map(s=>[s.t,+s.x.toFixed(1),+s.z.toFixed(1)]):[]};
+/* ================= v117: performans paneli (FPS, kare ms, JS ms, render ms, renderer.info) ================= */
+const PF117={fr:0,js:0,rd:0,rdAcc:0,last:0,calls:0,tris:0};
+{const _r=renderer.render.bind(renderer);renderer.render=function(s,c){const t0=performance.now();try{return _r(s,c)}finally{PF117.rdAcc+=performance.now()-t0}}}
+{const _fb=frameBody;frameBody=function(){const t0=performance.now();PF117.rdAcc=0;const r=_fb.apply(this,arguments);const tot=performance.now()-t0,k=.08;PF117.rd+=(PF117.rdAcc-PF117.rd)*k;PF117.js+=((tot-PF117.rdAcc)-PF117.js)*k;
+  if(PF117.last){const d=t0-PF117.last;if(d<500)PF117.fr+=(d-PF117.fr)*k}PF117.last=t0;PF117.calls=renderer.info.render.calls;PF117.tris=renderer.info.render.triangles;return r}}
+{const _fb2=frameBody;frameBody=function(){const r=_fb2.apply(this,arguments);try{if(SET.perfHud&&!PH110.el){const d=document.createElement('div');d.id='fps110';d.style.cssText='position:fixed;left:8px;bottom:8px;z-index:120;padding:5px 9px;border-radius:9px;background:rgba(10,8,20,.72);color:#bfffd0;font:600 11px/1.35 ui-monospace,Consolas,monospace;pointer-events:none;white-space:pre';document.body.appendChild(d);PH110.el=d}if(SET.perfHud&&PH110.el){const m=renderer.info.memory;PH110.el.style.display='block';PH110.el.textContent=Math.round(1000/Math.max(1,PF117.fr))+' FPS · kare '+PF117.fr.toFixed(1)+' ms\nJS '+PF117.js.toFixed(1)+' ms · render '+PF117.rd.toFixed(1)+' ms (CPU)\n'+PF117.calls+' çizim · '+(PF117.tris/1000).toFixed(0)+'k üçgen\n'+m.geometries+' geo · '+m.textures+' doku · '+Object.keys(D).length+' mah. · '+Object.keys(INT).length+' iç'}}catch(e){}return r}}
+{const _os=openSettings;openSettings=function(){const r=_os.apply(this,arguments);try{const b=$('mbody');const g=[...b.querySelectorAll('.sg')].find(x=>/Test/.test((x.querySelector('h4')||{}).textContent||''));if(g)swRow(g,'📈 Performans paneli','FPS, kare süresi, JS ve render süresi, çizim çağrısı, üçgen, bellek','perfHud',()=>{if(!SET.perfHud&&PH110.el)PH110.el.style.display='none'})}catch(e){}return r}}
+window.__p117={get pf(){return {fps:Math.round(1000/Math.max(1,PF117.fr)),fr:+PF117.fr.toFixed(2),js:+PF117.js.toFixed(2),rd:+PF117.rd.toFixed(2),calls:PF117.calls,tris:PF117.tris,geo:renderer.info.memory.geometries,tex:renderer.info.memory.textures}}};
+/* ================= v117: optimizasyon · aynı görüntü, daha az iş ================= */
+const DV117=[new T.Vector3(),new T.Vector3(),new T.Vector3(),new T.Vector3()];/* trafik: kare başına yeni vektör yok */
+const OPT117={glowHid:0,limbMerged:0,carInst:0,carHidden:0,shadowSkip:0,rs:1,menuSkip:0};
+/* 1) opaklığı ~0 olan ışıma sprite'ları (gündüz farlar/lambalar) çizilmesin: görüntü aynı, çizim çağrısı yok */
+{const _at=applyTime;applyTime=function(dt){const r=_at.apply(this,arguments);try{let h=0;for(let i=0;i<glows.length;i++){const sp=glows[i].sp;if(!sp)continue;const z=sp.material.opacity<.004;if(z&&sp.visible){sp.visible=false;sp.userData.h117=1}else if(!z&&sp.userData.h117){sp.visible=true;sp.userData.h117=0}if(!sp.visible&&sp.userData.h117)h++}OPT117.glowHid=h}catch(e){}return r}}
+/* 2) karakter kolları ve bacakları: her uzuvdaki düz renkli parçalar tek mesh'e (vertex color) — kemik hareketi aynı, uzuv başına 1 çizim */
+const LIMBM117={};const limbMat117=(r,mt,fl)=>{const k=r.toFixed(2)+'|'+mt.toFixed(2)+'|'+(fl?1:0);return LIMBM117[k]||(LIMBM117[k]=new T.MeshStandardMaterial({vertexColors:true,roughness:r,metalness:mt,flatShading:!!fl}))};
+function mergeLimb117(grp){const parts=grp.children.filter(c=>c.isMesh&&!c.isSkinnedMesh&&!Array.isArray(c.material)&&c.material&&c.material.isMeshStandardMaterial&&!c.material.map&&!c.material.transparent&&!c.material.emissiveMap&&c.geometry&&c.geometry.attributes.position&&c.geometry.attributes.normal&&!c.children.length&&c.visible);
+  if(parts.length<2)return 0;const r0=parts[0].material.roughness,m0=parts[0].material.metalness||0,f0=!!parts[0].material.flatShading;const same=parts.filter(c=>Math.abs(c.material.roughness-r0)<.051&&Math.abs((c.material.metalness||0)-m0)<.051&&!!c.material.flatShading===f0&&!(c.material.emissive&&(c.material.emissive.r+c.material.emissive.g+c.material.emissive.b)>.003));if(same.length<2)return 0;
+  const P=[];same.forEach(c=>{c.updateMatrix();const col=c.material.color;P.push([c.geometry,c.matrix.clone(),[col.r,col.g,col.b]])});const geo=geoMerge(P);const m=new T.Mesh(geo,limbMat117(r0,m0,f0));m.castShadow=same.some(c=>c.castShadow);m.receiveShadow=same.some(c=>c.receiveShadow);m.userData.limb117=1;
+  same.forEach(c=>grp.remove(c));grp.add(m);return same.length-1}
+{const _p=person;person=function(o){const g=_p.apply(this,arguments);try{if(g&&g.userData&&!g.userData.bones){let n=0;(g.userData.arms||[]).concat(g.userData.legs||[]).forEach(l=>{n+=mergeLimb117(l)});OPT117.limbMerged+=n}}catch(e){}return g}}
+/* 3) park etmiş arabalar: tekerlek lastiği, jant yüzü ve gölge plakası mahalle başına InstancedMesh (hareket eden araç geri çevrilir) */
+const _m117=new T.Matrix4(),_i117=new T.Matrix4();
+function carStatic117(A){if(!A||!A.G||A.ci117)return;const drv=new Set((A.drivers||[]).map(d=>d.c));const L=[];A.G.updateMatrixWorld(true);
+  A.G.traverse(o=>{if(!o.userData||!o.userData.wheels||!o.userData.face||drv.has(o)||o===myCar||!o.visible)return;let p=o.parent,ok=true;while(p&&p!==A.G){if(!p.visible)ok=false;p=p.parent}if(ok)L.push({g:o,e:o.matrixWorld.elements.slice()})});A.ci117={cand:L,t:performance.now()}}
+function carBuild117(A){const C0=A.ci117;if(!C0||C0.built)return;C0.built=1;const same=(a,b)=>{for(let i=0;i<16;i++)if(Math.abs(a[i]-b[i])>1e-4)return false;return true};A.G.updateMatrixWorld(true);_i117.copy(A.G.matrixWorld).invert();
+  const groups=new Map(),cars=[];C0.cand.forEach(c=>{if(!c.g.parent||!same(c.e,c.g.matrixWorld.elements))return;const parts=[];
+    c.g.userData.wheels.forEach(w=>{w.children.forEach(m=>{if(m.isMesh&&!m.userData.mR)parts.push(m)})});c.g.children.forEach(m=>{if(m.isMesh&&m.geometry&&m.geometry.type==='PlaneGeometry'&&m.material&&m.material.map===carShadowTex)parts.push(m)});
+    parts.forEach(m=>{const pa=m.geometry.parameters||{},sh=m.material.map===carShadowTex,k=m.geometry.type+'|'+(pa.radiusTop||pa.radius||pa.width||0).toFixed(3)+'|'+(sh?'sh':m.material.uuid);let G=groups.get(k);if(!G)groups.set(k,G={geo:m.geometry,mat:m.material,list:[]});G.list.push(m)});cars.push(c.g)});
+  const inst=[];groups.forEach(G=>{if(G.list.length<4)return;const im=new T.InstancedMesh(G.geo,G.mat,G.list.length);G.list.forEach((m,i)=>{m.updateWorldMatrix(true,false);_m117.multiplyMatrices(_i117,m.matrixWorld);im.setMatrixAt(i,_m117);m.visible=false});im.instanceMatrix.needsUpdate=true;im.castShadow=false;im.receiveShadow=false;im.renderOrder=G.list[0].renderOrder;
+    im.frustumCulled=false;im.userData.ci117=1;A.G.add(im);inst.push({im:im,list:G.list})});C0.inst=inst;C0.cars=cars.map(g=>({g:g,e:g.matrixWorld.elements.slice()}));OPT117.carInst+=inst.length;OPT117.carHidden+=inst.reduce((s,q)=>s+q.list.length,0)}
+function carUndo117(A){const C0=A.ci117;if(!C0)return;(C0.inst||[]).forEach(q=>{q.list.forEach(m=>m.visible=true);if(q.im.parent)q.im.parent.remove(q.im);q.im.dispose()});A.ci117=null}
+function carCheck117(A){const C0=A.ci117;if(!C0||!C0.cars)return;const k=(A.ci117i=(A.ci117i||0)+1)%C0.cars.length,c=C0.cars[k];if(!c)return;c.g.updateWorldMatrix(true,false);
+  let bad=!c.g.parent||!c.g.visible;if(!bad)for(let i=0;i<16;i++)if(Math.abs(c.e[i]-c.g.matrixWorld.elements[i])>1e-4){bad=true;break}if(bad){carUndo117(A);A.ci117wait=performance.now()+4000}}
+function carTick117(){const A=activeD;if(!A||mode!=='world')return;const now=performance.now();if(!A.ci117){if(!A.ci117wait)A.ci117wait=now+3500;if(now>A.ci117wait)carStatic117(A);return}
+  if(!A.ci117.built){if(now-A.ci117.t>1200)carBuild117(A);return}carCheck117(A)}
+/* 4) gölge: kamera ve oyuncu durağanken gölge haritası seyrek (her 3 karede), hareket varken eskisi gibi */
+const _cp117=new T.Vector3(1e9,0,0);
+{const _pt=perfTick;perfTick=function(dt){const r=_pt.apply(this,arguments);try{if(mode==='world'&&renderer.shadowMap.needsUpdate){const mv=_cp117.distanceToSquared(camT)>1e-4;_cp117.copy(camT);OPT117.sf=(OPT117.sf||0)+1;if(!mv&&QL[qIndex()].n<3&&OPT117.sf%3!==0){renderer.shadowMap.needsUpdate=false;OPT117.shadowSkip++}}}catch(e){}return r}}
+/* 5) çözünürlük: Yüksek'te pixelRatio ≤ 1.5 (Ultra 2); FPS < 40 olunca render ölçeği 0.85, toparlanınca 1 (UI DOM olduğu için keskin kalır) */
+QL[0].pr=Math.min(QL[0].pr,1.5);
+{const _c=curPR;curPR=function(){return _c.apply(this,arguments)*OPT117.rs}}
+function rsTick117(dt){if(mode!=='world'&&mode!=='int')return;const f=DYN.fps;OPT117.rsLo=f<40?(OPT117.rsLo||0)+dt:0;OPT117.rsHi=f>54?(OPT117.rsHi||0)+dt:0;
+  if(OPT117.rs===1&&OPT117.rsLo>2.5){OPT117.rs=.85;OPT117.rsLo=0;resize()}else if(OPT117.rs<1&&OPT117.rsHi>6){OPT117.rs=1;OPT117.rsHi=0;resize()}}
+/* 6) menü/telefon tam ekranken 3D render 10 fps (oyun mantığı aynı hızda sürer) */
+function menuOpen117(){const m=$('modal'),p=$('phone');return (m&&m.classList.contains('on'))||(p&&p.classList.contains('on'))||!!document.querySelector('#pcwin.on,#tyc.on,#scnov.on .full')}
+{const _p=post108;post108=function(sc,cm,inI){if(menuOpen117()){OPT117.mf=(OPT117.mf||0)+1;if(OPT117.mf%6!==0){OPT117.menuSkip++;return}}else OPT117.mf=0;return _p.apply(this,arguments)}}
+/* 7) shader ön derleme: yeni mahalle/iç mekân kurulunca geçiş ekranı altında derle (ilk kare takılmasın) */
+{const _sd=setDistrict;setDistrict=function(n){const fresh=!D[n];const r=_sd.apply(this,arguments);if(fresh)try{const t0=performance.now();renderer.compile(scene,cam);OPT117.compileMs=Math.round(performance.now()-t0)}catch(e){}return r}}
+{const _in=interior;interior=function(k){const fresh=!INT[k];const I=_in.apply(this,arguments);if(fresh&&I&&I.G)try{const v=I.G.visible;I.G.visible=true;renderer.compile(iscene,cam);I.G.visible=v}catch(e){}return I}}
+/* kare döngüsü kancası */
+{const _fb=frameBody;frameBody=function(){const r=_fb.apply(this,arguments);try{carTick117();rsTick117(Math.min(.1,(performance.now()-(OPT117.lt||performance.now()))/1000));OPT117.lt=performance.now()}catch(e){}return r}}
+/* mahalle boşaltılırken instanced araçları da temizle */
+{const _u=unloadDistrict110;unloadDistrict110=function(n){try{const A=D[n];if(A)carUndo117(A)}catch(e){}return _u.apply(this,arguments)}}
+window.__o117={O:OPT117,undoCars:()=>{if(activeD)carUndo117(activeD)}};
 /* ================= v90: bahçe & tarım görsel yenileme — tekrarsız çim, sürülmüş toprak, taş yol, lamba, bank, 3 evreli instanced bitkiler, rüzgâr, hasat animasyonu ================= */
 const U90={t:{value:0}};
 function sway90(col,o,amp){const m=std(col,Object.assign({roughness:.75},o||{}));const A=(amp||.03).toFixed(3);
