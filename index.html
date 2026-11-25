@@ -408,6 +408,32 @@ function resize(){const w=innerWidth,h=innerHeight;const pr=pix?Math.min(1,640/M
 addEventListener('resize',resize);
 
 /* ---------- yardımcılar ---------- */
+/* ================= v111 · EKONOMİ TABLOSU: tüm fiyat ve gelirler burada (docs/PIXELWORLD_ECONOMY.md) ================= */
+const ECO={
+ /* maaş: 10 günde bir yatar (≈ günde 2.6–3.4B) */
+ sal:{kiz:26000,sen:32000,abla:28000,esi:34000,yegen:3000,almira:28000,berke:30000},salDef:26000,payEvery:10,
+ /* LinkedIn iş teklifleri: JOBPOOL'daki eski ölçek × k, haftaya göre ± adım */
+ job:{k:10,step:1000,migrateBelow:10000},
+ card:{kiz:45000,sen:60000,abla:36000,esi:54000,yegen:1500,almira:42000,berke:48000,k:3,migrateBelow:25000},
+ /* dışarıda yeme-içme, çarşı (yemek ×2), mobilya/eşya kataloğu ×4 */
+ food:{k:2},shop:{k:4},
+ fare:{bus:20,tram:25,metro:20,izban:25,taxi:250,havas:80,airport:300},
+ /* ev: hedef satış fiyatı (konum puanı formülü yerine), kira = fiyat / rentDiv (haftalık) */
+ home:{rentDiv:110,rentMin:600,mrsBase:900000,price:{cig1:190000,hlk1:230000,cig2:240000,bos1:300000,bah2:300000,als2:320000,bah1:360000,bos2:380000,als1:420000,brn2:420000,krb1:820000,brn3:850000,brn1:1150000,krb2:1300000}},
+ /* araba: galeri (ekonomik ≈ 15–25 günlük birikim) ve lüks (miras ile) */
+ car:{gray_base:32000,gray_white:33000,gray_black:36000,gray_yellow:35000,blue_base:45000,blue_red:47000,blue_green:48000},carDef:30000,
+ lux:{p_roadster:320000,p_gt:420000,p_suvx:480000,p_sedan:380000,p_hyper:580000,p_limo:360000,p_carbon:540000,p_gold:600000},
+ /* kredi (v92 konut kuralları korunur: 50–80B, 12/24/36 gün, %2–4) */
+ loan:{ihtiyac:20000,tasit:250000,konutMin:50000,konutMax:80000,tekne:600000,salLo:10000,salSpan:20000},
+ /* miras teklifleri: [taban, rastgele aralık]; pazarlık tavanı */
+ inherit:{mrs:[[1200000,220000],[1380000,250000],[1560000,240000]],mrsMax:2000000,sr:[[650000,120000],[720000,120000],[800000,120000]],srMax:1000000},
+ /* pasif gelir: kafe şube başı ciro = base + perRep×memnuniyet; sera kirası günlük; ev kirası haftalık (day38) */
+ kafe:{base:1500,perRep:25,ing:.3,br:{1:{p:300000,fix:1400},2:{p:450000,fix:1700}}},
+ sera:{rent:{mehmet:800,koop:620,genc:980},sellK:2,fee:{koy:60,semt:100}},
+ /* tüm pasif gelirlerin günlük toplamı günlük maaşın %90'ını geçmez (fazlası vergi + işletme gideri) */
+ passive:{capK:.9},
+ repair:{carK:3.5,svc:{elektrik:750,tesisat:600,beyaz:1050},leasePt:84}};
+const ecoP=(v,k)=>Math.max(5,Math.round(v*k/5)*5);
 let W=scene,C=null;const D={};
 function canvasTex(w,h,draw,opt){opt=opt||{};const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');draw(g,w,h);
   const t=new T.CanvasTexture(c);t.magFilter=opt.nearest?T.NearestFilter:T.LinearFilter;if(opt.repeat)t.wrapS=t.wrapT=T.RepeatWrapping;t.anisotropy=4;return t}
@@ -851,7 +877,7 @@ function busStop(x,z,ang,name){const g=new T.Group();g.position.set(x,0,z);g.rot
   const nm=new T.Mesh(new T.PlaneGeometry(2.6,.45),new T.MeshBasicMaterial({map:textSign(name,2.6,.45,'#1d2a36','#ffe9b8')}));signMats.push(nm.material);nm.position.set(0,2.35,-.7);g.add(nm);
   C.boxes.push({x:x,z:z,hx:Math.abs(Math.cos(ang))>.5?2.2:.9,hz:Math.abs(Math.cos(ang))>.5?.9:2.2});
   crowd(x,z,ang,3+(Math.abs(x*7+z)|0)%3);
-  const fx=x+Math.sin(ang)*1.6,fz=z+Math.cos(ang)*1.6;C.spots.push({x:fx,z:fz,r:2.8,t:'E: ESHOT otobüsüne bin 🚌',fn:()=>travelMenu('ESHOT otobüsü','🚌',10,['alsancak','merkez','cigli','karabaglar','bostanli','mall_forum','mall_mavibahce','mall_hilltown'])})}
+  const fx=x+Math.sin(ang)*1.6,fz=z+Math.cos(ang)*1.6;C.spots.push({x:fx,z:fz,r:2.8,t:'E: ESHOT otobüsüne bin 🚌',fn:()=>travelMenu('ESHOT otobüsü','🚌',ECO.fare.bus,['alsancak','merkez','cigli','karabaglar','bostanli','mall_forum','mall_mavibahce','mall_hilltown'])})}
 
 /* ---------- toplu taşıma ile seyahat ---------- */
 const TRAVEL_LBL={alsancak:'Alsancak · Kordon',merkez:'Halkapınar · Ofis',cigli:'Çiğli',karabaglar:'Karabağlar',bostanli:'Bostanlı',mall_forum:'Forum Bornova',mall_mavibahce:'Mavibahçe',mall_hilltown:'Hilltown'};
@@ -904,7 +930,7 @@ function tramLine(x,z0,z1,stops){
   stops.forEach(s=>{const px=x+2.35;box(1.8,.3,14,std(0xc9c4bc),px,.15,s.z);box(1.8,.04,14,std(0xffd23a),px-.8,.31,s.z);
     const sh=new T.Group();sh.position.set(px+.5,0,s.z);W.add(sh);[-2.5,2.5].forEach(oz=>box(.1,2.7,.1,std(0x3a4450),.4,1.65,oz,sh));box(1.4,.1,5.6,std(0x5a6270),0,3,0,sh);box(.05,2.2,5.4,std(0x9fd4e6,{transparent:true,opacity:.35}),.6,1.6,0,sh);
     const nm=new T.Mesh(new T.PlaneGeometry(3,.5),new T.MeshBasicMaterial({map:textSign('🚋 '+s.name,3,.5,'#0e9fb0','#ffffff'),side:T.DoubleSide}));signMats.push(nm.material);nm.position.set(0,3.35,0);nm.rotation.y=-Math.PI/2;sh.add(nm);
-    C.spots.push({x:px+.2,z:s.z,r:3.4,t:'E: Tramvaya bin 🚋 (Çiğli · Merkez)',fn:()=>travelMenu('Tramvay','🚋',12,['alsancak','cigli','merkez','karabaglar'])})});
+    C.spots.push({x:px+.2,z:s.z,r:3.4,t:'E: Tramvaya bin 🚋 (Çiğli · Merkez)',fn:()=>travelMenu('Tramvay','🚋',ECO.fare.tram,['alsancak','cigli','merkez','karabaglar'])})});
   const tr=tramVehicle();W.add(tr);const st={z:stops[0].z,dir:1,wait:3,last:0};tr.position.set(x,0,st.z);
   const zs=stops.map(s=>s.z).sort((a,b)=>a-b),ends=[z0+12,z1-12];
   C.anim.push(t=>{const dt=Math.min(.05,t-st.last||0);st.last=t;if(st.wait>0){st.wait-=dt;if(st.wait<=0&&activeD===C_REF.bostanli&&Math.abs(pl.z-st.z)<40)sfx('bell');tr.position.z=st.z;return}
@@ -1231,7 +1257,7 @@ function buildAlsancak(){
   safe('gar',()=>garBuilding(48,-40));palmTree(30,-30,1);palmTree(66,-30,1);flowerBed(48,-30,10,2.6,[0xff7aa8,0xffffff,0xf4c542]);
   busStop(-2.4,-6,-Math.PI/2,'Alsancak · Kordon');
   {const tz=-24,tx=-2.6;box(1.8,.3,12,std(0xc9c4bc),tx,.15,tz);box(.1,.04,12,std(0xffd23a),tx-.85,.31,tz);const nm=new T.Mesh(new T.PlaneGeometry(3,.5),new T.MeshBasicMaterial({map:textSign('🚋 Alsancak Tramvay',3,.5,'#0e9fb0','#ffffff'),side:T.DoubleSide}));signMats.push(nm.material);nm.position.set(tx,3,tz);nm.rotation.y=Math.PI/2;W.add(nm);cyl(.06,.06,2.7,5,std(0x555),tx,1.35,tz-1.6);
-    crowd(tx,tz+3,-Math.PI/2,3);C.spots.push({x:tx+.4,z:tz,r:3,t:'E: Tramvaya bin 🚋',fn:()=>travelMenu('Tramvay','🚋',12,['merkez','bostanli','cigli','karabaglar'])})}
+    crowd(tx,tz+3,-Math.PI/2,3);C.spots.push({x:tx+.4,z:tz,r:3,t:'E: Tramvaya bin 🚋',fn:()=>travelMenu('Tramvay','🚋',ECO.fare.tram,['merkez','bostanli','cigli','karabaglar'])})}
   [[.1,5.2,1],[.45,4.8,-1],[.7,5.5,1]].forEach(d=>{const c=carSprite(Object.keys(CARS3D.tex)[(d[0]*10|0)%7],undefined,nextPlate());C.drivers.push({c:c,u:d[0],s:d[1],dir:d[2]})});
   {const b=makeBus();W.add(b);C.drivers.push({c:b,u:.3,s:5,dir:1,len:11.6,stops:[]})}
   lampsAlong(rs[0],14,1);lampsAlong(rs[1],14,1);lampsAlong(rs[1],14,-1);
@@ -1388,10 +1414,10 @@ function transitHub(cx,cz){const conc=std(0xbfbbb4),white=std(0xf2f2ee),glass=st
   [[-28,-16],[4,16]].forEach(r=>{const w=r[1]-r[0];box(w,5.2,.06,glass,(r[0]+r[1])/2,2.9,fz)});
   box(10,.3,4,std(0x1d4f9c),-6,4.4,fz+1.9);[-4.6,4.6].forEach(dx=>box(.2,4.3,.2,steel,-6+dx,2.15,fz+3.7));box(8,3.6,.08,std(0x7fb6dc,{transparent:true,opacity:.55}),-6,1.8,fz);
   const gs=new T.MeshBasicMaterial({map:textSign('GİRİŞ · İZBAN · METRO',8,.9,'#1d4f9c','#ffffff')});signMats.push(gs);const gsm=new T.Mesh(new T.PlaneGeometry(8,.9),gs);gsm.position.set(-6,5.1,fz+.05);W.add(gsm);
-  C.spots.push({x:-6,z:fz+3,r:3,t:'E: İstasyona gir · İZBAN / Metro 🚆',fn:()=>travelMenu('İZBAN · Metro','🚆',12,['cigli','karabaglar','bostanli','alsancak','mall_forum','mall_mavibahce'])});
+  C.spots.push({x:-6,z:fz+3,r:3,t:'E: İstasyona gir · İZBAN / Metro 🚆',fn:()=>travelMenu('İZBAN · Metro','🚆',ECO.fare.izban,['cigli','karabaglar','bostanli','alsancak','mall_forum','mall_mavibahce'])});
   [[10,-20.8],[-34,-20.8]].forEach(p=>{box(3.2,1.1,4,std(0xd8d4cc),p[0],.55,p[1]-1.4);box(3.4,.1,4.4,std(0x4a4652),p[0],2.6,p[1]-1.4);[-1.5,1.5].forEach(dx=>box(.1,2.5,.1,steel,p[0]+dx,1.3,p[1]-.2));
     const ms=new T.MeshBasicMaterial({map:textSign('Ⓜ METRO',1.8,.6,'#d8322c','#ffffff')});signMats.push(ms);const mm=new T.Mesh(new T.PlaneGeometry(1.8,.6),ms);mm.position.set(p[0],3.1,p[1]+.8);W.add(mm);C.boxes.push({x:p[0],z:p[1]-1.4,hx:1.7,hz:2.1});
-    C.spots.push({x:p[0],z:p[1]+1.2,r:2.4,t:'E: Metroya in Ⓜ️',fn:()=>travelMenu('Metro','Ⓜ️',10,['alsancak','bostanli','karabaglar','cigli'])})});
+    C.spots.push({x:p[0],z:p[1]+1.2,r:2.4,t:'E: Metroya in Ⓜ️',fn:()=>travelMenu('Metro','Ⓜ️',ECO.fare.metro,['alsancak','bostanli','karabaglar','cigli'])})});
   box(2*hw,.3,3,conc,-6,vy+.3,vz+4.6);box(2*hw,.06,.25,std(0xffd23a),-6,vy+.48,vz+3.2);
   const sm=new T.MeshBasicMaterial({map:textSign('HALKAPINAR AKTARMA · İZBAN · METRO',18,1.4,'#1d4f9c','#ffffff')});signMats.push(sm);const sg=new T.Mesh(new T.PlaneGeometry(18,1.4),sm);sg.position.set(-6,15.5,cz+11.5);W.add(sg);
   C.boxes.push({x:-6,z:cz,hx:hw+.5,hz:11.9});
@@ -1399,7 +1425,7 @@ function transitHub(cx,cz){const conc=std(0xbfbbb4),white=std(0xf2f2ee),glass=st
   const bx=cz+12,bz1=-1.0;const bl=bz1-bx;box(3,.35,bl,conc,-22,7.1,(bx+bz1)/2);[-1,1].forEach(s=>{box(.06,1.1,bl,glass,-22+s*1.45,7.85,(bx+bz1)/2);box(.08,.08,bl,steel,-22+s*1.45,8.4,(bx+bz1)/2)});
   const rf=new T.Mesh(new T.CylinderGeometry(2.2,2.2,bl,12,1,true,-Math.PI/2,Math.PI),std(0xe8eef2,{side:T.DoubleSide,transparent:true,opacity:.55}));rf.rotation.x=Math.PI/2;rf.position.set(-22,7.3,(bx+bz1)/2);W.add(rf);
   [[-22,bz1+1.3],[-22,bx-1.3]].forEach(p=>{box(2.6,9,2.6,std(0xdfe6ec),p[0],4.5,p[1]);box(.1,2.4,1.4,std(0x7fb6dc),p[0]+1.32,1.3,p[1]);C.boxes.push({x:p[0],z:p[1],hx:1.4,hz:1.4})});
-  C.spots.push({x:-19.8,z:bz1+1.3,r:2.4,t:'E: Köprüden istasyona · İZBAN/Metro 🚆',fn:()=>travelMenu('İZBAN · Metro','🚆',12,['cigli','karabaglar','bostanli','alsancak','mall_forum','mall_mavibahce'])});
+  C.spots.push({x:-19.8,z:bz1+1.3,r:2.4,t:'E: Köprüden istasyona · İZBAN/Metro 🚆',fn:()=>travelMenu('İZBAN · Metro','🚆',ECO.fare.izban,['cigli','karabaglar','bostanli','alsancak','mall_forum','mall_mavibahce'])});
   railLine(vz,vy+.5,-130,130,-6,'izban');
   crowd(-14,cz+8.5,0,4);crowd(4,cz+8.5,0,3)}
 /* ---------- Halkapınar ---------- */
@@ -1742,6 +1768,7 @@ CATALOG.length=0;CAT_ORDER.forEach(k=>{const e=FURN[k].slice();while(e.length<8)
 
 /* ================= EMLAK + BANKA ================= */
 const DNAME={alsancak:'Alsancak',bostanli:'Bostanlı',cigli:'Çiğli',karabaglar:'Karabağlar',merkez:'Halkapınar'};
+CATALOG.forEach(c=>{if(typeof c[1]==='number')c[1]=ecoP(c[1],ECO.shop.k)});Object.values(FURN).forEach(f=>{if(Array.isArray(f)&&typeof f[1]==='number')f[1]=ecoP(f[1],ECO.shop.k)});
 const LIST=[
  {id:'als1',d:'alsancak',n:'Kordon Apt. · 3+1 deniz manzaralı',lay:'L',style:'klasik',deal:'sat',base:62000,age:'1984 yapımı · 5. kat',work:2.4,sea:60,hosp:900,cafe:50,at:[1.8,-55.6]},
  {id:'als2',d:'alsancak',n:'Alsancak Apt. · 2+1 eşyalı',lay:'M',style:'modern',deal:'kira',base:48000,age:'Yenilenmiş · 3. kat',work:2.2,sea:120,hosp:700,cafe:40,at:[1.8,31]},
@@ -1756,7 +1783,7 @@ const LIST=[
  {id:'bah2',d:'karabaglar',n:'Bahçeli müstakil ev · 2+1 eşyalı · kiralık',lay:'M',style:'modern',deal:'kira',base:50000,age:'2008 · tek katlı · 120 m² bahçe',work:7.4,sea:3300,hosp:1100,cafe:400,at:[-14,-52],villa:'bahce',garden:1}];
 const cl01=v=>Math.max(0,Math.min(1,v));
 LIST.forEach(L=>{const sea=cl01(1-L.sea/3000),wk=cl01(1-L.work/15),hp=cl01(1-L.hosp/3000),cf=cl01(1-L.cafe/1500);L.score={sea:sea,wk:wk,hp:hp,cf:cf};
-  L.price=Math.round(L.base*(1+.35*sea+.30*wk+.12*hp+.12*cf)*(L.style==='modern'?1.08:1)/500)*500;L.rent=Math.round(L.price/110/10)*10});
+  L.price=ECO.home.price[L.id]||Math.round(L.base*(1+.35*sea+.30*wk+.12*hp+.12*cf)*(L.style==='modern'?1.08:1)/500)*500;L.rent=Math.round(L.price/ECO.home.rentDiv/10)*10});
 const fmtM=m=>m<1000?m+' m':(m/1000).toFixed(1).replace('.0','')+' km';
 const lById=id=>LIST.find(l=>l.id===id);
 function isMine(id){return HOME.rent===id||!!HOME.own[id]}
@@ -2612,6 +2639,7 @@ const MENU_CAFE=[{n:'Çay',p:10,h:2,m:6},{n:'Simit',p:15,h:20,m:4},{n:'Kahve',p:
 const MENU_FOOD=[{n:'Tost',p:35,h:30,m:6},{n:'Döner',p:60,h:45,m:10},{n:'Dondurma',p:25,h:5,m:10},{n:'Kahve',p:20,h:0,m:12}];
 const MENU_SHOP=[{n:'Kıyafet',p:90,h:0,m:18},{n:'Aksesuar',p:45,h:0,m:9},{n:'Kitap',p:40,h:0,m:8}];
 const MENU_CINE=[{n:'Komedi filmi',p:70,h:0,m:22},{n:'Dram filmi',p:70,h:0,m:12}];
+[MENU_HT,MENU_ASPAVA,MENU_CAFE,MENU_FOOD,MENU_SHOP,MENU_CINE].forEach(M=>M.forEach(i=>{i.p=ecoP(i.p,ECO.food.k)}));
 function openMenu(title,items){if(busy)return;$('mnt').textContent=title;const l=$('mnl');l.innerHTML='';
   items.forEach(it=>{const b=el('button','it');b.appendChild(el('span','',it.n+(it.d?' · '+it.d:'')));b.appendChild(el('em','',it.p+' 🪙'));b.onclick=()=>buy(it);l.appendChild(b)});
   $('mnc').textContent='Cüzdan: '+coins+' 🪙 · çalışarak kazanabilirsin';$('menu').classList.add('on');uiPC=true}
@@ -3817,12 +3845,13 @@ function possoView(root){root.innerHTML='';const h=el('div','wid');h.style.backg
 /* ================= v29: kredi kartı, maaş, dolu şehir, Hilltown 3 kat, galeriler, otoparklar ================= */
 /* ---------- para: kredi kartı + maaş ---------- */
 const CARDS={kiz:['Ege Kart Gold',15000],sen:['Körfez Platinum',20000],abla:['İzmir Classic',12000],esi:['Körfez Platinum',18000],yegen:['Çocuk Kartı',500],almira:['Marmara Gold',14000],berke:['Marmara Platinum',16000]};
-const SAL={kiz:2000,sen:2600,abla:2200,esi:2800,yegen:250,almira:2300,berke:2500};
+Object.keys(CARDS).forEach(k=>{if(ECO.card[k])CARDS[k][1]=ECO.card[k]});
+const SAL=Object.assign({},ECO.sal);
 const CARD={name:'',limit:0,debt:0};
 function cardInit(){const c=CARDS[me.key]||['Kart',5000];CARD.name=c[0];CARD.limit=c[1];if(CARD.debt>CARD.limit)CARD.debt=CARD.limit}
 const canPay=p=>Math.max(0,coins)+Math.max(0,CARD.limit-CARD.debt)>=p;
 function pay(p){const cash=Math.max(0,Math.min(coins,p));coins-=cash;const rest=p-cash;if(rest>0){CARD.debt+=rest;setTimeout(()=>toast('💳 '+rest+'🪙 '+CARD.name+' kartından çekildi'),400)}return true}
-function payday(){if(!me||HOME.day%10!==0)return;const s=SAL[me.key]||2000;coins+=s;let paid=0;if(CARD.debt>0){paid=Math.min(CARD.debt,Math.max(0,Math.floor(coins*.6)));CARD.debt-=paid;coins-=paid}
+function payday(){if(!me||HOME.day%ECO.payEvery!==0)return;const s=SAL[me.key]||ECO.salDef;coins+=s;let paid=0;if(CARD.debt>0){paid=Math.min(CARD.debt,Math.max(0,Math.floor(coins*.6)));CARD.debt-=paid;coins-=paid}
   sfx('coin');notify('🏦 Maaş yattı!','+'+s+'🪙 hesabına geçti'+(paid?' · kart ekstresi '+paid+'🪙 ödendi':'')+(CARD.debt?' · kalan kart borcu '+CARD.debt+'🪙':''),[{t:'Süper 🎉',fn:()=>{}}])}
 /* ---------- takılı kalmayı önle ---------- */
 function unstick(){if(mode!=='int'||!curI||!blockedI(pl.x,pl.z,.28))return;for(let r=.3;r<=3.5;r+=.3)for(let a=0;a<12;a++){const x=pl.x+Math.cos(a/12*6.283)*r,z=pl.z+Math.sin(a/12*6.283)*r;if(!blockedI(x,z,.3)){pl.x=x;pl.z=z;player.position.set(x,0,z);return}}}
@@ -3855,6 +3884,7 @@ function cigliParking_old(){[-11.5,-7,7,11.5,16].forEach((x,i)=>{parkPad(x,-9.5,
 function krbParking(){[0,6,30,36,46,52].forEach((x,i)=>parkCar(x,27.9,1,0,i+2));for(let x=-16;x<=56;x+=5.2){if(x>10&&x<26)continue;paint(x,27.9,.12,2.2)}}
 /* ---------- galeriler ---------- */
 const CARLIST=[['gray_base','Hatchback · Gri',9000],['gray_white','Hatchback · Beyaz',9500],['gray_black','Hatchback · Siyah',10500],['gray_yellow','Hatchback · Sarı',11000],['blue_base','SUV · Lacivert',16000],['blue_red','SUV · Kırmızı',17000],['blue_green','SUV · Yeşil',17500]];
+CARLIST.forEach(c=>{if(ECO.car[c[0]])c[2]=ECO.car[c[0]]});
 let OWNCARS=null;
 function curCarKey(){return me.carKey||(me.car==='suv'?'blue_base':me.car==='koc'?'gray_white':'gray_base')}
 function myPI(){let i=PLATE_POOL.indexOf(me.plate);if(i<0){PLATE_POOL.push(me.plate);i=PLATE_POOL.length-1}return i}
@@ -4282,7 +4312,7 @@ function errandTick(dt){if(!ERR)return;ERR.t+=dt;const a=ERR.a;if(ERR.stage==='a
     if(a===OG)OG.where='home';INV.push({n:q.n+'\'nin kurabiyesi',e:'🍪',u:'gida',h:12,m:8});nbKnow(ERR.id,8);emitSafe('errand_done');memAdd('📦',partnerInfo()[0]+' komşumuz '+q.n+'\'ye bir şey götürdü');
     if(curI===H)setTimeout(()=>say(a.p,q.n+' selam söyledi, sana kurabiye verdi 🍪',3.5),500);else if(!SET.mute)notify(partnerInfo()[1]+' '+partnerInfo()[0],q.n+'\'ye götürdüm, sana da kurabiye verdi 🍪',[{t:'💙',fn:()=>{}}]);ERR=null}}
 /* ---------- eşya bozulması + teknik servis ---------- */
-const BREAKK={tv:'elektrik',bigtv:'elektrik',washer:'beyaz',fridge:'beyaz',dishw:'beyaz',sink:'tesisat',bsink:'tesisat',shower:'tesisat'};const SVC={elektrik:['⚡','Elektrik ustası',250,0x2a3a5a],tesisat:['🔧','Tesisatçı',200,0x2a6ab0],beyaz:['🧺','Beyaz eşya servisi',350,0x3a8a4a]};
+const BREAKK={tv:'elektrik',bigtv:'elektrik',washer:'beyaz',fridge:'beyaz',dishw:'beyaz',sink:'tesisat',bsink:'tesisat',shower:'tesisat'};const SVC={elektrik:['⚡','Elektrik ustası',ECO.repair.svc.elektrik,0x2a3a5a],tesisat:['🔧','Tesisatçı',ECO.repair.svc.tesisat,0x2a6ab0],beyaz:['🧺','Beyaz eşya servisi',ECO.repair.svc.beyaz,0x3a8a4a]};
 let BROKEN=[],JOBS=[];
 function furnId(kind,f){return kind+'|'+f.key+'|'+f.g.position.x.toFixed(1)+','+f.g.position.z.toFixed(1)}
 function markBroken(I,f,on){f.broken=on;if(on){if(!f.warn){const s=labelSprite('⚠️ Arızalı');s.scale.set(1.8,.45,1);s.position.y=2.4;f.g.add(s);f.warn=s}const sc=screenOf(f);if(sc&&(f.key==='tv'||f.key==='bigtv')){sc.userData.c0=sc.userData.c0!=null?sc.userData.c0:sc.material.color.getHex();sc.material.color.setHex(0x111114)}}
@@ -4463,8 +4493,8 @@ function airportB(x,z){building2({x:x,z:z,w:16,d:10,floors:2,pi:4,seed:131});con
   const pm=planeModel(.8);pm.position.set(x-1,0,z-11);W.add(pm);door(x,z+6.4,'havalimani','Havalimanı terminali ✈️')}
 function tattooB(x,z){shop(x,z,6,'Mürekkep Dövme 🖋️','#1b1b1f','#c8322a','#3a3a42',77);C.boxes.push({x:x,z:z,hx:3.2,hz:3.2});door(x,z+4.2,'dovme','Dövme stüdyosu')}
 /* ---------- telefonda uçuş uygulaması ---------- */
-function goAirport(){if(mode==='drive'){toast('Önce arabadan in 🚗');return}if(!payOk(150))return;pay(150);$('phone').classList.remove('on');
-  if(!ret&&mode!=='world'){const d=distOf(HOME.cur)||'cigli',sp=D[d]&&D[d].spawn||[0,0];ret={d:d,x:sp[0],z:sp[1]}}toast('🚕 Taksiyle havalimanına gidiyorsun (150🪙)');enter('havalimani')}
+function goAirport(){if(mode==='drive'){toast('Önce arabadan in 🚗');return}if(!payOk(ECO.fare.airport))return;pay(ECO.fare.airport);$('phone').classList.remove('on');
+  if(!ret&&mode!=='world'){const d=distOf(HOME.cur)||'cigli',sp=D[d]&&D[d].spawn||[0,0];ret={d:d,x:sp[0],z:sp[1]}}toast('🚕 Taksiyle havalimanına gidiyorsun ('+ECO.fare.airport+'🪙)');enter('havalimani')}
 function flyView(root){root.innerHTML='';root.appendChild(el('h3','','✈️ Uçuşlar · İzmir çıkışlı'));
   if(TRIP){const d=DEST[TRIP.dest];const st={ticket:'Bilet alındı · check-in bekliyor',checkin:'Check-in yapıldı · güvenlik',security:'Güvenlikten geçtin · Kapı 3',board:'Uçuşta ✈️',away:'Tatildesin '+d.ic,ret:'Dönüş uçuşunda'}[TRIP.stage]||'';
     root.appendChild(el('div','row2','🎫 İzmir ⇄ '+d.n+' · '+TRIP.nights+' gece · '+st));
@@ -5118,9 +5148,9 @@ function buildAirport38(){newD('havaalani',3120,0);C.air=true;C.noSea=true;C.bou
   bigParking(-62,-38,-6,3,[]);
   const TX=[];for(let i=0;i<4;i++){const c=car3d('gray_yellow',W,nextPlate());c.position.set(22+i*5.4,.05,15.6);c.userData.face(1,0);TX.push(c);C.boxes.push({x:22+i*5.4,z:15.6,hx:2.3,hz:1.1})}
   signAt('🚕 TAKSİ',2,.6,'#f4c21a','#1b1b1f',20,2.6,14.8);cyl(.06,.06,2.4,6,std(0x3a3a42),20,1.2,14.8);
-  C.spots.push({x:24,z:12.4,r:2.6,t:'E: Taksiye bin 🚕 (120🪙)',fn:()=>travelMenu('Taksi','🚕',120,['alsancak','cigli','karabaglar','bostanli','karsiyaka','merkez','mall_forum','mall_mavibahce','mall_hilltown'])});
+  C.spots.push({x:24,z:12.4,r:2.6,t:'E: Taksiye bin 🚕 ('+ECO.fare.taxi+'🪙)',fn:()=>travelMenu('Taksi','🚕',ECO.fare.taxi,['alsancak','cigli','karabaglar','bostanli','karsiyaka','merkez','mall_forum','mall_mavibahce','mall_hilltown'])});
   {const b=makeBus38({brand:'HAVAŞ',sub:'Havalimanı servisi',brandC:'#1f4a8a',route:'ALSANCAK ⇄ HAVALİMANI',c1:0xf4a020,c2:0x1f4a8a});b.position.set(-21,0,15.8);b.userData.face(1,0);W.add(b);C.boxes.push({x:-21,z:15.8,hx:6,hz:1.4})}
-  C.spots.push({x:-21,z:12.2,r:2.8,t:'E: Havaş servisine bin 🚌 (40🪙)',fn:()=>travelMenu('Havaş','🚌',40,['alsancak','cigli','karsiyaka','bostanli','merkez'])});
+  C.spots.push({x:-21,z:12.2,r:2.8,t:'E: Havaş servisine bin 🚌 ('+ECO.fare.havas+'🪙)',fn:()=>travelMenu('Havaş','🚌',ECO.fare.havas,['alsancak','cigli','karsiyaka','bostanli','merkez'])});
   for(let x=-30;x<=38;x+=8.5)palmTree38(x,25.5,1.05);[-24,-8,14,30].forEach(x=>flowerBed(x+4,26,2.2,1.4,[0xff6a8a,0xffd04a,0xffffff,0xb784e8]));
   ['#d8322c','#1f4a8a','#2f8a3a','#f4c21a'].forEach((c,i)=>{const x=-26+i*2.2;cyl(.05,.05,6,6,std(0xdddddd),x,3,7.6);const f=new T.Mesh(new T.PlaneGeometry(1.4,.9),new T.MeshBasicMaterial({color:new T.Color(c),side:T.DoubleSide}));f.position.set(x+.72,5.4,7.6);W.add(f);C.anim.push(t=>{f.rotation.y=Math.sin(t*2+i)*.25})});
   lampsAlong(rs[0],16,1);lampsAlong(rs[0],16,-1);
@@ -5178,7 +5208,7 @@ function denelDay(){if(!isDenel())return;if(rnd()<.18){try{addMsg('ogus','in',pi
 /* ---------- v38 · aşama 8: evini kiraya ver (ilan, kiracı, pazarlık, gecikme, denetim, net kira) ---------- */
 let LEASE={},LSTAT={paid:0,net:0};
 const TENN=['Mert Y.','Selin K.','Burak A.','Ece T.','Kaan D.','Zeynep Ö.','Emre S.','Derya B.','Can E.','İpek G.'],TJOB=['öğretmen','hemşire','yazılımcı','öğrenci','mimar','emekli','garson','bankacı','doktor','grafiker'];
-function mktRent(L){return Math.max(180,Math.round(L.rent||((L.price||L.base||40000)/110)))}
+function mktRent(L){return Math.max(ECO.home.rentMin,Math.round(L.rent||((L.price||L.base||40000)/ECO.home.rentDiv)))}
 function ownedList(){return Object.keys(HOME.own||{}).filter(k=>HOME.own[k]).map(k=>lById(k)).filter(Boolean)}
 function leaseCard(root,L){const id=L.id,Q=LEASE[id],mr=mktRent(L),c=el('div','ecard mine');c.appendChild(el('b','','🔑 '+L.n));const bt=el('div','bt');const add=(t,fn,pri)=>{const b=el('button',pri?'pri':'',t);b.onclick=()=>{fn();estateView(root)};bt.appendChild(b)};
   if(HOME.cur==='ev_p_'+id){c.appendChild(el('div','sub','Şu an burada oturuyorsun. Kiraya vermek için önce başka bir eve taşın.'));root.appendChild(c);return}
@@ -5190,7 +5220,7 @@ function leaseCard(root,L){const id=L.id,Q=LEASE[id],mr=mktRent(L),c=el('div','e
   else{const t=Q.t,net=Math.round(Q.ask*.9-40);c.appendChild(el('div','sub','👤 Kiracı: '+t.n+' ('+t.job+') · '+Q.ask+'🪙/hafta · net ≈ '+net+'🪙 (vergi %10 + aidat 40)'));
     c.appendChild(el('div','sub','🏚️ Ev durumu: '+(Q.seen==null?'bilinmiyor (denetle)':('%'+Math.round(Q.seen)))+' · gecikme: '+Q.late+(Q.owe?' · alacağın: '+Q.owe+'🪙':'')+' · depozito: '+Q.dep+'🪙'));
     add('🔍 Denetle (2 saat)',()=>{GT+=120;Q.seen=Q.cond;const iss=Q.cond<60?pick(['mutfak dolabı kırık','duvarda nem lekesi','kombi ses yapıyor','banyo musluğu damlatıyor']):null;toast('🔍 Ev durumu %'+Math.round(Q.cond)+(iss?' · sorun: '+iss:' · her şey yolunda ✨'));if(t.rel<.5&&rnd()<.4)toast('😬 '+t.n+' denetimden pek hoşlanmadı')});
-    if(Q.cond<92)add('🧰 Tamir ettir ('+Math.round((100-Q.cond)*28)+'🪙)',()=>{const cst=Math.round((100-Q.cond)*28);if(!payOk(cst))return;pay(cst);Q.cond=100;Q.seen=100;toast('🧰 Ev yenilendi · kiracı memnun 😊')});
+    if(Q.cond<92)add('🧰 Tamir ettir ('+Math.round((100-Q.cond)*ECO.repair.leasePt)+'🪙)',()=>{const cst=Math.round((100-Q.cond)*ECO.repair.leasePt);if(!payOk(cst))return;pay(cst);Q.cond=100;Q.seen=100;toast('🧰 Ev yenilendi · kiracı memnun 😊')});
     if(Q.late>=2)add('⚖️ Tahliye davası (600🪙)',()=>{if(!payOk(600))return;pay(600);leaseEnd(id,'tahliye')});
     add('📄 Sözleşmeyi bitir',()=>leaseEnd(id,'bitir'))}
   c.appendChild(bt);root.appendChild(c)}
@@ -5204,7 +5234,7 @@ function day38(){try{denelDay()}catch(e){}Object.keys(LEASE).forEach(id=>{const 
   else if(Q.st==='active'){const t=Q.t;Q.cond=Math.max(0,Q.cond-((1-t.rel)*2.4+rnd()*.8));
     if(Q.owe&&rnd()<.6){coins+=Q.owe+Math.round(Q.owe*.05);LSTAT.paid++;toast('💸 '+t.n+' geciken kirayı faiziyle ödedi · +'+Math.round(Q.owe*1.05)+'🪙');Q.owe=0}
     if(HOME.day%7===1){if(rnd()<(1-t.rel)*.45){Q.late++;Q.owe=(Q.owe||0)+Q.ask;notify('🏠 Kiracın',t.n+': "Bu hafta biraz sıkışığım, birkaç gün gecikecek 😔"'+(Q.late>=2?' · 2+ gecikme: tahliye davası açabilirsin':''),[{t:'Tamam',fn:()=>{}}])}
-      else{const net=Math.round(Q.ask*.9-40);coins+=net;LSTAT.paid++;LSTAT.net+=net;notify('🏦 Kira geldi','🔑 '+L.n+' · '+t.n+' kirayı yatırdı · net +'+net+'🪙 (vergi + aidat düşüldü)',[{t:'Süper',fn:()=>{}}]);emitSafe('rent_in')}}
+      else{const net=passive111(Math.round(Q.ask*.9-40));coins+=net;LSTAT.paid++;LSTAT.net+=net;notify('🏦 Kira geldi','🔑 '+L.n+' · '+t.n+' kirayı yatırdı · net +'+net+'🪙 (vergi + aidat düşüldü)',[{t:'Süper',fn:()=>{}}]);emitSafe('rent_in')}}
     if(Q.cond<35&&rnd()<.25)notify('🏠 Kiracın',t.n+': "'+pick(['Kombi bozuldu, üşüyoruz 🥶','Banyoyu su bastı! 💧','Mutfak dolabının kapağı düştü 😩'])+'" · Emlak\'tan tamir ettir',[{t:'Bakarım',fn:()=>{}}]);
     if(Q.cond<12){toast('🚪 '+t.n+' evin kötü durumu yüzünden taşındı');leaseEnd(id,'kotu')}}})}
 const _estateView38=estateView;estateView=function(root,only){_estateView38(root,only);if(only)return;try{const O=ownedList();if(!O.length)return;const box2=el('div');box2.appendChild(el('h3','','🔑 Evlerim · kiraya ver'));
@@ -5363,8 +5393,8 @@ const JOBPOOL={
   hemsire:[['Yoğun Bakım Hemşiresi','Özel Ege Hastanesi','alsancak',2700,0],['Acil Servis Hemşiresi','Kocaeli Devlet Hastanesi','kocaeli',2500,0],['Sorumlu Hemşire','Gebze Özel Tıp Merkezi','kocaeli',3000,0],['Ameliyathane Hemşiresi','Körfez Hastanesi','karsiyaka',2800,0]],
   fabrika:[['Üretim Müdürü','Marmara Beyaz Eşya','kocaeli',3600,0],['Fabrika Direktörü','Gebze Otomotiv Yan Sanayi','kocaeli',4500,0],['Kalite & Üretim Yöneticisi','İzmir Metal','cigli',3300,0],['Tesis Müdürü','Ege Ambalaj','cigli',3800,0]]};
 let LNK={apps:[],job:null,seen:0};
-function jobsFor(){const P=PROF[me.key];const L=JOBPOOL[P&&P.p]||[];const wk=Math.floor(HOME.day/4);return L.map((j,i)=>({id:P.p+'_'+i,t:j[0],co:j[1],d:j[2],sal:j[3]+((wk+i)%3)*100,rem:!!j[4]||(me.key==='sen'&&P.p==='yazilim')})).filter((j,i)=>((i+wk)%5)!==4)}
-function curSal(){return SAL[me.key]||2000}
+function jobsFor(){const P=PROF[me.key];const L=JOBPOOL[P&&P.p]||[];const wk=Math.floor(HOME.day/4);return L.map((j,i)=>({id:P.p+'_'+i,t:j[0],co:j[1],d:j[2],sal:Math.round(j[3]*ECO.job.k/100)*100+((wk+i)%3)*ECO.job.step,rem:!!j[4]||(me.key==='sen'&&P.p==='yazilim')})).filter((j,i)=>((i+wk)%5)!==4)}
+function curSal(){return SAL[me.key]||ECO.salDef}
 function linkView(root){root.innerHTML='';const P=PROF[me.key]||{t:'?'};const hd=el('div','wid');hd.style.background='linear-gradient(135deg,#0a66c2,#3a8ee6)';hd.appendChild(el('b','','in · LinkedLin'));hd.appendChild(el('div','',me.n+' · '+(LNK.job?LNK.job.t+' · '+LNK.job.co:P.t+' · '+CUROF[me.key])));root.appendChild(hd);
   if(me.key==='yegen'){root.appendChild(el('div','sub','Henüz 11 yaşındasın 🎒 Önce okul! İş ilanları büyüyünce 😊'));return}
   if(LNK.job){const r=el('div','row2');r.appendChild(el('span','','💼 '+LNK.job.t+' · '+LNK.job.co+' · '+LNK.job.sal+'🪙/10 gün'+(LNK.job.rem?' · 🏠 uzaktan':'')));root.appendChild(r);
@@ -5472,6 +5502,7 @@ addVar('f1frame','Ferrari F1 Çerçeve','🏁',85,F1FC,fF1Frame,.52,.06,null,.6,
 function f1Posters(I){if(!me||!(me.key==='kiz'||me.key==='sen')||!isHome()||I.name!==HOME.cur)return;DN.f1p=DN.f1p||{};if(DN.f1p[I.name])return;DN.f1p[I.name]=1;try{const z=-I.bz+.1;HF(I,'f1frame_0',clamp(1.4,-I.bx+1,I.bx-1),z,0);HF(I,'f1frame_2',clamp(-1.8,-I.bx+1,I.bx-1),z,0);toast('🏁 Duvara Ferrari F1 çerçeveleri asıldı · "Evi düzenle" ile yerlerini değiştirebilirsin')}catch(e){showErrOnce(e)}}
 /* ---------- v39: premium lüks araçlar + Premium Motors galerisi (Berke'nin favorisi) ---------- */
 const PREMC={p_roadster:['Roadster Spyder','🏎️',62000,0xd8101a],p_gt:['GT Coupé','🏎️',85000,0x18181c],p_suvx:['Lüks SUV','🚙',98000,0xf2f2f2],p_sedan:['Elektrikli Lüks Sedan','🚘',76000,0x5a7a98],p_hyper:['Hiper Spor','🏎️',220000,0xff6a00]};
+Object.keys(PREMC).forEach(k=>{if(ECO.lux[k])PREMC[k][2]=ECO.lux[k]});
 const PRSH={p_roadster:{lo:[[-2.25,.3],[-2.25,.74],[-1.6,.86],[1.9,.74],[2.25,.56],[2.25,.3]],ca:[[-.95,.84],[-.55,1.08],[.05,1.1],[.55,.8]],r:.36},p_gt:{lo:[[-2.3,.3],[-2.3,.8],[-1.9,.92],[1.9,.82],[2.3,.6],[2.3,.3]],ca:[[-1.4,.9],[-.6,1.28],[.4,1.3],[1.05,.84]],r:.37,sp:1},
   p_suvx:{lo:[[-2.4,.42],[-2.4,1.12],[2.25,1.08],[2.4,.78],[2.4,.42]],ca:[[-2.3,1.08],[-2.15,1.6],[.6,1.66],[1.25,1.06]],r:.43},p_sedan:{lo:[[-2.4,.34],[-2.4,.86],[-2.0,.96],[2.2,.86],[2.4,.62],[2.4,.34]],ca:[[-1.6,.94],[-.8,1.36],[.6,1.36],[1.3,.88]],r:.37},
   p_hyper:{lo:[[-2.25,.3],[-2.25,.72],[-1.6,.8],[2.0,.58],[2.3,.44],[2.3,.3]],ca:[[-1.0,.78],[-.35,1.06],[.35,1.06],[.95,.7]],r:.36,sp:1}};
@@ -8039,13 +8070,13 @@ setInterval(()=>{try{if(typeof coins!=='number'||!me)return;if(coinLast67===null
   if(!h&&top&&top.c==='diğer'&&top.d===HOME.day&&Math.sign(top.a)===Math.sign(d)&&Math.abs(GT-top.t)<20){top.a+=d;if(d>0)ST67.earn+=d;else ST67.spend+=-d}else tx67(h?h.n:(d>0?'Gelir':'Harcama · '+(curI&&curI.title?curI.title:(activeD&&activeD.label)||'şehir')),d,h?h.c:'diğer');txHint67=null}coinLast67=coins;ST67.play+=1}catch(e){}},1000);
 {const _pd=payday;payday=function(){if(me&&HOME.day%10===0)txNote67('💼 Maaş ödemesi','maaş');const r=_pd.apply(this,arguments);if(me&&HOME.day%10===0)ST67.work+=1;return r}}
 /* --- krediler: anüite (eşit taksit) planı, haftalık ödeme oyun takvimine göre --- */
-const LOANT67={ihtiyac:['🧾 İhtiyaç kredisi',.028,[4,8,12,24],20000],tasit:['🚗 Taşıt kredisi',.022,[12,24,36,52],250000],konut:['🏠 Konut kredisi',.03,[12,24,36],80000],tekne:['⛵ Tekne kredisi',.024,[12,24,36,52],600000]};
+const LOANT67={ihtiyac:['🧾 İhtiyaç kredisi',.028,[4,8,12,24],ECO.loan.ihtiyac],tasit:['🚗 Taşıt kredisi',.022,[12,24,36,52],ECO.loan.tasit],konut:['🏠 Konut kredisi',.03,[12,24,36],ECO.loan.konutMax],tekne:['⛵ Tekne kredisi',.024,[12,24,36,52],ECO.loan.tekne]};
 function annuity67(P,r,n){return r===0?P/n:P*r/(1-Math.pow(1+r,-n))}
 /* v92 konut kredisi: limit 50–80 bin (maaş, gecikme, mevcut borç), vade 12/24/36 gün, sabit faiz %2–4 (kredi notu), günlük taksit */
 function konutRate67(){return Math.round((.02+Math.min(1,Math.max(0,(900-BANK67.score)/600))*.02)*1000)/1000}
 function debtTotal67(){return BANK67.loans.reduce((s,L)=>s+(L.daily?(L.bal+(L.arr||0)):L.bal),0)+(HOME.loan?HOME.loan.debt:0)+(CARD.debt||0)}
 function noLate67(){const st=BANK67.stmt;return !(BANK67.lastLate!=null&&HOME.day-BANK67.lastLate<30)&&!BANK67.loans.some(L=>(L.arr||0)>0)&&!(st&&HOME.day>=st.due&&st.paid<st.min&&st.amt>0)}
-function konutLimit67(){const sal=salary67(),reg=sal>=1000;let base=50000;if(reg&&noLate67())base+=Math.round(Math.min(1,Math.max(0,(sal-1000)/2000))*30000);return Math.max(0,Math.floor((base-debtTotal67())/500)*500)}
+function konutLimit67(){const sal=salary67(),reg=sal>=ECO.loan.salLo;let base=ECO.loan.konutMin;if(reg&&noLate67())base+=Math.round(Math.min(1,Math.max(0,(sal-ECO.loan.salLo)/ECO.loan.salSpan))*(ECO.loan.konutMax-ECO.loan.konutMin));return Math.max(0,Math.floor((base-debtTotal67())/500)*500)}
 function loanDaily67(){BANK67.loans.slice().forEach(L=>{if(!L.daily)return;const sched=L.left>0?Math.min(L.inst,L.rem):0,due=sched+(L.arr||0);if(due<=0){BANK67.loans=BANK67.loans.filter(q=>q!==L);return}
     if(coins>=due){coins-=due;coinLast67=coins;tx67(L.name+' taksiti ('+(L.n-L.left+1)+'/'+L.n+')'+(L.arr?' + gecikmiş':''),-due,'kredi');L.paid+=due;L.arr=0;BANK67.score=Math.min(900,BANK67.score+1)}
     else{const pen=Math.ceil(sched*.1);L.arr=(L.arr||0)+sched+pen;L.late++;L.pen=(L.pen||0)+pen;BANK67.lastLate=HOME.day;BANK67.score=Math.max(300,BANK67.score-25);tx67(L.name+' taksiti ödenemedi · ceza '+pen+'🪙',0,'kredi');
@@ -8055,7 +8086,7 @@ function loanDaily67(){BANK67.loans.slice().forEach(L=>{if(!L.daily)return;const
 function loanClose67(L){return Math.ceil(L.bal+(L.arr||0))}
 function loanOffer67(type,P,n){if(type==='konut'){const r=konutRate67(),total=Math.ceil(P*(1+r));return {type:type,P:P,r:r,n:n,inst:Math.ceil(total/n),total:total,daily:1}}const T0=LOANT67[type],r=T0[1]*(1+(700-BANK67.score)/1000),inst=Math.ceil(annuity67(P,r,n));return {type:type,P:P,r:r,n:n,inst:inst,total:inst*n}}
 function loanGrant67(o,asset){const L={id:BANK67.nid++,type:o.type,name:LOANT67[o.type][0],P:o.P,r:o.r,n:o.n,inst:o.inst,left:o.n,bal:o.P,paid:0,late:0,asset:asset||null,d0:HOME.day};if(o.daily){L.daily=1;L.rem=o.total;L.arr=0}BANK67.loans.push(L);return L}
-function salary67(){return (typeof SAL!=='undefined'&&me&&SAL[me.key])||2000}
+function salary67(){return (typeof SAL!=='undefined'&&me&&SAL[me.key])||ECO.salDef}
 function maxLoan67(type){if(type==='konut')return konutLimit67();const cap=salary67()*(type==='konut'?120:type==='tekne'?60:type==='tasit'?40:8)*(BANK67.score/700);return Math.round(Math.min(LOANT67[type][3],cap)/500)*500}
 function loanWeekly67(){BANK67.loans.slice().forEach(L=>{if(L.daily)return;const int=L.bal*L.r,pr=Math.min(L.bal,L.inst-int);if(coins>=L.inst){coins-=L.inst;coinLast67=coins;tx67(L.name+' taksiti ('+(L.n-L.left+1)+'/'+L.n+')',-L.inst,'kredi');L.bal=Math.max(0,L.bal-pr);L.paid+=L.inst;L.left--;BANK67.score=Math.min(900,BANK67.score+2)}
     else{L.late++;CARD.debt+=L.inst;tx67(L.name+' taksiti karttan (yetersiz bakiye)',0,'kredi');L.bal=Math.max(0,L.bal-pr);L.left--;BANK67.lastLate=HOME.day;BANK67.score=Math.max(300,BANK67.score-25);setTimeout(()=>notify('🏦 Taksit','Hesabında yeterli bakiye yoktu; '+L.inst+'🪙 taksit kredi kartına yansıtıldı. Kredi notun düştü.',[{t:'Tamam',fn:()=>{}}]),1500)}
@@ -9158,14 +9189,14 @@ function mrsPortraits(){if(MRS_IMG._ok)return MRS_IMG;let R=null;try{R=new T.Web
   Object.keys(MRS_BUILD).forEach(k=>shot(k,MRS_BUILD[k]));shot('eski',mrsOld);MRS_IMG._ok=1}catch(e){scnErr(e)}finally{try{if(R){R.dispose();R.forceContextLoss()}}catch(e){}}return MRS_IMG}
 /* --- LIST: Bornova satılık lüks evler + inşa edilen ev --- */
 const DNAME_ADD=()=>{DNAME.bornova='Bornova'};DNAME_ADD();
-[{id:'brn1',d:'bornova',n:'Lüks havuzlu villa · 4+1',lay:'L',style:'modern',deal:'sat',price:1150000,age:'2024 · 2 katlı · 260 m² · havuz',work:9,sea:5200,hosp:900,cafe:300,at:[38,-6],villa:'brn'},
- {id:'brn2',d:'bornova',n:'Bahçeli müstakil ev · 3+1 · geniş bahçe',lay:'M',style:'klasik',deal:'sat',price:420000,age:'2015 · tek katlı · 300 m² bahçe',work:9,sea:5200,hosp:1000,cafe:350,at:[70,-6],villa:'bahce',garden:1},
- {id:'brn3',d:'bornova',n:'Teraslı dubleks villa · 4+1',lay:'L',style:'modern',deal:'sat',price:780000,age:'2022 · dubleks · teras',work:9,sea:5200,hosp:1100,cafe:400,at:[102,-6],villa:'brn'}].forEach(L=>{L.score={sea:0,wk:.4,hp:.7,cf:.8};L.rent=Math.round(L.price/110/10)*10;LIST.push(L)});
+[{id:'brn1',d:'bornova',n:'Lüks havuzlu villa · 4+1',lay:'L',style:'modern',deal:'sat',price:ECO.home.price.brn1,age:'2024 · 2 katlı · 260 m² · havuz',work:9,sea:5200,hosp:900,cafe:300,at:[38,-6],villa:'brn'},
+ {id:'brn2',d:'bornova',n:'Bahçeli müstakil ev · 3+1 · geniş bahçe',lay:'M',style:'klasik',deal:'sat',price:ECO.home.price.brn2,age:'2015 · tek katlı · 300 m² bahçe',work:9,sea:5200,hosp:1000,cafe:350,at:[70,-6],villa:'bahce',garden:1},
+ {id:'brn3',d:'bornova',n:'Teraslı dubleks villa · 4+1',lay:'L',style:'modern',deal:'sat',price:ECO.home.price.brn3,age:'2022 · dubleks · teras',work:9,sea:5200,hosp:1100,cafe:400,at:[102,-6],villa:'brn'}].forEach(L=>{L.score={sea:0,wk:.4,hp:.7,cf:.8};L.rent=Math.round(L.price/ECO.home.rentDiv/10)*10;LIST.push(L)});
 function mrsListing(){const S=mrsS();if(!S||S.st!=='built'||!S.model)return null;let L=lById('mrs_ev');const M=MRS_MODELS[S.model];
-  if(!L){L={id:'mrs_ev',d:'bornova',n:M.n+' (büyükannemin arsası)',lay:M.lay,style:M.style,deal:'sat',price:900000+M.p,age:'Yeni yapı · Gün '+(S.bd||HOME.day),work:9,sea:5200,hosp:900,cafe:300,at:[6,-6],villa:'mrs',score:{sea:0,wk:.4,hp:.7,cf:.8}};if(M.garden)L.garden=1;L.rent=Math.round(L.price/110/10)*10;LIST.push(L)}return L}
+  if(!L){L={id:'mrs_ev',d:'bornova',n:M.n+' (büyükannemin arsası)',lay:M.lay,style:M.style,deal:'sat',price:ECO.home.mrsBase+M.p,age:'Yeni yapı · Gün '+(S.bd||HOME.day),work:9,sea:5200,hosp:900,cafe:300,at:[6,-6],villa:'mrs',score:{sea:0,wk:.4,hp:.7,cf:.8}};if(M.garden)L.garden=1;L.rent=Math.round(L.price/ECO.home.rentDiv/10)*10;LIST.push(L)}return L}
 {const _ia=isApt74;isApt74=function(k){const m=/^ev_p_(.+)$/.exec(k||''),L=m&&lById(m[1]);if(L&&L.d==='bornova')return false;return _ia.apply(this,arguments)}}
 /* --- lüks araçlar (galeri) --- */
-Object.assign(PREMC,{p_limo:['Lüks Limuzin','🚘',380000,0x16161c],p_carbon:['Süper GT · Karbon','🏎️',650000,0x2a2f3a],p_gold:['Hiper Spor · Altın Seri','🏎️',1250000,0xd4a64a]});
+Object.assign(PREMC,{p_limo:['Lüks Limuzin','🚘',ECO.lux.p_limo,0x16161c],p_carbon:['Süper GT · Karbon','🏎️',ECO.lux.p_carbon,0x2a2f3a],p_gold:['Hiper Spor · Altın Seri','🏎️',ECO.lux.p_gold,0xd4a64a]});
 Object.assign(PRSH,{p_limo:PRSH.p_sedan,p_carbon:PRSH.p_gt,p_gold:PRSH.p_hyper});
 /* --- Bornova semti --- */
 PLACES.bornova={n:'Bornova · Yeşil Mahalle',icon:'🏡',d:'bornova',km:11.6,m:3000};D2P.bornova='bornova';TRAVEL_LBL.bornova='Bornova 🏡';try{KM72.bornova=11.6}catch(e){}
@@ -9215,12 +9246,12 @@ function mrsDecide(){const I=mrsPortraits();scnCards({title:'🏚️ Büyükanne
   {ic:'🏗️',t:'Yıktır, kendi evini yap',d:'8 ev modelinden birini seç · 10 günde hazır',fn:mrsBuildPick}],cancel:'Biraz düşüneyim'})}
 /* --- (a) satış pazarlığı --- */
 function mrsSell(){const S=mrsS();if(!S.offers){const r=Math.random,rd=v=>Math.round(v/5000)*5000;S.neg=2;
-    S.offers=[{n:'Müteahhit Ahmet Bey',ic:'👷',d:'Peşin öder, yarın tapu',p:rd(1200000+r()*220000)},{n:'Genç bir aile',ic:'👨‍👩‍👧',d:'Bahçeye bayıldılar · kredili',p:rd(1380000+r()*250000)},{n:'Yatırımcı Selin Hanım',ic:'💼',d:'Arsayı istiyor · pazarlığı sever',p:rd(1560000+r()*240000)}];try{saveGame()}catch(e){}}
+    const Q=ECO.inherit.mrs;S.offers=[{n:'Müteahhit Ahmet Bey',ic:'👷',d:'Peşin öder, yarın tapu',p:rd(Q[0][0]+r()*Q[0][1])},{n:'Genç bir aile',ic:'👨‍👩‍👧',d:'Bahçeye bayıldılar · kredili',p:rd(Q[1][0]+r()*Q[1][1])},{n:'Yatırımcı Selin Hanım',ic:'💼',d:'Arsayı istiyor · pazarlığı sever',p:rd(Q[2][0]+r()*Q[2][1])}];try{saveGame()}catch(e){}}
   const cards=S.offers.map(o=>({ic:o.ic,t:o.n,d:o.d+' · kabul et',price:o.p,fn:()=>mrsSold(o)}));
   cards.push({ic:'🤝',t:'Pazarlık et',d:S.neg>0?'Fiyatları yukarı çek · risk: bir alıcı vazgeçebilir · kalan hak '+S.neg:'Emlakçı: "Daha fazlası zor, inanın" 😅',dis:S.neg<=0,fn:mrsNegotiate});
   scnCards({title:'🏠 Emlakçı Kemal Bey · teklifler',sub:'"Bornova\'da bahçeli arsa altın değerinde Denel Hanım." · tutarlar 🪙',cards:cards,cancel:'Satmaktan vazgeç',onCancel:()=>toast('İstediğin zaman eski eve gidip tekrar karar verebilirsin 🏚️')})}
 function mrsNegotiate(){const S=mrsS();if(S.neg<=0)return mrsSell();S.neg--;let gone=null;
-  S.offers.forEach(o=>{o.p=Math.min(2000000,Math.round(o.p*(1.04+Math.random()*.07)/5000)*5000)});if(S.offers.length>1&&Math.random()<.3){const i=Math.floor(Math.random()*S.offers.length);gone=S.offers.splice(i,1)[0]}
+  S.offers.forEach(o=>{o.p=Math.min(ECO.inherit.mrsMax,Math.round(o.p*(1.04+Math.random()*.07)/5000)*5000)});if(S.offers.length>1&&Math.random()<.3){const i=Math.floor(Math.random()*S.offers.length);gone=S.offers.splice(i,1)[0]}
   try{saveGame()}catch(e){}sfx('blip');toast(gone?'😬 '+gone.n+' pazarlıktan çekildi! Diğerleri tekliflerini yükseltti':'🤝 Pazarlık işe yaradı · teklifler yükseldi');setTimeout(mrsSell,350)}
 function mrsSold(o){const S=mrsS();if(!confirm(o.n+' · '+o.p.toLocaleString('tr-TR')+' 🪙 · satış kesinleşsin mi?'))return mrsSell();
   coins+=o.p;try{txNote67('🏚️ Miras ev satışı','gelir')}catch(e){}S.st='sold';S.sold={n:o.n,p:o.p,d:HOME.day};delete S.offers;scnTaskDone('mrs_karar');sfx('coin');mood=clamp(mood+15,0,100);try{memAdd('💰','Büyükannemin evini sattım · '+o.p.toLocaleString('tr-TR')+'🪙')}catch(e){}
@@ -9279,6 +9310,7 @@ const PR81={yumurta:{n:'Köy yumurtası',e:'🥚',h:6,m:2,sell:4},kiraz:{n:'Kira
 const TREES81=[{k:'kiraz',s:[0],c:0x8a0a1a,x:44,z:-12},{k:'seftali',s:[1],c:0xf0985a,x:51,z:-12},{k:'elma',s:[2],c:0xd8282a,x:58,z:-12},
   {k:'armut',s:[1,2],c:0xc8c040,x:44,z:-20},{k:'mandalina',s:[3],c:0xf08a10,x:51,z:-20},{k:'limon',s:[3,0],c:0xf2e040,x:58,z:-20}];
 const SR_RENT={mehmet:{n:'Seracı Mehmet Bey',ic:'👨‍🌾',p:160,d:'20 yıllık seracı · her gün düzenli öder'},koop:{n:'Menemen Kadın Kooperatifi',ic:'👩‍🌾',p:125,d:'Az kira ama haftada bir kasa ürün getirir'},genc:{n:'Genç girişimci Efe',ic:'🧑‍💻',p:195,d:'En yüksek kira · bazen ödemeyi geciktirir'}};
+Object.keys(SR_RENT).forEach(k=>{if(ECO.sera.rent[k])SR_RENT[k].p=ECO.sera.rent[k]});
 function srInit(){const S=srS();if(!S)return null;if(!S.led)S.led={sat:0,kira:0,isit:0,sula:0,yem:0,ucret:0};if(S.heat==null)S.heat=true;if(S.drip==null)S.drip=true;if(!S.tr)S.tr={};
   if(!FARM77.g[SR_ID]||FARM77.g[SR_ID].p.length!==18)FARM77.g[SR_ID]={p:Array.from({length:18},()=>({s:'e'})),mow:HOME.day,fl:[]};return S}
 const srCold=()=>meanTemp64()<14;
@@ -9293,7 +9325,7 @@ const srCosts=()=>{const S=srS()||{};return {isit:S.heat?srHeatCost():0,sula:S.d
       if(!warm){snap=G.p.map(p=>p.st|0);frost=meanTemp64()<7}
       if(S.drip)G.p.forEach(p=>{if(p.s==='s')p.w=Math.max(p.w|0,HOME.day-1)})}
     if(S&&S.st==='kira'&&S.ten){const R=SR_RENT[S.ten];let p=R.p;if(S.ten==='genc'&&Math.random()<.2){p=0;S.late=(S.late|0)+R.p;msg.push('🧑‍💻 Efe bugünkü kirayı geciktirdi')}else if(S.late&&S.ten==='genc'&&Math.random()<.5){p+=S.late;S.late=0}
-      coins+=p;S.led.kira+=p;S.wk=(S.wk|0)+p;if(S.ten==='koop'&&HOME.day%7===0){const L=['domates','biber','salatalik'];for(let i=0;i<6;i++){const c=CROPS77[L[i%3]];INV.push({n:c.n,e:c.e,u:'gida',h:c.h,m:c.m,farm77:L[i%3]})}msg.push('👩‍🌾 Kooperatiften 1 kasa ürün geldi (çantanda)')}
+      if(p>0)p=passive111(p);coins+=p;S.led.kira+=p;S.wk=(S.wk|0)+p;if(S.ten==='koop'&&HOME.day%7===0){const L=['domates','biber','salatalik'];for(let i=0;i<6;i++){const c=CROPS77[L[i%3]];INV.push({n:c.n,e:c.e,u:'gida',h:c.h,m:c.m,farm77:L[i%3]})}msg.push('👩‍🌾 Kooperatiften 1 kasa ürün geldi (çantanda)')}
       if(HOME.day%7===1&&S.wk){const w=S.wk;S.wk=0;setTimeout(()=>notify('🌿 Menemen çiftliği','Bu haftaki kira geliri: '+w.toLocaleString('tr-TR')+' 🪙 · '+R.n,[{t:'Tamam',fn:()=>{}}]),5000)}}}catch(e){scnErr(e)}
   const r=_fd.apply(this,arguments);
   try{if(snap&&G){G.p.forEach((p,k)=>{if(p.s!=='s')return;if(frost)G.p[k]={s:'x',c:p.c};else p.st=Math.min(p.st|0,snap[k])});msg.push(frost?'🥶 Sera dondu! Isıtma kapalıyken fideler öldü':'🌡️ Sera soğuk kaldı · bitkiler büyümedi (ısıtmayı aç)')}
@@ -9465,7 +9497,7 @@ const GH_CROPS81=['domates','biber','salatalik','cilek','patlican'];
 function srStock(){const M={};INV.forEach(x=>{let k=null,P=null;if(x.farm81&&PR81[x.farm81]){k='p:'+x.farm81;P=PR81[x.farm81]}else if(x.farm77&&CROPS77[x.farm77]){k='c:'+x.farm77;P=CROPS77[x.farm77]}if(!k)return;(M[k]=M[k]||{k:k,n:P.n,e:P.e,base:P.sell,q:0}).q++});
   const w=season81()===3;Object.values(M).forEach(m=>{m.off=w&&GH_CROPS81.indexOf(m.k.slice(2))>=0&&m.k[0]==='c';m.pr=Math.round(m.base*(m.off?2:1.5))});return Object.values(M)}
 function srStall(where){if(busy||SCN_UI)return;const S=srS();if(!S||!isOguz81())return;const stock=srStock();if(!stock.length){toast('🧺 Satacak ürünün yok · serada hasat yap, yumurta ve meyve topla');return}
-  const fee=where==='koy'?20:35,CUST=['👵','👴','👩','👨','🧕','👩‍🦳','🧔','👱‍♀️','👨‍🍳','🧑'];
+  const fee=where==='koy'?ECO.sera.fee.koy:ECO.sera.fee.semt,CUST=['👵','👴','👩','👨','🧕','👩‍🦳','🧔','👱‍♀️','👨‍🍳','🧑'];
   const ov=scnOpen(),w=el('div','stl');ov.appendChild(w);uiPC=true;
   w.appendChild(el('h3','','🧺 '+me.n+'\'un tezgâhı · '+(where==='koy'?'Menemen Köy Pazarı':'semt pazarı')));w.appendChild(el('div','sb','Fiyatları ayarla, tezgâhı aç. Ucuz satarsan hızlı biter, pahalıya müşteri kaçar. Tezgâh ücreti '+fee+'🪙'+(season81()===3?' · ❄️ Kışın sera sebzesi kıymetli!':'')));
   const sw=el('div','stw');sw.appendChild(el('div','aw'));w.appendChild(sw);const list=el('div');w.appendChild(list);const sts=el('div','sts');w.appendChild(sts);const hg=el('div','hg');w.appendChild(hg);const go=el('button','go','🧺 Tezgâhı aç · '+fee+'🪙');w.appendChild(go);const log=el('div','stlog');w.appendChild(log);
@@ -9505,11 +9537,11 @@ function srRentMenu(){const S=srS(),R=SR_RENT[S.ten];actionMenu('🔑 Kirada · 
   ['👨‍🌾','Kiracıyı çıkar, çiftliği kendim işleteyim',()=>{if(!confirm('Sözleşme feshedilsin mi? Çiftliği yeniden sen işleteceksin.'))return;srStartIslet()}],['💰','Çiftliği sat',srSell]])}
 /* --- satış --- */
 function srSell(){const S=srInit();if(!S.offers){const r=Math.random,rd=v=>Math.round(v/5000)*5000;S.neg=2;
-    S.offers=[{n:'Tarım şirketi Ege Agro',ic:'🏭',d:'Peşin öder · seraları büyütecek',p:rd(650000+r()*120000)},{n:'Emekli öğretmen çift',ic:'👵',d:'Köyde huzur arıyorlar · kredili',p:rd(720000+r()*120000)},{n:'Organik tarım girişimcisi',ic:'🌱',d:'Sera ve kümesi aynen sürdürecek',p:rd(800000+r()*120000)}];try{saveGame()}catch(e){}}
+    const Q=ECO.inherit.sr;S.offers=[{n:'Tarım şirketi Ege Agro',ic:'🏭',d:'Peşin öder · seraları büyütecek',p:rd(Q[0][0]+r()*Q[0][1])},{n:'Emekli öğretmen çift',ic:'👵',d:'Köyde huzur arıyorlar · kredili',p:rd(Q[1][0]+r()*Q[1][1])},{n:'Organik tarım girişimcisi',ic:'🌱',d:'Sera ve kümesi aynen sürdürecek',p:rd(Q[2][0]+r()*Q[2][1])}];try{saveGame()}catch(e){}}
   const cards=S.offers.map(o=>({ic:o.ic,t:o.n,d:o.d+' · kabul et',price:o.p,fn:()=>srSold(o)}));
   cards.push({ic:'🤝',t:'Pazarlık et',d:S.neg>0?'Fiyatları yukarı çek · risk: bir alıcı vazgeçebilir · kalan hak '+S.neg:'Emlakçı: "Menemen için bu fiyat çok iyi" 😅',dis:S.neg<=0,fn:srNegotiate});
   scnCards({title:'🌿 Emlakçı Nuri Bey · teklifler',sub:'"Sera, kümes, meyve bahçesi… Oğuz Bey bu çiftlik kapış kapış gider." · tutarlar 🪙',cards:cards,cancel:'Satmaktan vazgeç',onCancel:()=>toast('İstediğin zaman çiftlik evine gidip tekrar karar verebilirsin 🏡')})}
-function srNegotiate(){const S=srS();if(S.neg<=0)return srSell();S.neg--;let gone=null;S.offers.forEach(o=>{o.p=Math.min(1000000,Math.round(o.p*(1.04+Math.random()*.07)/5000)*5000)});
+function srNegotiate(){const S=srS();if(S.neg<=0)return srSell();S.neg--;let gone=null;S.offers.forEach(o=>{o.p=Math.min(ECO.inherit.srMax,Math.round(o.p*(1.04+Math.random()*.07)/5000)*5000)});
   if(S.offers.length>1&&Math.random()<.3){const i=Math.floor(Math.random()*S.offers.length);gone=S.offers.splice(i,1)[0]}try{saveGame()}catch(e){}sfx('blip');toast(gone?'😬 '+gone.n+' pazarlıktan çekildi! Diğerleri tekliflerini yükseltti':'🤝 Pazarlık işe yaradı · teklifler yükseldi');setTimeout(srSell,350)}
 function srSold(o){const S=srS();if(!confirm(o.n+' · '+o.p.toLocaleString('tr-TR')+' 🪙 · satış kesinleşsin mi?'))return srSell();
   coins+=o.p;try{txNote67('🌿 Menemen çiftliği satışı','gelir')}catch(e){}S.st='sold';S.sold={n:o.n,p:o.p,d:HOME.day};delete S.offers;delete S.ten;scnTaskDone('sr_karar');scnTaskDel('sr_ilk');delete FARM77.g[SR_ID];sfx('coin');mood=clamp(mood+12,0,100);
@@ -9529,7 +9561,7 @@ const isCico83=()=>!!me&&me.key==='abla',kfS=()=>SCN.v.kafe||null,kfWho=()=>{con
 const KF_NM={abla:{bohem:'Çiço Bohem Kafe',modern:'ÇİÇO Coffee Lab',retro:'Çiço Retro Diner'},almira:{bohem:'Almira Bohem Kafe',modern:'ALMİRA Coffee Lab',retro:'Almira Retro Diner'}};
 function kfNm(k){const m=KF_NM[kfWho()];return m&&m[k]||KF_TH[k].nm}
 function kfOwned(S){S=S||kfS();return !!(S&&S.br&&[1,2].some(b=>S.br[b]&&S.br[b].st&&S.br[b].st!=='ilan'))}
-const KF_BR={1:{d:'karsiyaka',x:87,z:3,n:'Karşıyaka',p:300000,fix:560},2:{d:'bostanli',x:86,z:8,n:'Bostanlı',p:450000,fix:680}};
+const KF_BR={1:{d:'karsiyaka',x:87,z:3,n:'Karşıyaka',p:ECO.kafe.br[1].p,fix:ECO.kafe.br[1].fix},2:{d:'bostanli',x:86,z:8,n:'Bostanlı',p:ECO.kafe.br[2].p,fix:ECO.kafe.br[2].fix}};
 const KF_TH={bohem:{n:'Bohem',ic:'🪴',d:'Makrome, bitkiler, kilim, sıcak ahşap · tatlılar daha çok satar, müşteri daha sabırlı',nm:'Çiço Bohem Kafe',wall:'#ead7bd',tile:['#c89a6a','#b98b5c'],aw:['#c86a3a','#f4e2c4'],sg:['#5a3a22','#f4e2c4'],acc:0xc86a3a,tab:0x9a6a42,ch:0xd8b07a},
   modern:{n:'Modern',ic:'🤍',d:'Beton, cam, minimal çizgiler · kahveler %15 daha pahalı',nm:'ÇİÇO Coffee Lab',wall:'#efefed',tile:['#d6d6d4','#c6c6c4'],aw:['#2a2a2e','#ffffff'],sg:['#1a1a1e','#ffffff'],acc:0x2a2a2e,tab:0xf4f4f2,ch:0x2a2a2e},
   retro:{n:'Retro',ic:'📻',d:'Damalı zemin, kırmızı sedirler, pikap · bahşişler bol',nm:'Çiço Retro Diner',wall:'#f4e8c8',tile:['#f4f0e8','#2a2a2a'],aw:['#d8322c','#ffffff'],sg:['#d8322c','#fff4d0'],acc:0xd8322c,tab:0xf4f4f0,ch:0xd8322c}};
@@ -9683,7 +9715,7 @@ function kfShift(bid){if(busy||SCN_UI)return;const S=kfS(),B=S.br[bid];if(B.sh==
 /* --- gün sonu: personel geliri, sabit giderler, 2. şube fırsatı --- */
 {const _nd=newDay;newDay=function(){const r=_nd.apply(this,arguments);try{kfDaily()}catch(e){scnErr(e)}return r}}
 function kfDaily(){const S=kfS();if(!S||!S.br)return;let lines=[],tot=0;[1,2].forEach(bid=>{const B=S.br[bid];if(!B||B.st!=='acik')return;const R=KF_BR[bid];
-    const rev=Math.round((600+S.rep*10)*(bid==2?1.15:1)*(S.nurse==='istifa'?1.15:1)*(.9+Math.random()*.2)),ing=Math.round(rev*.3),net=rev-ing-R.fix;coins+=net;S.led.ciro+=rev;S.led.masraf+=ing+R.fix;tot+=net;lines.push(R.n+': ciro '+rev+' · masraf '+(ing+R.fix)+' · '+(net>=0?'+':'')+net+'🪙')});
+    const rev=Math.round((ECO.kafe.base+S.rep*ECO.kafe.perRep)*(bid==2?1.15:1)*(S.nurse==='istifa'?1.15:1)*(.9+Math.random()*.2)),ing=Math.round(rev*ECO.kafe.ing);let net=rev-ing-R.fix;if(net>0){const pd=passive111(net);if(pd<net)lines.push('🧾 gelir tavanı: '+(net-pd)+'🪙 vergi/gider');net=pd}coins+=net;S.led.ciro+=rev;S.led.masraf+=ing+R.fix;tot+=net;lines.push(R.n+': ciro '+rev+' · masraf '+(ing+R.fix)+' · '+(net>=0?'+':'')+net+'🪙')});
   if(lines.length){tot+=(S.today|0);S.days=(S.days||[]).concat([{d:HOME.day-1,net:tot}]).slice(-14);S.today=0;try{txNote67('☕ Kafe gün sonu','gelir')}catch(e){}setTimeout(()=>notify('☕ Kafe · gün sonu',lines.join(' | ')+' · memnuniyet %'+S.rep,[{t:'Tamam',fn:()=>{}}]),8000)}
   if(S.br[1]&&S.br[1].st==='acik'&&!S.br[2]&&S.rep>=70&&S.shifts>=3){S.br[2]={st:'ilan'};kfDraw(2);try{saveGame()}catch(e){}setTimeout(()=>{scnTask('kf_sube2','Bostanlı\'daki 2. şube fırsatını değerlendir','📈');
     const X=KF_INTRO[kfWho()]||KF_INTRO._;notify(X.sube[0],X.sube[1].replace('{rep}',S.rep),[{t:'İlana bak',fn:()=>kfIlan(2)},{t:'Sonra',fn:()=>{}}])},12000)}}
@@ -10098,11 +10130,12 @@ const SS_MODEL={gray_base:['Kordon','Kompakt 1.4','Hatchback'],gray_white:['Kord
 const SS_COLOR={gray_base:'Gri',gray_white:'Beyaz',gray_black:'Siyah',gray_yellow:'Sarı',blue_base:'Lacivert',blue_red:'Kırmızı',blue_green:'Yeşil',p_roadster:'Kırmızı',p_gt:'Siyah',p_sedan:'Çelik mavi',p_suvx:'Beyaz'};
 const SS_PARTS=[['kaput','Kaput'],['tavan','Tavan'],['bagaj','Bagaj'],['ontampon','Ön tampon'],['arkatampon','Arka tampon'],['solon','Sol ön çamurluk'],['solonk','Sol ön kapı'],['solark','Sol arka kapı'],['solar','Sol arka çamurluk'],['sagon','Sağ ön çamurluk'],['sagonk','Sağ ön kapı'],['sagark','Sağ arka kapı'],['sagar','Sağ arka çamurluk']];
 const SS_FAULTS=[['Debriyaj balatası bitmek üzere',2200],['Şanzımanda vuruntu',6500],['Turbo yağ kaçırıyor',5400],['Silindir kapak contası sızdırıyor',4800],['Alt takım (salıncak) ses yapıyor',1800],['Klima kompresörü arızalı',3200],['Enjektör arızası',3900],['Motor takozu çatlak',1400]];
+SS_FAULTS.forEach(f=>{f[1]=Math.round(f[1]*ECO.repair.carK/100)*100});
 const SS_VIS=['Lastikler yeni sayılır','Ön balatalar değişmeli','Sağ arka camda çizik','Akü 3 yaşında','Silecek motoru yavaş','Koltuklarda hafif yıpranma','Periyodik bakımları yetkili serviste','Kış lastiği hediye'];
 const SS_LOC=['Karşıyaka · Bostanlı','Bornova · Erzene','Çiğli · Ataşehir','Konak · Alsancak','Buca · Şirinyer','Karabağlar · Uzundere','Bayraklı · Mansuroğlu','Gaziemir · Sarnıç'];
 const SS_GAL=['Ege Otomotiv','Körfez Oto Galeri','Kordon Motors','Bornova Oto Plaza','Yamanlar Otomotiv'],SS_OWN=['Murat B.','Ayşe K.','Emre T.','Zeynep A.','Hakan Y.','Selin D.','Okan Ç.'];
 const SS={st:{},sold:{},F:'all',S:'p',sel:null,view:'q',mode:'car'};
-function ssBase(k){const c=CARLIST.find(q=>q[0]===k);if(c)return c[2];return PREMC[k]?PREMC[k][2]:12000}
+function ssBase(k){const c=CARLIST.find(q=>q[0]===k);if(c)return c[2];return PREMC[k]?PREMC[k][2]:ECO.carDef}
 function ssAds(){const wk=Math.floor((HOME.day-1)/3),r=mulberry((wk*7919+1234)>>>0),L=[];const keys=CARLIST.map(c=>c[0]).concat(['p_roadster','p_gt','p_sedan','p_suvx']);
   for(let i=0;i<14;i++){const k=keys[i<keys.length?i:Math.floor(r()*7)],id='c'+wk+'_'+i,age=1+Math.floor(r()*(PREMC[k]?6:13)),year=2026-age,km=Math.round((age*(9000+r()*14000)+r()*8000)/100)*100;
     const parts={},real={},nDeg=r()<.3?1+Math.floor(r()*3):0,nBoya=Math.floor(r()*r()*5);
@@ -11725,6 +11758,22 @@ function unloadDistrict110(n){const A=D[n];if(!A||A===activeD||!A.G)return false
   swRow(g,'📊 FPS göster','FPS, çizim çağrısı ve üçgen sayısı (sol alt)','fpsHud',()=>{})}catch(e){}return r}}
 window.__s110={tour:o=>tour110(o),get res(){return TOUR110.res},get err(){return ERR110.list},save:o=>saveTest110(o),norm:S=>normalizeSave110(S),mem:()=>({D:Object.keys(D),INT:Object.keys(INT),geo:renderer.info.memory.geometries,tex:renderer.info.memory.textures,heap:performance.memory?Math.round(performance.memory.usedJSHeapSize/1048576):null,unload:MEM110.distUnload,intDisp:MEM110.intDisp,last:MEM110.last,facades:facades.length,glows:glows.length}),
   ph:()=>({calls:PH110.calls,tris:PH110.tris,fps:Math.round(DYN.fps)}),doors:()=>[...DOORK110],mg:()=>{const A=activeD;return A?{done:A.mgDone,n:A.mgN,b:(A.mgB||[]).length}:null},unload:n=>unloadDistrict110(n),dispInt:()=>disposeInteriors110()};
+/* ================= v111: ekonomi · pasif gelir tavanı, ürün satış fiyatları, eski kayıt ölçek göçü (paraya dokunulmaz) ================= */
+const PAS111={day:-1,sum:0,cut:0};
+/* pasif gelir (kafe, sera kirası, ev kirası): günlük toplam, günlük maaşın ECO.passive.capK katını geçemez */
+function passive111(v){if(!(v>0))return v;if(PAS111.day!==HOME.day){PAS111.day=HOME.day;PAS111.sum=0;PAS111.cut=0}const cap=Math.round((salary67()/ECO.payEvery)*ECO.passive.capK),room=Math.max(0,cap-PAS111.sum),pay=Math.min(v,room);PAS111.sum+=pay;PAS111.cut+=v-pay;return pay}
+Object.values(PR81).forEach(q=>{if(typeof q.sell==='number')q.sell=Math.max(1,Math.round(q.sell*ECO.sera.sellK))});Object.values(CROPS77).forEach(q=>{if(typeof q.sell==='number')q.sell=Math.max(1,Math.round(q.sell*ECO.sera.sellK))});
+/* eski kayıt göçü: maaş/limit gibi ölçek değerleri yeni ölçeğe taşınır; coins, borç ve birikime dokunulmaz */
+function ecoMigrate111(){const k=ECO.job.k,lo=ECO.job.migrateBelow;
+  if(LNK.job&&LNK.job.sal>0&&LNK.job.sal<lo){LNK.job.sal=Math.round(LNK.job.sal*k/100)*100;if(me)SAL[me.key]=LNK.job.sal}
+  if(LNK.old>0&&LNK.old<lo)LNK.old=Math.round(LNK.old*k/100)*100;(LNK.apps||[]).forEach(a=>{if(a&&a.j&&a.j.sal>0&&a.j.sal<lo)a.j.sal=Math.round(a.j.sal*k/100)*100});
+  try{const S=kfS();if(S&&S.salBase>0&&S.salBase<lo){S.salBase=Math.round(S.salBase*k/100)*100;kfNurseSal()}}catch(e){}
+  if(CARD.limit>0&&CARD.limit<ECO.card.migrateBelow&&me&&ECO.card[me.key])CARD.limit=Math.max(CARD.limit,ECO.card[me.key])}
+{const _ld=load25;load25=function(x){const r=_ld.apply(this,arguments);try{ecoMigrate111()}catch(e){}return r}}
+{const _st=start25;start25=function(){const r=_st.apply(this,arguments);try{ecoMigrate111()}catch(e){}return r}}
+window.__eco111={migTest:()=>{const c0=coins,d0=CARD.debt,l0=CARD.limit,j0=LNK.job;LNK.job={id:'t',t:'Test',co:'X',d:'merkez',sal:3000};CARD.limit=20000;ecoMigrate111();const out={coinsBefore:c0,coinsAfter:coins,debt:[d0,CARD.debt],jobSal:LNK.job.sal,SAL:SAL[me.key],cardLimit:CARD.limit};LNK.job=j0;CARD.limit=l0;SAL[me.key]=ECO.sal[me.key];return out},ECO:ECO,pas:PAS111,sal:()=>salary67(),list:()=>LIST.map(L=>({id:L.id,n:L.n,deal:L.deal,price:L.price,rent:L.rent})),cars:()=>CARLIST.map(c=>[c[1],c[2]]).concat(Object.values(PREMC).map(c=>[c[0],c[2]])),
+  loan:()=>({konut:maxLoan67('konut'),tasit:maxLoan67('tasit'),ihtiyac:maxLoan67('ihtiyac')}),jobs:()=>{try{return jobsFor().map(j=>j.sal)}catch(e){return []}},passive:v=>passive111(v),kfBr:()=>KF_BR,sr:()=>SR_RENT,
+  menus:()=>({cafe:MENU_CAFE.map(i=>i.p),food:MENU_FOOD.map(i=>i.p),aspava:MENU_ASPAVA.map(i=>i.p)}),fault:()=>SS_FAULTS.map(f=>f[1]),svc:()=>SVC,card:()=>CARD,state:()=>({coins:coins,LNK:LNK.job,SAL:SAL[me&&me.key]})};
 /* ================= v90: bahçe & tarım görsel yenileme — tekrarsız çim, sürülmüş toprak, taş yol, lamba, bank, 3 evreli instanced bitkiler, rüzgâr, hasat animasyonu ================= */
 const U90={t:{value:0}};
 function sway90(col,o,amp){const m=std(col,Object.assign({roughness:.75},o||{}));const A=(amp||.03).toFixed(3);
