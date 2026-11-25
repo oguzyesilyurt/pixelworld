@@ -12257,6 +12257,46 @@ window.PWB={get GT(){return GT},get day(){return HOME.day},get coins(){return co
 {const _lg=loadGame;loadGame=function(k){const r=_lg.apply(this,arguments);try{const b=SAVE&&SAVE.BT&&typeof SAVE.BT==='object'?SAVE.BT:null;if(PWB.bt)PWB.bt.set(b);else PWB.pendingBT=b}catch(e){}return r}}
 /* bilgisayar: 💼 Buludex Yönetim */
 (function(){const nv=$('pcnav');if(!nv)return;const b=document.createElement('button');b.dataset.a='tyc';b.textContent='💼 Buludex Yönetim';b.style.cssText='background:linear-gradient(90deg,#1f6feb,#58a6ff);color:#fff';b.onclick=()=>{if(!PWB.bt){toast('Yönetim yazılımı yüklenemedi');return}closePC();setTimeout(()=>PWB.bt.open(),80)};nv.appendChild(b)})();
+/* ================= v119: Buludex İK köprüsü · referans aramaları, oyun karakterlerini işe alma (LNK.job = Buludex) ================= */
+const BXK119='pw_bx_hire',CHB119={kiz:'ogus',abla:'cicom',esi:'eniste',almira:'almira',berke:'berke'},CHN119={kiz:'Denel',abla:'Çiço',esi:'Gökhan',almira:'Almira',berke:'Berke',sen:'Oğuz'};
+function bxRead119(){try{return JSON.parse(localStorage.getItem(BXK119)||'{}')||{}}catch(e){return {}}}
+function bxWrite119(o){try{localStorage.setItem(BXK119,JSON.stringify(o))}catch(e){}}
+/* referans araması: rehberde olmayan kişiler (Gökhan, Berke, Almira) arama süresince geçici kişi olur */
+const REF119={c:null,n:null,ck:null,cb:null,ok:false};
+{const _c=contacts;contacts=function(){const L=_c.apply(this,arguments);if(REF119.c&&!L.some(q=>q[0]===REF119.c))L.push([REF119.c,REF119.n,'📞']);return L}}
+{const _v=vcChar;vcChar=function(c){if(REF119.c&&c===REF119.c&&REF119.ck)return REF119.ck;return _v.apply(this,arguments)}}
+function refCall119(ck,cand,cb){if(!me||VC||mode==='drive'||busy)return false;const L=contacts();const map={kiz:'P',abla:'S'},base=me.key==='sen'?map[ck]:null;let c=base&&L.some(q=>q[0]===base)?base:('R'+ck);
+  REF119.c=c===base?null:c;REF119.n=CHN119[ck];REF119.ck=ck;REF119.cb=cb;REF119.ok=false;if(!CHT[c])CHT[c]={log:[]};
+  const D0=DLG[c]||(DLG[c]={start:[],open:[],n:{}});const who=cand.n+' · '+cand.roleN;
+  D0.n.ref_bx={in:pick(['Selam! Bir tanıdığım var, çok iyi yazılımcı. ','Oğuz, kulağıma geldi ki adam arıyormuşsun. ','Bak aklıma geldi: ','Sana bir iyilik yapayım: '])+who+' · '+(cand.lvTxt||'işinde çok iyi')+'. Senin şirkete çok yakışır 😊',
+    o:[['Harika! CV\'sini at, görüşelim 📄','Süper, hemen numaranı veriyorum, seni arar 😊','ref_bx_ok'],['Şu an almıyoruz ama sağ ol 🙏','Tamam, aklında olsun 🙂','@bye']]};
+  Object.defineProperty(D0.n,'ref_bx_ok',{configurable:true,get(){if(!REF119.ok){REF119.ok=true;try{REF119.cb&&REF119.cb(true)}catch(e){}}return {in:'Kendine iyi bak, kolay gelsin! 💪',o:[['Görüşürüz 👋','Görüşürüz!','@bye']]}}});
+  /* v103 ağaç motoru için özel referans ağacı (kabul seçeneği "ok" düğümüne gider) */
+  const tr={id:'ref_bx',bas:'a',dugumler:{a:{id:'a',npc:D0.n.ref_bx.in,secenekler:[{t:'Harika! Özgeçmişini at, görüşelim 📄',git:'ok',etki:{}},{t:'Şu an almıyoruz ama sağ ol 🙏',git:'no',etki:{}}]},no:{id:'no',npc:'Tamam, aklında olsun 🙂',son:true}}};
+  Object.defineProperty(tr.dugumler,'ok',{configurable:true,enumerable:true,get(){if(!REF119.ok){REF119.ok=true;try{REF119.cb&&REF119.cb(true)}catch(e){}}return {id:'ok',npc:'Süper! Numaranı veriyorum, bugün seni arar. Kolay gelsin 💪',son:true}}});
+  REF119.tree=tr;REF119.cc=c;
+  const ok=vcall(c,true,'ref_bx');if(!ok){REF119.c=null;REF119.tree=null;return false}
+  const chk=setInterval(()=>{if(!VC){clearInterval(chk);setTimeout(()=>{REF119.c=null;REF119.tree=null},500)}},500);return true}
+{const _ct=ctree103;ctree103=function(c){if(REF119.tree&&REF119.cc===c)return REF119.tree;return _ct.apply(this,arguments)}}
+Object.assign(window.PWB,{refCall:refCall119,charName:k=>CHN119[k],
+  charImg(k){try{const key='ch_vc_'+k;if(!PORT[key]||PORT[key].length<3000)PORT[key]=portrait(lookOf(k));return PORT[key].length<3000?null:PORT[key]}catch(e){return null}},
+  bond(k){const b=BONDS[CHB119[k]];return b?b.v:50},charSal(k){try{const S=readSave(k);const j=S&&S.x&&S.x.x39&&S.x.x39.lnk&&S.x.x39.lnk.job;return j&&j.sal?j.sal:ECO.sal[k]}catch(e){return ECO.sal[k]}},
+  charJob(k){try{const S=readSave(k);const j=S&&S.x&&S.x.x39&&S.x.x39.lnk&&S.x.x39.lnk.job;return j?j.co:CUROF[k]}catch(e){return CUROF[k]}},
+  hireChar(k,job){const o=bxRead119();o[k]=Object.assign({st:'teklif',day:HOME.day},job);bxWrite119(o)},fireChar(k,why){const o=bxRead119();if(o[k]){o[k].st='ayrildi';o[k].why=why||'';o[k].day2=HOME.day;bxWrite119(o)}},hires:()=>bxRead119(),
+  get ceo(){return !!(me&&me.key==='sen')}});
+/* o karakterle oynarken: teklifi gör, gerekirse istifa edip Buludex'e geç */
+function bxJob119(R){return {id:'bx_'+me.key,t:R.t,co:'Buludex',d:'merkez',sal:R.sal,rem:false,bx:1}}
+function bxCheck119(){if(!me||me.key==='sen'||me.key==='yegen')return;const o=bxRead119(),R=o[me.key];if(!R)return;
+  if(R.st==='ayrildi'&&LNK.job&&LNK.job.bx){LNK.job=null;try{SAL[me.key]=LNK.old||ECO.sal[me.key]}catch(e){}notify('💼 Buludex',R.why||'Buludex\'teki görevin sona erdi.',[{t:'Tamam',fn:()=>{}}]);delete o[me.key];bxWrite119(o);return}
+  if(R.st!=='teklif')return;const cur=LNK.job?LNK.job.co:CUROF[me.key],same=cur==='Buludex'&&!LNK.job;
+  const take=()=>{if(!LNK.old)LNK.old=SAL[me.key]||ECO.sal[me.key];LNK.job=bxJob119(R);SAL[me.key]=R.sal;R.st='kabul';R.day2=HOME.day;o[me.key]=R;bxWrite119(o);try{memAdd('💼','Oğuz\'un şirketi Buludex\'te '+R.t+' olarak başladım')}catch(e){}toast('💼 Artık Buludex\'te '+R.t+' · '+R.sal.toLocaleString('tr-TR')+'🪙/10 gün');try{saveGame()}catch(e){}};
+  const no=()=>{R.st='red';o[me.key]=R;bxWrite119(o);toast('📨 Buludex teklifini geri çevirdin')};
+  setTimeout(()=>notify('💼 Buludex · Oğuz\'dan teklif',R.t+' pozisyonu · '+R.sal.toLocaleString('tr-TR')+'🪙/10 gün'+(same?'':' · şu anki işin: '+cur),same?[{t:'Kabul et',fn:take},{t:'Reddet',fn:no}]:[{t:'İstifa edip geç',fn:take},{t:'Mevcut işimde kalayım',fn:no}]),2500)}
+{const _s=start25;start25=function(){const r=_s.apply(this,arguments);try{bxCheck119()}catch(e){}return r}}
+{const _nd=newDay;newDay=function(){const r=_nd.apply(this,arguments);try{bxCheck119()}catch(e){}return r}}
+/* Buludex çalışanı: işe gidince Buludex ofisine; ofis bilgisayarı kullanılabilir */
+{const _gj=goJob;goJob=function(){const j=LNK.job;if(j&&j.bx){if(mode==='drive'){toast('Önce arabadan in 🚗');return}if(!ret&&mode!=='world'){const d=distOf(HOME.cur)||'cigli',sp=D[d]&&D[d].spawn||[0,0];ret={d:d,x:sp[0],z:sp[1]}}toast('🚇 Buludex ofisine gidiyorsun');enter('of1');return}return _gj.apply(this,arguments)}}
+{const _op=openPC;openPC=function(tab){const j=LNK.job;if(j&&j.bx){LNK.job=null;try{return _op.apply(this,arguments)}finally{LNK.job=j}}return _op.apply(this,arguments)}}
 /* ================= v90: bahçe & tarım görsel yenileme — tekrarsız çim, sürülmüş toprak, taş yol, lamba, bank, 3 evreli instanced bitkiler, rüzgâr, hasat animasyonu ================= */
 const U90={t:{value:0}};
 function sway90(col,o,amp){const m=std(col,Object.assign({roughness:.75},o||{}));const A=(amp||.03).toFixed(3);
