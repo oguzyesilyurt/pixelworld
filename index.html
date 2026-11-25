@@ -3196,7 +3196,7 @@ function rangeRow(par,label,key,min,max,step,after){const r=el('div','sr');r.app
 function segRow(par,label,key,opts,after){const r=el('div','sr');r.appendChild(el('span','',label));const s=el('div','seg');opts.forEach(o=>{const b=el('button',SET[key]===o[0]?'on':'',o[1]);b.onclick=()=>{SET[key]=o[0];saveSet();[...s.children].forEach(c=>c.classList.toggle('on',c===b));if(after)after()};s.appendChild(b)});r.appendChild(s);par.appendChild(r)}
 function openSettings(){openModal('⚙️ Ayarlar',b=>{
   const g1=el('div','sg');g1.appendChild(el('h4','','Ses'));b.appendChild(g1);const au=()=>{auInit();applyAudio()};
-  swRow(g1,'🔕 Telefonu sessize al','Mesaj bildirimleri düşmez','mute',muteBtn);swRow(g1,'🔊 Ses','Tüm sesler (N tuşu)','snd',au);rangeRow(g1,'Ana ses seviyesi','vol',0,1,.05,au);swRow(g1,'🌊 Ortam sesleri','Deniz, martı, çarşı, kuş, cırcır, yağmur, rüzgâr, stadyum','amb',au);rangeRow(g1,'Ortam seviyesi','ambVol',0,1,.05,au);
+  swRow(g1,'🔕 Telefonu sessize al','Mesaj bildirimleri düşmez','mute',muteBtn);swRow(g1,'📳 Titreşim','Gelen arama ve bildirimlerde','vib',()=>{saveSet();if(SET.vib!==false)vibrate(40);else vibRing(false)});swRow(g1,'🔊 Ses','Tüm sesler (N tuşu)','snd',au);rangeRow(g1,'Ana ses seviyesi','vol',0,1,.05,au);swRow(g1,'🌊 Ortam sesleri','Deniz, martı, çarşı, kuş, cırcır, yağmur, rüzgâr, stadyum','amb',au);rangeRow(g1,'Ortam seviyesi','ambVol',0,1,.05,au);
   swRow(g1,'🔔 Efekt sesleri','Bildirim, para, korna, ayak sesi, kapı','fx',au);rangeRow(g1,'Efekt seviyesi','fxVol',0,1,.05,au);swRow(g1,'🎵 Müzik','Yumuşak arka plan müziği','music',au);rangeRow(g1,'Müzik seviyesi','musVol',0,1,.05,au);rangeRow(g1,'📻 Radyo seviyesi (arabada)','radVol',0,1,.05,au);
   const g2=el('div','sg');g2.appendChild(el('h4','','Grafik & performans'));b.appendChild(g2);
   segRow(g2,'Kalite','q',[['auto','Otomatik'],['low','Düşük'],['mid','Orta'],['high','Yüksek'],['ultra','Ultra']],()=>{DYN.i=isTouch?2:0;applyQ();info()});
@@ -3219,7 +3219,7 @@ function openHelp(){openModal('❓ Nasıl oynanır?',b=>{const h=el('div','help'
   '🚗 <b>Araba:</b> Arabanın yanında etkileşime girince navigasyon açılır. Çukurlardan kaç!'].forEach(t=>{const p=el('p');p.innerHTML=t;h.appendChild(p)})})}
 function showCtrl(){const b=$('ctrlb');b.innerHTML=isTouch?'<span>👆 Sürükle: yürü</span><span>🖐️ Etkileşim</span><span>📱 Telefon</span><span>⚙️ Ayarlar</span>':'<span><kbd>WASD</kbd> yürü</span><span><kbd>F</kbd> etkileşim</span><span><kbd>M</kbd> telefon</span><span><kbd>Esc</kbd> kapat</span><span>🖱️ tekerlek: yakınlaş</span>';
   const c=$('ctrl');c.classList.remove('on');clearTimeout(c._t);setTimeout(()=>c.classList.add('on'),400);c._t=setTimeout(()=>c.classList.remove('on'),5400)}
-$('setb').onclick=()=>openSettings();$('goalb').onclick=()=>phoneApp('goals');$('hud').onclick=()=>$('hud').classList.toggle('min');
+$('setb').onclick=()=>openSettings();$('goalb').onclick=()=>phoneApp('goals');$('hud').onclick=()=>{try{charSummary106()}catch(e){}};
 addEventListener('keydown',e=>{if(e.code==='Escape'){closeModal();if(ACT.on)endAct(false)}});
 function tryLandscape(){if(!isTouch)return;try{const de=document.documentElement,p=de.requestFullscreen?de.requestFullscreen({navigationUI:'hide'}):(de.webkitRequestFullscreen?de.webkitRequestFullscreen():null);
   const lk=()=>{try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{})}catch(e){}};if(p&&p.then)p.then(lk).catch(lk);else lk()}catch(e){}}
@@ -9050,7 +9050,7 @@ function scnImg(e,img,ic){if(img){e.style.backgroundImage='url("'+img+'")';e.tex
 /* telefon araması: o={from, ic, img, msg (metin|dizi), onAnswer, onReject, noReject} */
 function scnCall(o){o=o||{};const ov=scnOpen(),c=el('div','call');ov.appendChild(c);const av=el('div','cav');scnImg(av,o.img,o.ic||'📞');c.appendChild(av);
   c.appendChild(el('div','cnm',pnx(o.from||'Bilinmeyen numara')));const st=el('div','cst','📞 arıyor…');c.appendChild(st);const bt=el('div','cbt');c.appendChild(bt);
-  const ring=()=>{try{sfx('bell')}catch(e){}try{navigator.vibrate&&navigator.vibrate([300,200,300])}catch(e){}};ring();let rt=setInterval(ring,2600);const stop=()=>{clearInterval(rt);rt=null};
+  const ring=()=>{try{sfx('bell')}catch(e){}};ring();let rt=setInterval(ring,2600);try{vibRing(true)}catch(e){}const stop=()=>{clearInterval(rt);rt=null;try{vibRing(false)}catch(e){}};
   const msgs=Array.isArray(o.msg)?o.msg.slice():[o.msg||'…'];
   const ans=el('button','ok','📞 Cevapla'),rej=el('button','no','Reddet');bt.appendChild(ans);if(!o.noReject)bt.appendChild(rej);
   rej.onclick=()=>{stop();scnClose();try{o.onReject&&o.onReject()}catch(e){scnErr(e)}};
@@ -9905,14 +9905,14 @@ function vcOpenL(c){return (VC_OPEN[(me&&me.key==='yegen'&&c==='P')?'A':c]||dlg(
 function vcFmt(t){t=Math.floor(t);return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')}
 function vcBox(){const b=$('vcall');b.innerHTML='';b.className='on';void b.offsetWidth;requestAnimationFrame(()=>requestAnimationFrame(()=>b.classList.add('in')));return b}
 function vcHide(){const b=$('vcall');b.classList.remove('in','ring');setTimeout(()=>{if(!VC){b.className='';b.innerHTML=''}},460)}
-function vcRingOn(){const ring=()=>{try{sfx('bell')}catch(e){}try{navigator.vibrate&&navigator.vibrate([300,200,300])}catch(e){}};ring();return setInterval(ring,2600)}
+function vcRingOn(){const ring=()=>{try{sfx('bell')}catch(e){}};ring();try{vibRing(true)}catch(e){}return setInterval(ring,2600)}
 /* c: P/S/A · inc: gelen arama · node: arayanın açtığı konu (DLG.n anahtarı) */
 function vcall(c,inc,node){if(VC||!me)return false;if(!contacts().some(q=>q[0]===c))return false;
   const b=vcBox(),av=el('div','cav'),img=vcImg(c);if(img){av.style.backgroundImage='url("'+img+'")'}else av.textContent=vcIcon(c);
   b.appendChild(el('div','vnotch'));b.appendChild(av);b.appendChild(el('div','cnm',pnx(cName(c))));const st=el('div','cst',inc?'📞 arıyor…':'📞 aranıyor…');b.appendChild(st);
   const log=el('div','vlog'),op=el('div','vop'),bt=el('div','cbt');b.appendChild(bt);
   const V={c:c,inc:inc,t0:0,tm:null,rt:null,busy:false,n:0,end:null};VC=V;
-  const stopRing=()=>{if(V.rt){clearInterval(V.rt);V.rt=null}clearTimeout(V.to);b.classList.remove('ring')};
+  const stopRing=()=>{if(V.rt){clearInterval(V.rt);V.rt=null}try{vibRing(false)}catch(e){}clearTimeout(V.to);b.classList.remove('ring')};
   const finish=(why)=>{if(V.end)return;V.end=why;stopRing();if(V.tm)clearInterval(V.tm);if(VC===V)VC=null;vcHide();
     const dur=V.t0?(performance.now()-V.t0)/1000:0;
     if(why==='talk'){VCLOG.unshift([c,inc?'in':'out',HOME.day,hhmm(GT),dur]);CHT[c].log.push([inc?'in':'out','📞 Sesli arama · '+vcFmt(dur)]);toast('📞 Görüşme bitti · '+vcFmt(dur))}
@@ -10332,7 +10332,7 @@ function homeFix95(){if(!me)return;if(!homeValid(HOME.cur)){const old=HOME.cur;H
   Object.keys(LEASE).forEach(id=>{if(!HOME.own[id]||'ev_p_'+id===HOME.cur)delete LEASE[id]});
   const d=distOf(HOME.cur);if(d&&me.home!==d)me.home=d}
 /* HUD: oyuncu kartında ev etiketi */
-function homeHud95(){if(!me)return;let e=$('hud95');if(!e){const p=$('pname');if(!p||!p.parentNode)return;e=el('div','');e.id='hud95';e.style.cssText='font-size:11px;opacity:.8;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:190px;cursor:pointer';e.onclick=()=>phoneApp('evlerim');p.parentNode.insertBefore(e,p.nextSibling)}
+function homeHud95(){if(!me)return;let e=$('hud95');if(!e){const p=$('pname');if(!p||!p.parentNode)return;e=el('div','');e.id='hud95';e.style.cssText='font-size:11px;opacity:.8;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:190px';p.parentNode.insertBefore(e,p.nextSibling)}
   const t='🏠 '+homeName(HOME.cur);if(e.textContent!==t)e.textContent=t}
 setInterval(()=>{try{if(!me)return;if(CUT){if(CUT.to&&CUT.to.kind)EV95.pend=CUT.to.kind;return}if(EV95.pend){if(HOME.cur===EV95.pend){homeSet(HOME.cur);if(MOVE74.last)MOVE74.last.done=1}EV95.pend=null}homeFix95();homeHud95()}catch(e){}},500);
 {const _sg=startGame;startGame=function(k){const r=_sg.apply(this,arguments);try{homeFix95();homeHud95()}catch(e){}return r}}
@@ -11121,7 +11121,7 @@ vcall=function(c,inc,node){if(VC||!me)return false;if(!contacts().some(q=>q[0]==
   b.appendChild(el('div','vnotch'));b.appendChild(av);b.appendChild(el('div','cnm',pnx(cName(c))));const st=el('div','cst',inc?'📞 arıyor…':'📞 aranıyor…');b.appendChild(st);
   const log=el('div','vlog'),op=el('div','vop'),bt=el('div','cbt');b.appendChild(bt);
   const V={c:c,inc:inc,t0:0,tm:null,rt:null,busy:false,n:0,end:null,path:[]};VC=V;
-  const stopRing=()=>{if(V.rt){clearInterval(V.rt);V.rt=null}clearTimeout(V.to);b.classList.remove('ring')};
+  const stopRing=()=>{if(V.rt){clearInterval(V.rt);V.rt=null}try{vibRing(false)}catch(e){}clearTimeout(V.to);b.classList.remove('ring')};
   const finish=(why)=>{if(V.end)return;V.end=why;stopRing();if(V.tm)clearInterval(V.tm);if(VC===V)VC=null;vcHide();const dur=V.t0?(performance.now()-V.t0)/1000:0;
     if(why==='talk'){VCLOG.unshift([c,inc?'in':'out',HOME.day,hhmm(GT),dur]);CHT[c].log.push([inc?'in':'out','📞 Sesli arama · '+vcFmt(dur)]);toast('📞 Görüşme bitti · '+vcFmt(dur));if(V.tree&&V.done){const F=cmem103(c);(F.done||(F.done={}))[V.tree.id]=HOME.day}}
     else if(why==='miss'){VCLOG.unshift([c,'miss',HOME.day,hhmm(GT),0]);CHT[c].log.push(['in','📵 Cevapsız arama']);const bb=BONDS[bkey(c)];if(bb)bb.v=clamp(bb.v-3,0,100);toast('📵 Cevapsız arama · '+cName(c));notify('📵 Cevapsız arama',cName(c)+' seni aradı · bağınız biraz azaldı',[{t:'📞 Geri ara',fn:()=>vcallOut(c)},{t:'Tamam',fn:()=>{}}])}
@@ -11309,6 +11309,20 @@ function skillView105(root){root.innerHTML='';const w=el('div','');w.style.cssTe
     if(k==='foto')c.appendChild(skBtn105('📷 Fotoğraf modu',()=>photoMode105()));if(k==='gitar'&&s.lv>=5)c.appendChild(skBtn105('🎩 Sokakta çal',()=>buskStart105()));w.appendChild(c)})}
 {const _pa=phoneApp;phoneApp=function(id){if(id!=='beceri')return _pa(id);$('phone').classList.add('on');$('phdot').style.display='none';const b=$('phbody');b.innerHTML='';$('phback').style.visibility='visible';$('phtitle').textContent='⭐ Becerilerim';skillView105(b)}}
 window.__sk105={app:()=>phoneApp("beceri"),cook1:()=>cookRecipe70(RCP70[0][1][0]),get ck(){return SK.cook},set ck(v){SK.cook=v},save:()=>save25(),post0:()=>SOC.posts[0],get S(){return SKILL},xp:addXP105,need:xpNeed105,val:skVal105,cookGame:cookGame105,rhythm:rhythm105,songs:SONG105,paint:paint105,photo:photoMode105,shoot:shoot105,exit:photoExit105,compose:compose105,busk:busk105,get ART(){return ART105},get DISH(){return DISH105},get COOKQ(){return COOKQ105}};
+/* ================= v106: titreşim · vibrate(pattern) yardımcısı, aramada desen, iOS switch-checkbox yedeği, bildirimde kısa titreşim · karakter özeti ================= */
+if(SET.vib==null)SET.vib=true;
+const VIB106={iv:null,lab:null,ring:false};
+function vibIOS106(){try{if(!VIB106.lab){const l=document.createElement('label');l.setAttribute('aria-hidden','true');l.style.cssText='position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0;pointer-events:none;overflow:hidden';const i=document.createElement('input');i.type='checkbox';i.setAttribute('switch','');i.tabIndex=-1;l.appendChild(i);document.body.appendChild(l);VIB106.lab=l}VIB106.lab.click()}catch(e){}}
+function vibrate(p){if(SET.vib===false&&p!==0)return false;try{if(typeof navigator.vibrate==='function'){navigator.vibrate(p);return true}}catch(e){}if(p&&p!==0){vibIOS106();return true}return false}
+function vibRing(on){clearInterval(VIB106.iv);VIB106.iv=null;VIB106.ring=false;if(!on){try{if(typeof navigator.vibrate==='function')navigator.vibrate(0)}catch(e){}return}if(SET.vib===false)return;VIB106.ring=true;const P=[300,150,300,150,300];
+  if(typeof navigator.vibrate==='function'){vibrate(P);VIB106.iv=setInterval(()=>vibrate(P),2600)}else{vibIOS106();VIB106.iv=setInterval(vibIOS106,1000)}}
+{const _n=notify;notify=function(){const r=_n.apply(this,arguments);try{if(!VIB106.ring)vibrate(40)}catch(e){}return r}}
+/* sol üst kart: karakter özeti (ihtiyaçlar + bağlar) */
+function charSummary106(){if(!me)return;openModal('👤 '+me.n+' · özet',b=>{const row=(ic,n,v)=>{const r=el('div','');r.style.cssText='display:flex;align-items:center;gap:8px;margin:5px 0';r.appendChild(el('span','',ic+' '+n));const bar=el('div','');bar.style.cssText='flex:1;height:9px;border-radius:5px;background:rgba(255,255,255,.12);overflow:hidden';const f=el('div','');f.style.cssText='height:100%;width:'+Math.round(clamp(v,0,100))+'%;background:'+(v>60?'#3fbf6a':v>30?'#e8b030':'#e0484a');bar.appendChild(f);r.appendChild(bar);r.appendChild(el('b','',Math.round(v)+'%'));b.appendChild(r)};
+  b.appendChild(el('div','sub','İhtiyaçlar'));row('🍽️','Açlık',hunger);row('😊','Ruh hâli',mood);row('⚡','Enerji',NEED.en);row('🎉','Eğlence',NEED.fun);row('💬','Sosyal',NEED.soc);try{row('🚿','Hijyen',HOME.hyg)}catch(e){}
+  b.appendChild(el('div','sub','Bağlar'));Object.keys(BONDS).forEach(k=>{const q=BONDS[k];if(q&&q.n&&typeof q.v==='number')row('💞',q.n,q.v)});
+  try{b.appendChild(el('div','sub','🏠 '+homeName(HOME.cur)+' · 🪙 '+coins.toLocaleString('tr-TR')))}catch(e){}})}
+window.__v106={vibrate:vibrate,ring:vibRing,get V(){return VIB106},sum:charSummary106,get SET(){return SET}};
 /* ================= v90: bahçe & tarım görsel yenileme — tekrarsız çim, sürülmüş toprak, taş yol, lamba, bank, 3 evreli instanced bitkiler, rüzgâr, hasat animasyonu ================= */
 const U90={t:{value:0}};
 function sway90(col,o,amp){const m=std(col,Object.assign({roughness:.75},o||{}));const A=(amp||.03).toFixed(3);
