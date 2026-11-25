@@ -12242,6 +12242,21 @@ function menuOpen117(){const m=$('modal'),p=$('phone');return (m&&m.classList.co
 /* mahalle boşaltılırken instanced araçları da temizle */
 {const _u=unloadDistrict110;unloadDistrict110=function(n){try{const A=D[n];if(A)carUndo117(A)}catch(e){}return _u.apply(this,arguments)}}
 window.__o117={O:OPT117,undoCars:()=>{if(activeD)carUndo117(activeD)}};
+/* ================= v118: Buludex Yönetim köprüsü (tycoon.js) · zaman senkronu, duraklatma, SAVE.BT ================= */
+const TY118={on:false};
+window.PWB={get GT(){return GT},get day(){return HOME.day},get coins(){return coins},get key(){return me&&me.key},
+  advance(min){if(!(min>0))return;GT+=min;try{clock27()}catch(e){}while(GT>=1440){GT-=1440;try{newDay()}catch(e){}try{toast('🌙 Gece yarısı · Gün '+HOME.day+' başladı')}catch(e){}}},
+  payPersonal(n){if(!(n>0)||coins<n)return false;coins-=n;return true},toast:t=>{try{toast(t)}catch(e){}},sfx:k=>{try{sfx(k)}catch(e){}},mem:(i,t)=>{try{memAdd(i,t)}catch(e){}},save:()=>{try{saveGame()}catch(e){}},
+  pause(on){TY118.on=!!on;try{clearInput()}catch(e){}if(on){try{closePC()}catch(e){}}else{try{clock.getDelta()}catch(e){}}},bt:null,pendingBT:undefined};
+/* yönetim ekranı açıkken 3D dünya duraklar (zamanı tycoon ilerletir) */
+{const _fb=frameBody;frameBody=function(){if(TY118.on)return;return _fb.apply(this,arguments)}}
+/* dünya saati ilerledikçe şirket de ilerler (kurucu masada değil) */
+{const _ct=clockTick;clockTick=function(dt){const g0=GT,d0=HOME.day;const r=_ct.apply(this,arguments);try{const min=(HOME.day-d0)*1440+(GT-g0);if(min>0&&PWB.bt)PWB.bt.tick(min,false)}catch(e){}return r}}
+/* kayıt: SAVE.BT */
+{const _ws=writeSave;writeSave=function(k,obj){try{if(obj&&PWB.bt){const b=PWB.bt.get();if(b)obj.BT=b;else delete obj.BT}}catch(e){}return _ws.apply(this,arguments)}}
+{const _lg=loadGame;loadGame=function(k){const r=_lg.apply(this,arguments);try{const b=SAVE&&SAVE.BT&&typeof SAVE.BT==='object'?SAVE.BT:null;if(PWB.bt)PWB.bt.set(b);else PWB.pendingBT=b}catch(e){}return r}}
+/* bilgisayar: 💼 Buludex Yönetim */
+(function(){const nv=$('pcnav');if(!nv)return;const b=document.createElement('button');b.dataset.a='tyc';b.textContent='💼 Buludex Yönetim';b.style.cssText='background:linear-gradient(90deg,#1f6feb,#58a6ff);color:#fff';b.onclick=()=>{if(!PWB.bt){toast('Yönetim yazılımı yüklenemedi');return}closePC();setTimeout(()=>PWB.bt.open(),80)};nv.appendChild(b)})();
 /* ================= v90: bahçe & tarım görsel yenileme — tekrarsız çim, sürülmüş toprak, taş yol, lamba, bank, 3 evreli instanced bitkiler, rüzgâr, hasat animasyonu ================= */
 const U90={t:{value:0}};
 function sway90(col,o,amp){const m=std(col,Object.assign({roughness:.75},o||{}));const A=(amp||.03).toFixed(3);
@@ -12479,6 +12494,7 @@ resize();applyTime(1);frame();
 }catch(err){const e=document.getElementById('err');e.style.display='block';e.textContent='Hata: '+(err&&err.stack||err)}
 })();
 </script>
+<script src="tycoon.js"></script>
 <script>if("serviceWorker" in navigator&&location.protocol.startsWith("http")){let hadCtl=!!navigator.serviceWorker.controller,shown=false;
 const banner=()=>{if(shown)return;shown=true;const b=document.createElement('div');b.style.cssText='position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 10px);transform:translateX(-50%);z-index:200;display:flex;gap:10px;align-items:center;padding:10px 14px;border-radius:16px;background:rgba(20,15,34,.92);color:#fff;font:14px Trebuchet MS,sans-serif;box-shadow:0 6px 20px rgba(0,0,0,.4)';b.innerHTML='🆕 Yeni sürüm hazır · ilerlemen korunur';const x=document.createElement('button');x.textContent='Kaydet ve güncelle';x.style.cssText='border:0;border-radius:12px;padding:6px 12px;cursor:pointer;font:inherit;background:#ffb347;color:#2a1a0a';x.onclick=()=>{try{window.__pwSave&&window.__pwSave()}catch(e){}setTimeout(()=>location.reload(),150)};b.appendChild(x);document.body.appendChild(b)};
 navigator.serviceWorker.register("sw.js").then(reg=>{const chk=()=>{try{reg.update()}catch(e){}};setInterval(chk,15*60*1000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)chk()});});
