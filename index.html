@@ -3200,7 +3200,7 @@ function openSettings(){openModal('⚙️ Ayarlar',b=>{
   swRow(g1,'🔔 Efekt sesleri','Bildirim, para, korna, ayak sesi, kapı','fx',au);rangeRow(g1,'Efekt seviyesi','fxVol',0,1,.05,au);swRow(g1,'🎵 Müzik','Yumuşak arka plan müziği','music',au);rangeRow(g1,'Müzik seviyesi','musVol',0,1,.05,au);rangeRow(g1,'📻 Radyo seviyesi (arabada)','radVol',0,1,.05,au);
   const g2=el('div','sg');g2.appendChild(el('h4','','Grafik & performans'));b.appendChild(g2);
   segRow(g2,'Kalite','q',[['auto','Otomatik'],['low','Düşük'],['mid','Orta'],['high','Yüksek'],['ultra','Ultra']],()=>{DYN.i=isTouch?2:0;applyQ();info()});
-  const inf=el('div','sub');g2.appendChild(inf);const info=()=>{const q=QL[qIndex()];inf.textContent='Şu an: çözünürlük ×'+Math.min(devicePixelRatio||1,q.pr).toFixed(2)+' · gölge '+(SET.shadows&&q.sh?'açık':'kapalı')+' · ~'+Math.round(DYN.fps)+' FPS'};info();
+  const inf=el('div','sub');g2.appendChild(inf);const info=()=>{const q=QL[qIndex()];inf.textContent='Şu an: çözünürlük ×'+Math.min(devicePixelRatio||1,q.pr).toFixed(2)+' · gölge '+(SET.shadows&&q.sh?'açık':'kapalı')+' · ~'+Math.round(DYN.fps)+' FPS'+(typeof tier108==='function'?' · efektler: '+QN108[tier108()]+(tier108()>=2?' (bloom, ışık, yumuşak gölge)':''):'')};info();
   segRow(g2,'FPS sınırı','fps',[['auto','Otomatik'],['30','30'],['60','60'],['off','Sınırsız']]);g2.appendChild(el('div','sub','Otomatik: 60 FPS hedefler, düşerse çözünürlük ve gölge kalitesi kendiliğinden ayarlanır.'));swRow(g2,'🌗 Gölgeler','Kapatmak telefonda ısınmayı azaltır','shadows',()=>{applyQ();info()});swRow(g2,'👾 Piksel görünüm','Retro piksel efekti','pix',applyQ);
   const g3=el('div','sg');g3.appendChild(el('h4','','Oyun'));b.appendChild(g3);
   segRow(g3,'Gökyüzü','sky',[['clock','Saate göre'],['day','Gündüz'],['sunset','Gün batımı'],['night','Gece']]);
@@ -8982,7 +8982,7 @@ function frameBody(){
     const target=inI?(BUILD.on&&BUILD.cx!=null?tmp.set(BUILD.cx,0,BUILD.cz):tmp.set(pl.x*.6,0,pl.z*.6)):tmp.set(pl.x+activeD.ox,0,pl.z+activeD.oz);if(LOOK.x||LOOK.z){target.x+=LOOK.x;target.z+=LOOK.z}if(!inI&&activeD){if(activeD.bounds){target.x=clamp(target.x,activeD.ox+activeD.bounds[0]*.7,activeD.ox+activeD.bounds[1]*.7);target.z=clamp(target.z,activeD.oz+activeD.bounds[2]*.7,activeD.oz+activeD.bounds[3]*.7)}else{target.x=clamp(target.x,activeD.ox-20,activeD.ox+(activeD.camX60||62));target.z=clamp(target.z,activeD.oz-54,activeD.oz+48)}}camT.lerp(target,Math.min(1,dt*5));
     cam.position.copy(camT).add(camOff);cam.lookAt(camT);
     if(!inI){sun.position.copy(camT).add(cur.off);sun.target.position.copy(camT)}
-    renderer.render(inI?iscene:scene,cam)}
+    post108(inI?iscene:scene,cam,inI)}
   if(mode!=='pick'){clockTick(dt);const avg=(BONDS.ogus.v+BONDS.cicom.v)/2,extra=social?(avg<30?.2:avg<50?.08:0):0;
     hunger=clamp(hunger-dt*.35,0,100);mood=clamp(mood-dt*(.12+(hunger<20?.35:0)+extra),0,100);bondTick(dt);
     hudT+=dt;if(hudT>.2){hudT=0;$('hf').style.width=hunger+'%';$('mf').style.width=mood+'%';$('mi').textContent=mood>70?'😊':mood>40?'😐':mood>20?'😟':'😡';$('hi').textContent=hunger>50?'🍽️':hunger>20?'😋':'🤤';
@@ -11372,6 +11372,106 @@ function auditAll107(cb){if(mode!=='world'){toast('🗺️ Denetim için dışar
 {const _os=openSettings;openSettings=function(){const r=_os.apply(this,arguments);try{const b=$('mbody');const g=el('div','sg');g.appendChild(el('h4','','🧪 Test'));const x=el('button','btn','🗺️ Harita denetimi (test)');x.style.cssText='border:0;border-radius:10px;padding:8px 12px;background:#6b5bd6;color:#fff;font:inherit;cursor:pointer';x.onclick=()=>{try{closeModal()}catch(e){}setTimeout(()=>auditAll107(),200)};g.appendChild(x);g.appendChild(el('div','sub','Tüm mahalleleri kurar; örtüşen bina, yola taşan yapı, gömülü/çakışan tabela ve z-fighting zeminleri konsola yazar.'));b.appendChild(g)}catch(e){}return r}}
 window.auditOverlaps=auditOverlaps;window.__aud107={all:auditAll107,audit:n=>auditOverlaps(D[n],true),fix:AUD107.fix,log:AUD107.log,go:n=>{setDistrict(n)},get AD(){return activeD},list:AUDD107,
   summary:n=>{const R=AUD107.log[n];if(!R)return null;return {bld:R.bld,road:R.road,signIn:R.signIn.map(q=>q.at),signSign:R.signSign.map(q=>q.at),zf:R.zf.map(q=>({y:q.y,at:q.at,alan:q.alan,a:q.a.t,b:q.b.t})),dup:R.dup}}};
+/* ================= v108: görsel kalite (Düşük/Orta/Yüksek/Ultra) · saatlik ışık, lamba havuzları, gölge, post-process, sis, deniz ================= */
+const Q108={userQ:null,dropTo:null,low:0,cool:6,tier:-1,pp:null,ppFail:false,pts:[],ptT:0,off:new T.Vector3(-46,22,-18),pool:null,stats:{}};
+const QN108=['Düşük','Orta','Yüksek','Ultra'];
+/* 0 düşük · 1 orta · 2 yüksek · 3 ultra (Otomatik: masaüstünde dinamik, mobilde en fazla Orta) */
+function tier108(){const i=qIndex();let t=i===QULTRA?3:i<=1?2:i<=3?1:0;if(SET.q==='auto'&&isTouch)t=Math.min(t,1);return t}
+/* ---------- 1) saate göre ışık: güneş yönü/rengi + gökyüzü/zemin (hemisphere) ---------- */
+const NIGHT108=[0x0b1230,0x0d1535,0x5a6aaa,0x1a2036,.62,0x8aa4ff,.5,[-30,40,-14],0x0f2c5a,1];
+const HK108=[[0].concat(NIGHT108),[4.8].concat(NIGHT108),
+ [6.3,0xe6a9a6,0xefb9ac,0xffc6bc,0x5a4a6a,.62,0xffae8c,.72,[-16,14,-46],0x3a6eae,.5],   /* şafak: pembe */
+ [8.3,0xa9d3ef,0xc6dcef,0xcadcf2,0x667258,.58,0xe4edff,.8,[-22,32,-34],0x2f8ed0,0],    /* sabah: serin beyaz */
+ [12.5,0x9ccfee,0xb8d8ee,0xbcd4e8,0x6a7450,.56,0xfff5e8,.88,[-12,56,-10],0x2f93d6,0],   /* öğlen: nötr */
+ [16.4,0x9fc9e6,0xbdd6e8,0xc8d4e0,0x6e7050,.56,0xffe4bc,.86,[-26,38,14],0x2f88cc,0],   /* ikindi: hafif sıcak */
+ [18.6,0xf4a373,0xf6b186,0xffb6b0,0x6a4a6a,.7,0xff8758,1.22,[-44,16,24],0x3a78b8,.5],   /* gün batımı: turuncu-pembe */
+ [19.8,0x5e5292,0x6e639c,0x9a8ac8,0x2a2848,.62,0xc58ab8,.62,[-36,24,18],0x1e3a70,.82], /* alacakaranlık */
+ [21].concat(NIGHT108),[24].concat(NIGHT108)];                                         /* gece: mavi ay ışığı */
+const TH108={hi:.6,si:.8,night:0,_c:{bg:new T.Color(),fog:new T.Color(),hs:new T.Color(),hg:new T.Color(),sc:new T.Color(),sea:new T.Color(),off:new T.Vector3()}};
+const _cA108=new T.Color(),_cB108=new T.Color();
+function hourTarget108(h){h=((h%24)+24)%24;let i=0;while(i<HK108.length-2&&HK108[i+1][0]<=h)i++;const a=HK108[i],b=HK108[i+1],u=(h-a[0])/Math.max(.001,b[0]-a[0]),s=u*u*(3-2*u),c=TH108._c;
+  [['bg',1],['fog',2],['hs',3],['hg',4],['sc',6],['sea',9]].forEach(([k,j])=>c[k].copy(_cA108.setHex(a[j])).lerp(_cB108.setHex(b[j]),s));
+  TH108.hi=a[5]+(b[5]-a[5])*s;TH108.si=a[7]+(b[7]-a[7])*s;TH108.night=a[10]+(b[10]-a[10])*s;c.off.set(a[8][0]+(b[8][0]-a[8][0])*s,a[8][1]+(b[8][1]-a[8][1])*s,a[8][2]+(b[8][2]-a[8][2])*s);return TH108}
+{const _at=applyTime;applyTime=function(dt){try{if(SET.sky==='clock'&&mode!=='pick'){hourTarget108(GT/60);tgt=TH108}}catch(e){}const r=_at.apply(this,arguments);try{tick108(dt)}catch(e){showErrOnce(e)}return r}}
+/* ---------- 2) lamba ışık havuzları (additive zemin decal) + Yüksek+ gerçek PointLight ---------- */
+const poolTex108=canvasTex(64,64,g=>{const gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(255,214,150,.95)');gr.addColorStop(.45,'rgba(255,190,110,.42)');gr.addColorStop(1,'rgba(255,170,80,0)');g.fillStyle=gr;g.fillRect(0,0,64,64)});poolTex108.magFilter=T.LinearFilter;
+const poolMat108=new T.MeshBasicMaterial({map:poolTex108,transparent:true,depthWrite:false,blending:T.AdditiveBlending,opacity:0,fog:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
+const poolGeo108=new T.PlaneGeometry(1,1).rotateX(-Math.PI/2);const _v108=new T.Vector3();
+function pools108(A){if(!A||!A.G||A.pool108)return;A.pool108=[];A.G.updateMatrixWorld(true);
+  glows.forEach(g=>{const sp=g.sp;if(!sp||!(sp.scale.x>4.05&&sp.scale.x<4.55))return;let p=sp.parent,inA=false;while(p){if(p===A.G){inA=true;break}p=p.parent}if(!inA)return;
+    sp.getWorldPosition(_v108);if(_v108.y<3.4)return;const wx=_v108.x,wz=_v108.z;if(A.pool108.some(q=>Math.abs(q.x-wx)<.6&&Math.abs(q.z-wz)<.6))return;
+    const m=new T.Mesh(poolGeo108,poolMat108);m.renderOrder=2;const l=A.G.worldToLocal(_v108.set(wx,.135,wz));m.position.copy(l);m.scale.set(7.2,1,7.2);m.matrixAutoUpdate=false;m.updateMatrix();A.G.add(m);A.pool108.push({x:wx,z:wz,y:_v108.y})})}
+function lights108(t){const want=t>=3?4:t>=2?2:0;if(Q108.pts.length===want)return;Q108.pts.forEach(l=>scene.remove(l));Q108.pts=[];
+  for(let i=0;i<want;i++){const l=new T.PointLight(0xffcf8a,0,13,2);l.castShadow=false;scene.add(l);Q108.pts.push(l)}}
+function lampLights108(dt){const L=Q108.pts;if(!L.length)return;const n=cur.night;if(mode!=='world'||!activeD||n<.05){L.forEach(l=>l.intensity=0);return}
+  Q108.ptT-=dt;if(Q108.ptT<=0){Q108.ptT=.4;const P=(activeD.pool108||[]).slice().sort((a,b)=>Math.hypot(a.x-camT.x,a.z-camT.z)-Math.hypot(b.x-camT.x,b.z-camT.z));
+    L.forEach((l,i)=>{const p=P[i];if(p){l.position.set(p.x,p.y-.5,p.z);l.userData.on=1}else l.userData.on=0})}
+  L.forEach(l=>{const k=l.userData.on?1.5*clamp((n-.2)/.6,0,1):0;l.intensity+=(k-l.intensity)*Math.min(1,dt*3)})}
+/* ---------- 3) gölge: oyuncuyu takip eden, texel'e oturan (titremeyen) gölge kamerası ---------- */
+const _r108=new T.Vector3(),_u108=new T.Vector3(),_f108=new T.Vector3(),_Y108=new T.Vector3(0,1,0);
+function shadowSnap108(){if(mode!=='world'||!sun.castShadow)return;
+  if(Q108.off.angleTo(cur.off)>.012||Math.abs(Q108.off.length()-cur.off.length())>2)Q108.off.copy(cur.off); /* güneş yönü adım adım: gölge kenarı sürünmez */
+  const sc=sun.shadow.camera,tx=(sc.right-sc.left)/sun.shadow.mapSize.x;_f108.copy(Q108.off).normalize();_r108.crossVectors(_Y108,_f108).normalize();_u108.crossVectors(_f108,_r108).normalize();
+  const c=sun.target.position,r=c.dot(_r108),u=c.dot(_u108);c.addScaledVector(_r108,Math.round(r/tx)*tx-r).addScaledVector(_u108,Math.round(u/tx)*tx-u);sun.position.copy(c).add(Q108.off);sun.target.updateMatrixWorld()}
+/* ---------- 4) post-process (Yüksek+): bloom, renk, vinyet, ACES, sRGB ---------- */
+const VS108='varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}';
+function sm108(fs,u){return new T.ShaderMaterial({uniforms:u,vertexShader:VS108,fragmentShader:fs,depthTest:false,depthWrite:false})}
+function ppMake108(){if(Q108.ppFail)return null;if(Q108.pp)return Q108.pp;try{if(!renderer.capabilities.isWebGL2){Q108.ppFail=true;return null}
+  const hf=renderer.extensions.get('EXT_color_buffer_float')?T.HalfFloatType:T.UnsignedByteType,o={type:hf,format:T.RGBAFormat,minFilter:T.LinearFilter,magFilter:T.LinearFilter};
+  const rt=new T.WebGLRenderTarget(4,4,o);/* MSAA yerine FXAA: zayıf GPU'da ~%25 daha hızlı */const bo=Object.assign({depthBuffer:false},o),a=new T.WebGLRenderTarget(4,4,bo),b=new T.WebGLRenderTarget(4,4,bo),a2=new T.WebGLRenderTarget(4,4,bo),b2=new T.WebGLRenderTarget(4,4,bo);
+  const bright=sm108('uniform sampler2D tS;uniform float uTh;uniform vec2 uPx;varying vec2 vUv;void main(){vec3 c=vec3(0.);for(int i=0;i<4;i++){vec2 o=vec2(float(i-(i/2)*2)-.5,float(i/2)-.5)*uPx*2.;c+=texture2D(tS,vUv+o).rgb;}c*=.25;float l=max(c.r,max(c.g,c.b));gl_FragColor=vec4(c*smoothstep(uTh,uTh+.45,l),1.);}',{tS:{value:null},uTh:{value:1},uPx:{value:new T.Vector2()}});
+  const blur=sm108('uniform sampler2D tS;uniform vec2 uD;varying vec2 vUv;void main(){vec3 c=texture2D(tS,vUv).rgb*.227;c+=(texture2D(tS,vUv+uD*1.385).rgb+texture2D(tS,vUv-uD*1.385).rgb)*.316;c+=(texture2D(tS,vUv+uD*3.231).rgb+texture2D(tS,vUv-uD*3.231).rgb)*.07;gl_FragColor=vec4(c,1.);}',{tS:{value:null},uD:{value:new T.Vector2()}});
+  const comp=sm108([
+   'uniform sampler2D tS,tB,tB2;uniform float uBl,uExp,uAc,uCon,uSat,uVig;uniform vec2 uPx;varying vec2 vUv;','vec3 tx(vec2 o){return texture2D(tS,vUv+o*uPx).rgb;}float lu(vec3 c){return dot(min(c,vec3(1.)),vec3(.299,.587,.114));}','vec3 fxaa(){vec3 M=tx(vec2(0.));float a=lu(tx(vec2(-1.,-1.))),b=lu(tx(vec2(1.,-1.))),c=lu(tx(vec2(-1.,1.))),d=lu(tx(vec2(1.))),m=lu(M);float mn=min(m,min(min(a,b),min(c,d))),mx=max(m,max(max(a,b),max(c,d)));if(mx-mn<max(.0312,mx*.125))return M;',' vec2 dir=vec2(-((a+b)-(c+d)),(a+c)-(b+d));float dr=max((a+b+c+d)*.03125,1./128.);dir=clamp(dir/(min(abs(dir.x),abs(dir.y))+dr),vec2(-8.),vec2(8.));',' vec3 A=.5*(tx(dir*(1./3.-.5))+tx(dir*(2./3.-.5)));vec3 B=A*.5+.25*(tx(dir*-.5)+tx(dir*.5));float l=lu(B);return (l<mn||l>mx)?A:B;}',
+   'vec3 aces(vec3 c){const mat3 I=mat3(vec3(0.59719,0.07600,0.02840),vec3(0.35458,0.90834,0.13383),vec3(0.04823,0.01566,0.83777));const mat3 O=mat3(vec3(1.60475,-0.10208,-0.00327),vec3(-0.53108,1.10813,-0.07276),vec3(-0.07367,-0.00605,1.07602));',
+   ' c=I*(c/0.6);vec3 a=c*(c+0.0245786)-0.000090537;vec3 b=c*(0.983729*c+0.4329510)+0.238081;return O*(a/b);}',
+   'vec3 srgb(vec3 c){c=clamp(c,0.,1.);return mix(c*12.92,1.055*pow(c,vec3(1./2.4))-.055,step(vec3(.0031308),c));}',
+   'void main(){vec3 s=min(fxaa(),vec3(1.));vec3 c=s+(texture2D(tB,vUv).rgb*.65+texture2D(tB2,vUv).rgb*.35)*uBl;',
+   ' vec3 lin=pow(max(c,0.),vec3(2.2))*uExp;vec3 tm=srgb(aces(lin)/aces(vec3(1.6)));vec3 m=mix(clamp(c,0.,1.),tm,uAc);',  /* ACES (beyaz noktası 1.6) mevcut palete harmanlanır */
+   ' m=(m-.5)*uCon+.5;float l=dot(m,vec3(.2126,.7152,.0722));m=mix(vec3(l),m,uSat);',
+   ' vec2 d=(vUv-.5)*vec2(1.,.82);m*=1.-uVig*smoothstep(.28,.78,length(d));',
+   ' gl_FragColor=vec4(clamp(m,0.,1.),1.);}'].join('\n'),{tS:{value:null},tB:{value:null},tB2:{value:null},uBl:{value:.3},uExp:{value:.95},uAc:{value:.6},uCon:{value:1.05},uSat:{value:1.08},uVig:{value:.22},uPx:{value:new T.Vector2(1,1)}});
+  const qs=new T.Scene(),qc=new T.OrthographicCamera(-1,1,1,-1,0,1),quad=new T.Mesh(new T.PlaneGeometry(2,2),comp);quad.frustumCulled=false;qs.add(quad);
+  Q108.pp={rt:rt,a:a,b:b,a2:a2,b2:b2,bright:bright,blur:blur,comp:comp,qs:qs,qc:qc,quad:quad,w:0,h:0,sz:new T.Vector2()};return Q108.pp}catch(e){Q108.ppFail=true;showErrOnce(e);return null}}
+function ppSize108(P){renderer.getDrawingBufferSize(P.sz);const w=P.sz.x|0,h=P.sz.y|0;if(w===P.w&&h===P.h)return;P.w=w;P.h=h;P.rt.setSize(w,h);P.comp.uniforms.uPx.value.set(1/w,1/h);
+  const w4=Math.max(1,w>>2),h4=Math.max(1,h>>2),w8=Math.max(1,w>>3),h8=Math.max(1,h>>3);P.a.setSize(w4,h4);P.b.setSize(w4,h4);P.a2.setSize(w8,h8);P.b2.setSize(w8,h8)}
+function ppPass108(P,m,src,dst){P.quad.material=m;if(m.uniforms.tS)m.uniforms.tS.value=src;renderer.setRenderTarget(dst);renderer.render(P.qs,P.qc)}
+function post108(sc,cm,inI){try{shadowSnap108()}catch(e){}
+  const P=(Q108.tier>=2&&!pix)?ppMake108():null;if(!P){renderer.render(sc,cm);Q108.stats.pp=0;return}
+  try{ppSize108(P);renderer.setRenderTarget(P.rt);renderer.render(sc,cm);const n=inI?0:cur.night;
+    {P.bright.uniforms.uTh.value=inI?1.6:1.18-.4*n;P.bright.uniforms.uPx.value.set(1/P.w,1/P.h);ppPass108(P,P.bright,P.rt.texture,P.a);
+    const B=P.blur.uniforms.uD.value;for(let k=0;k<2;k++){B.set((1+k)/P.a.width,0);ppPass108(P,P.blur,P.a.texture,P.b);B.set(0,(1+k)/P.a.height);ppPass108(P,P.blur,P.b.texture,P.a)}
+    B.set(1/P.a2.width,0);ppPass108(P,P.blur,P.a.texture,P.b2);B.set(0,1/P.a2.height);ppPass108(P,P.blur,P.b2.texture,P.a2);B.set(2/P.a2.width,0);ppPass108(P,P.blur,P.a2.texture,P.b2);B.set(0,2/P.a2.height);ppPass108(P,P.blur,P.b2.texture,P.a2)}
+    const U=P.comp.uniforms;U.tB.value=P.a.texture;U.tB2.value=P.a2.texture;U.uBl.value=inI?.07:(Q108.tier>=3?.08:.06)+.5*n;U.uVig.value=Q108.tier>=3?.26:.2;
+    ppPass108(P,P.comp,P.rt.texture,null);Q108.stats.pp=1}
+  catch(e){renderer.setRenderTarget(null);Q108.ppFail=true;showErrOnce(e);renderer.render(sc,cm)}}
+/* ---------- 5) deniz: dalga normal animasyonu + güneş/ay yansıma parlaması ---------- */
+const SEAQ108={value:1},SEASUN108={value:new T.Vector3(0,1,0)},SEAGL108={value:new T.Color(0xffffff)},SEASKY108={value:new T.Color(0x9ccfee)};
+{const _ob=seaMat.onBeforeCompile;seaMat.onBeforeCompile=function(sh){_ob(sh);sh.uniforms.uQ108=SEAQ108;sh.uniforms.uSun108=SEASUN108;sh.uniforms.uGl108=SEAGL108;sh.uniforms.uSky108=SEASKY108;
+  sh.vertexShader='varying vec3 vW108;\n'+sh.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\n vW108=(modelMatrix*vec4(transformed,1.0)).xyz;');
+  sh.fragmentShader='uniform float uT;uniform float uQ108;uniform vec3 uSun108;uniform vec3 uGl108;uniform vec3 uSky108;varying vec3 vW108;\n'+sh.fragmentShader
+   .replace('#include <normal_fragment_begin>','#include <normal_fragment_begin>\n vec3 nW108=vec3(0.,1.,0.);if(uQ108>.5){vec2 p=vW108.xz;float t=uT;vec2 g=vec2(cos(p.x*1.7+t*1.6)*.5+cos((p.x+p.y)*2.9-t*2.1)*.35+cos(p.x*5.3-p.y*3.1+t*3.)*.18,cos(p.y*1.9-t*1.3)*.5+cos((p.x-p.y)*2.5+t*1.8)*.35+cos(p.y*4.7+p.x*2.3-t*2.6)*.18);nW108=normalize(vec3(-g.x*.24,1.,-g.y*.24));normal=normalize(mix(normal,normalize((viewMatrix*vec4(nW108,0.)).xyz),.6));}')
+   .replace('#include <tonemapping_fragment>','if(uQ108>1.5){vec3 V=normalize(cameraPosition-vW108);vec3 Hs=normalize(vec3(V.x,0.,V.z)*.2+vec3(0.,1.,0.));float s=pow(max(dot(nW108,Hs),0.),3000.)*(.45+.55*sin(vW108.x*.21+vW108.z*.17+uT*.4));vec3 R=reflect(-V,nW108);s+=pow(max(dot(R,uSun108),0.),160.);float fr=pow(1.-max(dot(V,nW108),0.),3.);gl_FragColor.rgb+=uGl108*max(s,0.)*1.1+uSky108*fr*.25;}\n#include <tonemapping_fragment>')};
+  seaMat.needsUpdate=true}
+/* ---------- kademe uygula ---------- */
+function setShadowType108(tp){if(renderer.shadowMap.type===tp)return;renderer.shadowMap.type=tp;[scene,iscene].forEach(s=>s.traverse(o=>{const m=o.material;if(!m)return;(Array.isArray(m)?m:[m]).forEach(q=>q.needsUpdate=true)}));try{if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null}if(isun.shadow.map){isun.shadow.map.dispose();isun.shadow.map=null}}catch(e){}}
+function apply108(){const t=tier108();Q108.tier=t;
+  setShadowType108(t>=2?T.PCFSoftShadowMap:T.PCFShadowMap);sun.shadow.bias=t>=2?-.00035:-.0006;sun.shadow.normalBias=t>=2?.025:0;sun.shadow.radius=t>=3?3:t>=2?2:1;
+  /* atmosferik sis: kamera hedefi 150 birim uzakta; Yüksek+ uzak binalar havada solar */
+  scene.fog.near=t>=2?152:t>=1?150:165;scene.fog.far=t>=3?300:t>=2?320:t>=1?370:420;
+  SEAQ108.value=t>=2?2:t>=1?1:0;lights108(t);poolMat108.visible=true;
+  if(t<2&&Q108.pp){const P=Q108.pp;[P.rt,P.a,P.b,P.a2,P.b2].forEach(r=>r.dispose());Q108.pp=null}}
+{const _aq=applyQ;applyQ=function(){const r=_aq.apply(this,arguments);try{apply108()}catch(e){showErrOnce(e)}return r}}
+/* her karede: havuz opaklığı, lambalar, deniz parlaması */
+function tick108(dt){if(Q108.tier<0)apply108();const n=cur.night;poolMat108.opacity=clamp((n-.25)/.55,0,1)*.55;if(mode==='world'&&activeD&&!activeD.pool108)pools108(activeD);lampLights108(dt);
+  SEASUN108.value.copy(cur.off).normalize();SEAGL108.value.copy(cur.sc).multiplyScalar(cur.si*(1-.55*n));SEASKY108.value.copy(cur.bg)}
+/* ---------- fps < 30 → bir kademe düş (elle seçilmiş kalitede; Otomatik zaten kendi düşer) ---------- */
+{const _ss=saveSet;saveSet=function(){const q=SET.q;if(Q108.userQ){if(SET.q!==Q108.dropTo){Q108.userQ=null;Q108.dropTo=null}else SET.q=Q108.userQ}try{return _ss.apply(this,arguments)}finally{SET.q=q}}}
+{const _pt=perfTick;perfTick=function(dt){_pt.apply(this,arguments);try{fps108(dt)}catch(e){}}}
+function fps108(dt){Q108.stats.fps=Math.round(DYN.fps);if(document.hidden||(mode!=='world'&&mode!=='int'&&mode!=='drive'))return;Q108.cool-=dt;
+  if(SET.q==='auto'){/* mobil Otomatik: Orta'dan başla */if(isTouch&&DYN.i<2){DYN.i=2;applyQ()}return}
+  if(Q108.cool>0||SET.q==='low')return;if(DYN.fps<30){Q108.low+=dt;if(Q108.low>3.5){const ord=['low','mid','high','ultra'],k=ord.indexOf(SET.q);if(k>0){if(!Q108.userQ)Q108.userQ=SET.q;SET.q=ord[k-1];Q108.dropTo=SET.q;Q108.low=0;Q108.cool=10;applyQ();toast('⚙️ FPS düştü · görüntü kalitesi '+QN108[k-1]+' kademesine indi')}}}else Q108.low=Math.max(0,Q108.low-dt*2)}
+window.__q108={Q:Q108,tier:()=>tier108(),save:()=>saveSet(),get q(){return SET.q},apply:()=>apply108(),set:q=>{SET.q=q;Q108.userQ=null;Q108.dropTo=null;applyQ()},hour:h=>{GT=h*60},get fps(){return DYN.fps},get night(){return cur.night},pools:()=>(activeD&&activeD.pool108||[]).length,lights:()=>Q108.pts.map(l=>+l.intensity.toFixed(2)),sun:()=>({c:'#'+sun.color.getHexString(),i:+sun.intensity.toFixed(2),off:cur.off.toArray().map(v=>+v.toFixed(1)),hs:'#'+hemi.color.getHexString(),hg:'#'+hemi.groundColor.getHexString()}),shadowType:()=>renderer.shadowMap.type,fog:()=>[scene.fog.near,scene.fog.far]};
 /* ================= v90: bahçe & tarım görsel yenileme — tekrarsız çim, sürülmüş toprak, taş yol, lamba, bank, 3 evreli instanced bitkiler, rüzgâr, hasat animasyonu ================= */
 const U90={t:{value:0}};
 function sway90(col,o,amp){const m=std(col,Object.assign({roughness:.75},o||{}));const A=(amp||.03).toFixed(3);
