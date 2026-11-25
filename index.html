@@ -12297,6 +12297,21 @@ function bxCheck119(){if(!me||me.key==='sen'||me.key==='yegen')return;const o=bx
 /* Buludex çalışanı: işe gidince Buludex ofisine; ofis bilgisayarı kullanılabilir */
 {const _gj=goJob;goJob=function(){const j=LNK.job;if(j&&j.bx){if(mode==='drive'){toast('Önce arabadan in 🚗');return}if(!ret&&mode!=='world'){const d=distOf(HOME.cur)||'cigli',sp=D[d]&&D[d].spawn||[0,0];ret={d:d,x:sp[0],z:sp[1]}}toast('🚇 Buludex ofisine gidiyorsun');enter('of1');return}return _gj.apply(this,arguments)}}
 {const _op=openPC;openPC=function(tab){const j=LNK.job;if(j&&j.bx){LNK.job=null;try{return _op.apply(this,arguments)}finally{LNK.job=j}}return _op.apply(this,arguments)}}
+/* ================= v120b: Buludex köprüsü · Oğuz'a ödeme (CEO maaşı/temettü), İzmir'de billboard panoları ================= */
+const BB120={o:null,list:[]};
+function bbTex120(o){return canvasTex(512,256,(g,w,h)=>{if(o){const gr=g.createLinearGradient(0,0,w,h);gr.addColorStop(0,'#0b3d91');gr.addColorStop(1,'#1f6feb');g.fillStyle=gr;g.fillRect(0,0,w,h);g.fillStyle='rgba(255,255,255,.08)';for(let i=0;i<8;i++){g.beginPath();g.arc(420+i*6,40+i*10,60+i*12,0,7);g.fill()}
+    g.font='110px system-ui';g.textBaseline='middle';g.fillText(o.ic||'☁️',30,120);g.fillStyle='#fff';g.font='bold 64px Trebuchet MS, sans-serif';g.fillText(o.name||'Buludex',170,100);g.font='30px Trebuchet MS, sans-serif';g.fillStyle='#cfe3ff';g.fillText(o.slogan||'',172,160);
+    g.fillStyle='#ffd84a';g.fillRect(172,195,230,40);g.fillStyle='#0b1b3a';g.font='bold 24px system-ui';g.fillText('Hemen indir ⬇',186,216)}
+  else{g.fillStyle='#e8e6e1';g.fillRect(0,0,w,h);g.fillStyle='#2b2733';g.font='bold 46px Trebuchet MS, sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('BU ALANA',w/2,90);g.fillText('REKLAM VERİN',w/2,150);g.font='24px system-ui';g.fillStyle='#6a6670';g.fillText('📞 0 232 000 00 00 · Ege Açıkhava',w/2,212)}})}
+function bbBuild120(x,z){const g=new T.Group();g.name='bb120';g.position.set(x,0,z);g.rotation.y=-Math.PI/4;W.add(g);const pm=std(0x3a3f48);[-2.6,2.6].forEach(s=>box(.3,5.2,.3,pm,s,2.6,0,g));box(8.6,4.6,.25,std(0x2b2733),0,7,-.15,g);
+  const mt=new T.MeshBasicMaterial({map:bbTex120(BB120.o)});const pl=new T.Mesh(new T.PlaneGeometry(8.2,4.2),mt);pl.position.set(0,7,.06);pl.userData.keep120=1;g.add(pl);BB120.list.push(pl);box(8.8,.2,.6,pm,0,4.6,.1,g);g.userData.keep120=1;C.boxes.push({x:x,z:z,hx:2.9,hz:2.9,keep120:1})}
+/* korunan yapılar (billboard): kapı önü ve bölge temizliği bunları silmez */
+{const _rb=removeBuilding38;removeBuilding38=function(b){if(b&&b.keep120)return false;const G=C&&C.G;if(!G)return _rb.apply(this,arguments);const K=G.children.filter(o=>o.userData&&o.userData.keep120),KB=C.boxes.filter(q=>q.keep120);K.forEach(o=>G.remove(o));try{return _rb.apply(this,arguments)}finally{K.forEach(o=>{if(!o.parent)G.add(o)});KB.forEach(q=>{if(C.boxes.indexOf(q)<0)C.boxes.push(q)})}}}
+{const _cs=citySpecials;citySpecials=function(){_cs.apply(this,arguments);const n=C.name;try{const pref={merkez:[-30,30],alsancak:[30,-30],karsiyaka:[-20,-10]}[n];if(pref){const p=rsv57(5,pref);if(p)bbBuild120(p[0],p[1])}}catch(e){showErrOnce(e)}}}
+/* citySpecials çalışmayan (scatter yapmayan) mahalleler: billboard ve benzinliği kurulum sonunda ekle */
+{const _e=endD;endD=function(){try{if(C&&C.G&&!C.infilled&&W===C.G){const n=C.name,pref={merkez:[-30,30],alsancak:[30,-30],karsiyaka:[-20,-10]}[n];if(pref){const p=rsv57(5,pref);if(p)bbBuild120(p[0],p[1])}if(n==='merkez'){const p=rsv57(6,[50,20]);if(p)station116(p[0],p[1])}}}catch(e){showErrOnce(e)}return _e.apply(this,arguments)}}
+Object.assign(window.PWB,{payOut(n,label){n=Math.round(n);if(!(n>0))return;coins+=n;try{tx67(label||'Buludex',n,'gelir')}catch(e){}toast((label||'💼 Buludex')+' · +'+n.toLocaleString('tr-TR')+'🪙');try{sfx('coin')}catch(e){}},
+  billboard(o){BB120.o=o||null;BB120.list=BB120.list.filter(m=>m.parent);BB120.list.forEach(m=>{const old=m.material.map;m.material.map=bbTex120(BB120.o);m.material.needsUpdate=true;try{old&&old.dispose()}catch(e){}})}});
 /* ================= v90: bahçe & tarım görsel yenileme — tekrarsız çim, sürülmüş toprak, taş yol, lamba, bank, 3 evreli instanced bitkiler, rüzgâr, hasat animasyonu ================= */
 const U90={t:{value:0}};
 function sway90(col,o,amp){const m=std(col,Object.assign({roughness:.75},o||{}));const A=(amp||.03).toFixed(3);
