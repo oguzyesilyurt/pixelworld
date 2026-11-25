@@ -12025,6 +12025,52 @@ function shopBacks114(A){if(!A.boxes||!A.spots)return;const H=heights114(A),r=mu
     n++})}catch(e){showErrOnce(e)}finally{W=W0}return n}
 {const _e=endD;endD=function(){const A=C;const r=_e.apply(this,arguments);try{if(A&&A.G&&!A.b114){A.b114=1;signBacks114(A);shopBacks114(A)}}catch(e){showErrOnce(e)}return r}}
 window.__b114={ST:ST114,night:v=>{NIGHT109.value=v}};
+/* ================= v115: karakter durum kartı (#hud) · sabit genişlik grid, kompakt mod, 🔍 özet paneli ================= */
+(function hud115(){const H=$('hud');if(!H||H.dataset.v115)return;H.dataset.v115=1;
+  const hd=H.querySelector('.hd'),av=$('avatar'),nm=H.querySelector('.nm'),pn=$('pname'),ck=$('pclock'),sv=$('savedot'),cr=$('coinr');
+  /* satırlar: 1) avatar · isim · para  2) gün/saat/hava · kayıt · 🔍 · ⌄  3) adres */
+  const r1=el('div','r1'),r2=el('div','r2'),r3=el('div','r3');let ad=$('hud95');if(!ad){ad=el('div','');ad.id='hud95'}ad.removeAttribute('style');
+  const zb=el('button','hb115','🔍'),cb=el('button','hb115 cv','⌄');zb.title='Özet: ihtiyaçlar ve bağlar';cb.title='Kartı küçült / büyüt';
+  r1.appendChild(av);r1.appendChild(pn);r1.appendChild(cr);r2.appendChild(ck);r2.appendChild(sv);r2.appendChild(zb);r2.appendChild(cb);r3.appendChild(ad);
+  const mini=el('div','mini115');['hf','ef','yf','ff','sof','mf'].forEach(k=>{const d=el('i','');d.dataset.k=k;mini.appendChild(d)});
+  const body=el('div','body115');[r2,r3].forEach(x=>body.appendChild(x));[...H.children].forEach(c=>{if(c!==hd)body.appendChild(c)});
+  hd.replaceWith(r1);H.appendChild(mini);H.appendChild(body);if(nm&&nm.parentNode)nm.remove();
+  const st=document.createElement('style');st.textContent=`
+#hud{width:340px!important;min-width:0!important;max-width:calc(100vw - 20px)!important;box-sizing:border-box;padding:9px 11px!important;display:block!important;cursor:pointer;transition:width .28s ease}
+#hud .r1{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:8px}
+#hud .r1 #pname{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+#hud #coinr{justify-self:end;max-width:118px;min-width:0!important;overflow:hidden;white-space:nowrap;box-sizing:border-box}
+#hud #coinr b{min-width:0!important;overflow:hidden;text-overflow:ellipsis}
+#hud .body115{overflow:hidden;max-height:420px;opacity:1;transition:max-height .3s ease,opacity .22s ease,margin .3s ease;margin-top:5px;display:grid;gap:6px}
+#hud .r2{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;align-items:center;gap:6px}
+#hud .r2 #pclock{font-size:11px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+#hud .r2 #savedot{font-size:11px}
+#hud .r3{min-width:0}#hud #hud95{font-size:11px;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+#hud .hb115{border:0;background:rgba(255,255,255,.1);color:inherit;width:24px;height:22px;border-radius:7px;font-size:12px;line-height:22px;padding:0;cursor:pointer;flex:none}
+#hud .hb115:hover{background:rgba(255,255,255,.2)}#hud .hb115.cv{transition:transform .28s}
+#hud .needs{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px 12px!important}
+#hud .nd{display:grid!important;grid-template-columns:18px minmax(0,1fr);align-items:center;gap:6px;min-width:0}
+#hud .nd span{width:18px!important;text-align:center;font-size:13px}#hud .nd .bar{width:100%!important;min-width:0}
+#hud .bonds{display:grid!important}#hud .bonds .m{display:grid!important;grid-template-columns:18px minmax(0,1fr) auto;gap:6px;align-items:center}#hud .bonds .bar{width:100%!important;min-width:0}
+#hud .mini115{display:flex;gap:6px;align-items:center;max-height:0;opacity:0;overflow:hidden;transition:max-height .3s ease,opacity .22s ease,margin .3s;padding-left:44px}
+#hud .mini115 i{width:9px;height:9px;border-radius:50%;background:#3fbf6a;box-shadow:0 0 0 1.5px rgba(255,255,255,.25)}
+#hud.cmp115{width:236px!important}#hud.cmp115 .body115{max-height:0;opacity:0;margin-top:0}#hud.cmp115 .mini115{max-height:14px;opacity:1;margin-top:5px}#hud.cmp115 .hb115.cv{transform:rotate(180deg)}
+#hud.cmp115 .r1 .hb115{display:inline-block}
+@media (max-height:520px),(max-width:700px){#hud{width:300px!important;padding:7px 9px!important}#hud .av{width:28px!important;height:28px!important}#hud .needs{gap:4px 10px!important}#hud.cmp115{width:214px!important}#hud .mini115{padding-left:36px}}
+#sum115{max-height:min(70vh,560px);overflow:auto;padding-right:4px}`;document.head.appendChild(st);
+  /* kompakt modda ⌄ okunun yeri: isimden sonra küçük; tüm kart da dokununca değiştirir */
+  const setC=(on,save)=>{H.classList.toggle('cmp115',on);if(save){SET.hudCmp=on;try{saveSet()}catch(e){}}};setC(!!SET.hudCmp,false);
+  H.onclick=e=>{if(e.target.closest&&e.target.closest('#pclock'))return;setC(!H.classList.contains('cmp115'),true)};
+  cb.addEventListener('click',e=>{e.stopPropagation();setC(!H.classList.contains('cmp115'),true)});
+  zb.addEventListener('click',e=>{e.stopPropagation();try{charSummary106()}catch(er){showErrOnce(er)}});
+  [zb,cb].forEach(b=>b.addEventListener('pointerdown',e=>e.stopPropagation()));
+})();
+/* mini noktalar: HUD çubuklarıyla aynı değişkenler */
+const NV115=()=>({hf:hunger,ef:NEED.en,yf:HOME.hyg,ff:NEED.fun,sof:NEED.soc,mf:mood});
+{const _h=hudTick;hudTick=function(dt){const r=_h.apply(this,arguments);try{const H=$('hud');if(H&&H.classList.contains('cmp115')){const V=NV115();H.querySelectorAll('.mini115 i').forEach(d=>{const v=+V[d.dataset.k];d.style.background=!(v>=0)?'#888':v>60?'#3fbf6a':v>30?'#e8b030':'#e0484a';d.title=Math.round(v)+'%'})}}catch(e){}return r}}
+/* özet paneli: yalnız 🔍 ile; değerler güvenli okunur (NaN/undefined → gerçek değişken, sonra 0), içerik kaydırılabilir */
+{const _cs=charSummary106;charSummary106=function(){const r=_cs.apply(this,arguments);try{const b=$('mbody');if(b&&!b.querySelector('#sum115')){const w=el('div','');w.id='sum115';[...b.childNodes].forEach(n=>w.appendChild(n));b.appendChild(w)}}catch(e){}return r}}
+window.__h115={vals:()=>{const V=NV115();return Object.fromEntries(Object.entries(V).map(([k,v])=>[k,Math.round(v)]))},bars:()=>Object.fromEntries(['hf','ef','yf','ff','sof','mf'].map(k=>[k,parseFloat($(k).style.width)])),cmp:on=>{$('hud').classList.toggle('cmp115',on)}};
 /* ================= v90: bahçe & tarım görsel yenileme — tekrarsız çim, sürülmüş toprak, taş yol, lamba, bank, 3 evreli instanced bitkiler, rüzgâr, hasat animasyonu ================= */
 const U90={t:{value:0}};
 function sway90(col,o,amp){const m=std(col,Object.assign({roughness:.75},o||{}));const A=(amp||.03).toFixed(3);
