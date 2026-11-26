@@ -13588,6 +13588,49 @@ function qrRecv133(code){code=String(code||'').toUpperCase().replace(/[^A-Z0-9]/
   if('Notification' in window){swRow(g,'🔔 Sistem bildirimleri','Oyun arka plandayken arama ve mesajlar · izin: '+({granted:'verildi',denied:'reddedildi',default:'sorulmadı'})[Notification.permission],'sysNotif',()=>{if(SET.sysNotif&&Notification.permission==='default')Notification.requestPermission();saveSet()})}
   const ap=b.querySelector('#app131');if(ap&&ap.nextSibling)b.insertBefore(g,ap.nextSibling);else b.appendChild(g)}catch(e){showErrOnce(e)}return r}}
 window.__dv133={D:DV133,badge:badge133,sys:sysNotify133,ask:askNotif133,wake:wakeWant133,post:postCard133,ach:achCard133,share:shareCanvas133,collect:collect133,apply:apply133,send:qrSend133,recv:qrRecv133,gp:gpTick133};
+/* ================= v134: çevrimdışı tam oyun + eşitleme kuyruğu (IndexedDB SYNCQ) · 📴 rozeti, ☁️ Eşitlendi, çok oyunculu "İnternet gerekli", kalıcı depolama ================= */
+const SQ134={db:null,busy:false,log:[],persist:null};
+const online134=()=>navigator.onLine!==false;
+function sqDB134(){return new Promise((res,rej)=>{if(SQ134.db)return res(SQ134.db);let r;try{r=indexedDB.open('pixelworld-sync',1)}catch(e){return rej(e)}r.onupgradeneeded=()=>{const db=r.result;if(!db.objectStoreNames.contains('SYNCQ'))db.createObjectStore('SYNCQ',{keyPath:'id'})};r.onsuccess=()=>{SQ134.db=r.result;res(r.result)};r.onerror=()=>rej(r.error)})}
+function sqTx134(mode,fn){return sqDB134().then(db=>new Promise((res,rej)=>{const tx=db.transaction('SYNCQ',mode),st=tx.objectStore('SYNCQ');let out;try{out=fn(st)}catch(e){rej(e)}tx.oncomplete=()=>res(out&&out.result!==undefined?out.result:out);tx.onerror=()=>rej(tx.error)}))}
+/* aynı iş için tek kayıt (en son zaman damgası kazanır) */
+function sqAdd134(kind,key,data){const it={id:kind+':'+key,kind:kind,key:key,data:data||{},ts:Date.now()};return sqTx134('readwrite',st=>st.put(it)).then(()=>{offUI134()}).catch(()=>{})}
+const sqAll134=()=>sqTx134('readonly',st=>st.getAll()).then(L=>(L||[]).sort((a,b)=>a.ts-b.ts)).catch(()=>[]);
+const sqDel134=id=>sqTx134('readwrite',st=>st.delete(id)).catch(()=>{});
+/* --- bulut kaydı: çevrimdışıyken kuyruğa, çevrimiçiyken eskisi gibi --- */
+{const _cp=cloudPush;cloudPush=async function(ch,ka){if(!online134()){try{if(cloudOn()){const o=openSave(PWStore.get(saveKey(ch)));sqAdd134('cloud',ch,{t:(o&&o.t)||Date.now()})}}catch(e){}return}return _cp.apply(this,arguments)}}
+{const _cl=cloudPull;cloudPull=async function(){if(!online134())return;return _cl.apply(this,arguments)}}
+/* kuyruktaki işi çalıştır: true = tamam (silinir), false = sonra tekrar dene */
+async function run134(it){if(it.kind==='cloud'){if(!cloudOn())return true;await cloudPull(true);/* yerelden yeni olan buluttaysa cloudPull yedekleyip yazar; sonra yerel daha yeniyse gönder */
+    await cloudPush(it.key);const loc=saveT(PWStore.get(saveKey(it.key)));return (CLOUD.rt[it.key]||0)+1000>=loc}
+  if(it.kind==='invite'){notify('👥 Bağlantı geri geldi','Çevrimdışıyken hazırladığın oda davetini şimdi gönderebilirsin.',[{t:'📤 Davet gönder',fn:()=>{try{const t=it.data.text,u=it.data.url;if(navigator.share)navigator.share({title:'PixelWorld daveti',text:t,url:u}).catch(()=>{});else window.open('https://wa.me/?text='+encodeURIComponent(t+' '+u),'_blank')}catch(e){}}},{t:'Sonra',fn:()=>{}}]);return true}
+  if(it.kind==='test'){SQ134.log.push(it.key);return true}return true}
+async function flush134(why){if(!online134()||SQ134.busy)return 0;SQ134.busy=true;let n=0,fail=0;try{const L=await sqAll134();for(const it of L){let ok=false;try{ok=await run134(it)}catch(e){ok=false}if(ok){await sqDel134(it.id);n++}else fail++}}finally{SQ134.busy=false}
+  offUI134();if(why==='online'||n)try{toast(fail?'☁️ Kısmen eşitlendi · '+fail+' iş sonra denenecek':'☁️ Eşitlendi'+(n?' · '+n+' bekleyen iş gönderildi':''))}catch(e){}SQ134.last={n:n,fail:fail,why:why,t:Date.now()};return n}
+/* --- 📴 rozeti --- */
+function offUI134(){let b=document.getElementById('off134');const off=!online134();if(!b){b=el('div','');b.id='off134';b.style.cssText='position:fixed;left:50%;transform:translateX(-50%);top:calc(44px + env(safe-area-inset-top,0px));z-index:21;padding:3px 10px;border-radius:12px;background:rgba(40,30,60,.88);color:#fff;font:12px Trebuchet MS,sans-serif;pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,.35);display:none';document.body.appendChild(b)}
+  b.style.display=off?'block':'none';if(off)sqAll134().then(L=>{b.textContent='📴 Çevrimdışı'+(L.length?' · '+L.length+' iş bekliyor':'')})}
+addEventListener('offline',()=>{offUI134();try{toast('📴 Çevrimdışı · oyun çalışmaya devam ediyor, eşitleme bağlantı gelince')}catch(e){}if(MP.peer)try{mpRefresh()}catch(e){}});
+addEventListener('online',()=>{offUI134();setTimeout(()=>flush134('online'),600)});
+try{offUI134()}catch(e){}setTimeout(()=>{offUI134();if(online134())flush134('boot')},3000);
+/* --- çok oyunculu: çevrimdışıyken devre dışı --- */
+const NEEDNET134='📴 Çok oyunculu için internet gerekli · tek oyunculu her şey çalışıyor';
+{const _mv=mpView;mpView=function(root){if(!online134()&&!MP.peer){root.innerHTML='';root.appendChild(el('h3','','👥 Birlikte oyna'));const w=el('div','wid');w.appendChild(el('b','','📴 İnternet gerekli'));w.appendChild(el('div','','Oda kurmak ve katılmak için bağlantı lazım. Bağlantı gelince bu ekran kendiliğinden açılır.'));root.appendChild(w);
+  ['🏠 Oda kur','Katıl'].forEach(t=>{const b=el('button','btn',t);b.disabled=true;b.style.cssText='width:100%;margin-top:8px;opacity:.45';root.appendChild(b)});return}return _mv.apply(this,arguments)}}
+{const _h=mpHost;mpHost=function(){if(!online134()){toast(NEEDNET134);return}return _h.apply(this,arguments)}}
+{const _j=mpJoin;mpJoin=function(){if(!online134()){toast(NEEDNET134);return}return _j.apply(this,arguments)}}
+addEventListener('online',()=>{try{if(phoneOpen()&&/Birlikte/.test($('phtitle').textContent))mpView($('phbody'))}catch(e){}});
+{const _sw=shareWA;shareWA=function(){if(!online134()&&MP.code){sqAdd134('invite',MP.code,{text:'PixelWorld\'de buluşalım! 🎮 (oda: '+MP.code+')',url:inviteLink()});toast('📴 Davet kuyruğa alındı · bağlantı gelince gönderebilirsin');return}return _sw.apply(this,arguments)}}
+{const _qs=qrSend133;qrSend133=function(){if(!online134()){toast('📴 Kayıt aktarımı için iki cihazın da internete bağlı olması gerekli · dosya ile dışa aktarabilirsin');return}return _qs.apply(this,arguments)}}
+{const _qr=qrRecv133;qrRecv133=function(){if(!online134()){toast('📴 Kayıt almak için internet gerekli');return}return _qr.apply(this,arguments)}}
+/* --- kalıcı depolama: iste ve doğrula --- */
+function persist134(){try{if(!(navigator.storage&&navigator.storage.persisted))return;navigator.storage.persisted().then(p=>{if(p){SQ134.persist=true;return}return navigator.storage.persist().then(g=>{SQ134.persist=!!g})}).catch(()=>{});
+  if(navigator.storage.estimate)navigator.storage.estimate().then(e=>{SQ134.est=e}).catch(()=>{})}catch(e){}}
+persist134();
+{const _os=openSettings;openSettings=function(){const r=_os.apply(this,arguments);try{const g=$('mbody')&&$('mbody').querySelector('#bk133');if(g&&!g.querySelector('.st134')){const s=el('div','sub st134','');g.appendChild(s);
+  const E=SQ134.est,mb=v=>(v/1048576).toFixed(1)+' MB';sqAll134().then(L=>{s.textContent=(online134()?'🟢 Çevrimiçi':'📴 Çevrimdışı')+' · kalıcı depolama: '+(SQ134.persist?'✅ izinli (tarayıcı silmez)':SQ134.persist===false?'⚠️ izin verilmedi':'—')+(E?' · kullanılan '+mb(E.usage||0)+' / '+mb(E.quota||0):'')+' · eşitleme kuyruğu: '+L.length+' iş'});
+  const fb=el('button','btn','☁️ Şimdi eşitle');fb.onclick=()=>{if(!online134()){toast('📴 Çevrimdışı · bağlantı gelince otomatik eşitlenecek');return}flush134('manual').then(()=>{})};g.appendChild(fb)}}catch(e){}return r}}
+window.__sq134={S:SQ134,add:sqAdd134,all:sqAll134,flush:flush134,ui:offUI134,cacheCheck:()=>new Promise(res=>{if(!navigator.serviceWorker||!navigator.serviceWorker.controller)return res(null);const h=e=>{if(e.data&&e.data.pw==='cacheReport'){navigator.serviceWorker.removeEventListener('message',h);res(e.data)}};navigator.serviceWorker.addEventListener('message',h);navigator.serviceWorker.controller.postMessage({pw:'cacheCheck'});setTimeout(()=>res(null),8000)})};
 /* ================= v90: bahçe & tarım görsel yenileme — tekrarsız çim, sürülmüş toprak, taş yol, lamba, bank, 3 evreli instanced bitkiler, rüzgâr, hasat animasyonu ================= */
 const U90={t:{value:0}};
 function sway90(col,o,amp){const m=std(col,Object.assign({roughness:.75},o||{}));const A=(amp||.03).toFixed(3);
@@ -13829,14 +13872,14 @@ resize();applyTime(1);frame();
 /* v131: önyükleme — adımlar arasında ekran boyanır (gerçek ilerleme), sonra menüye yumuşak geçiş */
 (function(){const S=window.__splash,step=(p,t)=>new Promise(r=>{try{S&&S.set(p,t)}catch(e){}requestAnimationFrame(()=>setTimeout(r,16))});
  (async function(){await step(.34,'Dünya, dokular ve karakterler oluşturuluyor…');try{window.__pwMain()}catch(e){console.error(e)}
-  await step(.72,'Şirket yazılımı yükleniyor…');await new Promise(r=>{const sc=document.createElement('script');sc.src='tycoon.js?v=133';sc.onload=sc.onerror=()=>r();document.body.appendChild(sc);setTimeout(r,8000)});
+  await step(.72,'Şirket yazılımı yükleniyor…');await new Promise(r=>{const sc=document.createElement('script');sc.src='tycoon.js?v=134';sc.onload=sc.onerror=()=>r();document.body.appendChild(sc);setTimeout(r,8000)});
   await step(.82,'Gölgelendiriciler derleniyor…');try{window.__pwBoot&&__pwBoot.compile()}catch(e){}
   await step(.92,'Kayıtlar okunuyor…');let n=0;try{n=window.__pwBoot?__pwBoot.saves():0}catch(e){}
   await step(1,n?'Hazır · '+n+' kayıt bulundu':'Hazır!');window.__pwBooted=true;setTimeout(()=>{try{S&&S.done()}catch(e){}try{window.__pwBoot&&__pwBoot.afterBoot()}catch(e){}},220)})()})();
 </script>
 <script>/* v131: güncelleme — açılışta/menüde sessiz (kayıt sonrası yeniden yükle), oyun sırasında yalnız küçük rozet + Ayarlar › Güncelle */
 if("serviceWorker" in navigator&&location.protocol.startsWith("http")){let hadCtl=!!navigator.serviceWorker.controller,reloading=false;
- navigator.serviceWorker.register("sw.js").then(reg=>{const chk=()=>{try{reg.update()}catch(e){}};chk();setInterval(chk,15*60*1000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)chk()})}).catch(()=>{});
+ navigator.serviceWorker.register("sw.js").then(reg=>{/* v134: çevrimdışıyken denetleme yok (hata vermez); bağlantı gelince sessizce dener */const chk=()=>{if(navigator.onLine===false)return;try{const p=reg.update();if(p&&p.catch)p.catch(()=>{})}catch(e){}};chk();setInterval(chk,15*60*1000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)chk()});addEventListener('online',()=>setTimeout(chk,1500))}).catch(()=>{});
  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!hadCtl){hadCtl=true;return}const B=window.__pwBoot,inGame=!!(B&&B.inGame());
   if(!inGame){if(reloading)return;reloading=true;try{B&&B.save()}catch(e){}try{window.__splash&&__splash.set(1,'Yeni sürüm yükleniyor…')}catch(e){}location.reload()}else{try{B.updBadge()}catch(e){}}})}</script>
 </body>
