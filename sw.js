@@ -2,8 +2,8 @@
 // v126: oyun betikleri (tycoon.js) de önce ağdan; kurulumda tarayıcı HTTP önbelleği atlanır (cache:'reload'),
 //       böylece yeni index.html ile eski tycoon.js karışmaz. Çevrimdışıyken sorgu parametresi yok sayılarak önbellekten.
 // Kayıtlar localStorage/IndexedDB'de; service worker onlara dokunmaz, güncellemede silinmez.
-const CACHE='pixelworld-v131';
-const FILES=['./','./index.html','./tycoon.js','./manifest.json','./icons/icon-192.png','./icons/icon-512.png','./icons/maskable-192.png','./icons/maskable-512.png','./icons/apple-touch-icon.png','./lib/three.min.js','https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'];
+const CACHE='pixelworld-v132';
+const FILES=['./','./index.html','./tycoon.js','./manifest.json','./icons/icon-192.png','./icons/icon-512.png','./icons/maskable-192.png','./icons/maskable-512.png','./icons/apple-touch-icon.png','./icons/icon-1024.png','./icons/maskable-1024.png','./icons/sc-continue.png','./icons/sc-phone.png','./icons/sc-map.png','./lib/three.min.js','./lib/peerjs.min.js','https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>Promise.all(FILES.map(f=>c.add(new Request(f,{cache:'reload'})).catch(()=>c.add(f).catch(()=>{}))))));self.skipWaiting()});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==CACHE).map(x=>caches.delete(x)))));self.clients.claim()});
 const isHTML=r=>r.mode==='navigate'||/\/(index\.html)?(\?.*)?$/.test(new URL(r.url).pathname+new URL(r.url).search);

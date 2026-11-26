@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <title>PixelWorld</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1a1530">
@@ -3437,7 +3437,7 @@ function bldToggle(){$('styl').classList.toggle('mini')}
 
 /* ---------- çok oyunculu (PeerJS, oda kodu ile 5 kişiye kadar) ---------- */
 const MP={peer:null,host:false,conns:[],code:null,id:null,rem:{},st:'off',sendT:0,lookT:0,names:{}};
-function mpLoad(cb){if(window.Peer)return cb();const s=document.createElement('script');s.src='https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';s.onload=cb;s.onerror=()=>{MP.st='off';toast('Bağlantı kütüphanesi yüklenemedi (internet?) 📶');mpRefresh()};document.head.appendChild(s)}
+function mpLoad(cb){if(window.Peer)return cb();const s=document.createElement('script');s.src='lib/peerjs.min.js';s.onload=cb;s.onerror=()=>{MP.st='off';toast('Bağlantı kütüphanesi yüklenemedi (internet?) 📶');mpRefresh()};document.head.appendChild(s)}
 function mpRefresh(){if(phoneOpen()&&$('phtitle').textContent.indexOf('Birlikte')>=0)mpView($('phbody'))}
 function mpHost(){if(MP.peer)return;MP.st='bağlanıyor';mpRefresh();mpLoad(()=>{const code=('BX'+Math.random().toString(36).slice(2,6)).toUpperCase().replace(/[^A-Z0-9]/g,'7').slice(0,6);const p=new Peer('buludexpw-'+code);MP.peer=p;MP.host=true;MP.code=code;
   p.on('open',id=>{MP.id=id;MP.st='açık';toast('👥 Oda açıldı · kod: '+code);mpRefresh()});p.on('connection',c=>mpConn(c));p.on('error',e=>{toast('Bağlantı hatası: '+(e.type||e));if(!MP.conns.length)mpLeave()});p.on('disconnected',()=>{try{p.reconnect()}catch(e){}})})}
@@ -13430,6 +13430,73 @@ function shortcut131(){let go=null;try{go=new URLSearchParams(location.search).g
 #bld123 .pn{left:calc(12px + env(safe-area-inset-left,0px))!important}
 #sk105,#tv127,#scnov{padding-left:max(10px,env(safe-area-inset-left,0px))!important;padding-right:max(10px,env(safe-area-inset-right,0px))!important}`;document.head.appendChild(s)}
 window.__app131={A:APP131,ios:iosCard131,standalone:standalone131,badge:badge131,update:doUpdate131,install:installUI131};
+/* ================= v132: uygulama gibi davran · tarayıcı jestleri kapalı, dokunma geri bildirimi, geri tuşu/kenar kaydırma History API ile, iOS ses kilidi, arka planda dur/kaydet, yatay kilit, pil tasarrufu ================= */
+if(SET.eco==null)SET.eco=false;if(SET.tapFx==null)SET.tapFx=true;
+/* --- 1) tarayıcı davranışları --- */
+{const s=document.createElement('style');s.textContent=`
+html,body{overscroll-behavior:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;-webkit-text-size-adjust:100%}
+*{-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
+input,textarea,select,[contenteditable],[contenteditable] *{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+img,svg,canvas{-webkit-user-drag:none;user-drag:none}
+#phbody,#mbody,.sg,#tyc .main,#bld123 .pn,#sk105>div,#tv127>div,#scnov,#styl{overscroll-behavior:contain;touch-action:pan-x pan-y}
+button,.btn,[role=button],.pkc,.sopt,.sw2,.hc{transition:scale .08s ease,filter .08s ease}
+button:active,.btn:active,[role=button]:active,.pkc:active,.sopt:active,.press132{scale:.96;filter:brightness(.95)}
+#rot .rph{font-size:0!important;animation:none!important}#rot .ph132{width:62px;height:108px;border:4px solid #fff4e0;border-radius:14px;position:relative;animation:rot132 2.6s cubic-bezier(.6,.05,.3,1) infinite;box-shadow:0 0 30px rgba(255,180,120,.45)}
+#rot .ph132:after{content:'';position:absolute;left:50%;bottom:6px;width:14px;height:4px;margin-left:-7px;border-radius:2px;background:#fff4e0;opacity:.7}#rot .ar132{font-size:28px;animation:arr132 2.6s ease-in-out infinite;opacity:.85}
+@keyframes rot132{0%,18%{transform:rotate(0)}48%,82%{transform:rotate(-90deg)}100%{transform:rotate(-90deg)}}@keyframes arr132{0%,20%{opacity:0;transform:translateY(6px)}40%,70%{opacity:.9;transform:none}100%{opacity:0}}
+#dlg132{position:fixed;inset:0;z-index:300;background:rgba(10,8,20,.6);display:flex;align-items:center;justify-content:center;padding:16px}#dlg132 .c{width:min(340px,92vw);background:#1d1830;color:#fff;border-radius:20px;padding:16px;font:15px Trebuchet MS,sans-serif;border:1px solid rgba(255,255,255,.15);text-align:center}
+#dlg132 .r{display:flex;gap:8px;margin-top:12px}#dlg132 button{flex:1;border:0;border-radius:14px;padding:11px;font:bold 15px Trebuchet MS;cursor:pointer;color:#fff;background:#3a3450}#dlg132 button.y{background:linear-gradient(90deg,#ff8a5c,#ff5fa2)}`;document.head.appendChild(s)}
+{const r=$('rot');if(r&&!r.querySelector('.ph132')){const ph=r.querySelector('.rph');const p=el('div','ph132');if(ph)ph.after(p);else r.prepend(p);p.after(el('div','ar132','↺'))}}
+const notInput132=t=>!(t&&t.closest&&t.closest('input,textarea,select,[contenteditable]'));
+addEventListener('contextmenu',e=>{if(notInput132(e.target))e.preventDefault()},{capture:true});
+addEventListener('dragstart',e=>{if(notInput132(e.target))e.preventDefault()},{capture:true});
+addEventListener('selectstart',e=>{if(notInput132(e.target))e.preventDefault()},{capture:true});
+['gesturestart','gesturechange','gestureend'].forEach(k=>addEventListener(k,e=>e.preventDefault(),{passive:false}));
+addEventListener('touchmove',e=>{if(e.scale!=null&&e.scale!==1)e.preventDefault()},{passive:false});
+addEventListener('wheel',e=>{if(e.ctrlKey)e.preventDefault()},{passive:false});
+addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&['+','-','=','0'].includes(e.key))e.preventDefault()});
+/* --- 2) dokunma geri bildirimi: küçülme + hafif tık sesi + kısa titreşim --- */
+addEventListener('pointerdown',e=>{if(SET.tapFx===false)return;const b=e.target&&e.target.closest&&e.target.closest('button,.btn,[role=button],.pkc,.sopt');if(!b||b.disabled)return;
+  try{if(AU.ctx&&AU.on&&SET.fx!==false)tone(760,.035,'sine',.02)}catch(er){}try{if(e.pointerType!=='mouse'&&SET.vib!==false&&navigator.vibrate)navigator.vibrate(8)}catch(er){}},{capture:true,passive:true});
+/* --- 3) iOS: ilk dokunuşta AudioContext'i aç (sessiz tampon), Android: yatay kilit --- */
+function unlock132(){try{auInit();if(AU.ctx){if(AU.ctx.state!=='running')AU.ctx.resume();const b=AU.ctx.createBuffer(1,1,22050),s=AU.ctx.createBufferSource();s.buffer=b;s.connect(AU.ctx.destination);s.start(0)}}catch(e){}
+  try{if(isTouch&&screen.orientation&&screen.orientation.lock&&(document.fullscreenElement||(window.__app131&&__app131.standalone())))screen.orientation.lock('landscape').catch(()=>{})}catch(e){}}
+['touchend','pointerdown','keydown'].forEach(k=>addEventListener(k,function f(){unlock132();if(AU.ctx&&AU.ctx.state==='running')['touchend','pointerdown','keydown'].forEach(q=>removeEventListener(q,f,true))},true));
+document.addEventListener('fullscreenchange',()=>{try{if(document.fullscreenElement&&screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(()=>{})}catch(e){}});
+/* --- 4) arka plan: sesi sustur, kaydet, render'ı durdur; dönünce devam --- */
+const BG132={hidden:false,n:0};
+function vis132(){if(document.hidden){if(BG132.hidden)return;BG132.hidden=true;BG132.n++;try{if(me&&mode!=='pick')saveGame()}catch(e){}try{AU.ctx&&AU.ctx.suspend()}catch(e){}try{clearInput()}catch(e){}}
+  else{if(!BG132.hidden)return;BG132.hidden=false;try{clock.getDelta()}catch(e){}try{if(AU.ctx&&SET.snd!==false)AU.ctx.resume()}catch(e){}}}
+document.addEventListener('visibilitychange',vis132);addEventListener('pagehide',()=>{BG132.hidden=false;document.hidden&&vis132()});addEventListener('freeze',()=>{try{if(me&&mode!=='pick')saveGame()}catch(e){}});
+{const _fb=frameBody;frameBody=function(){if(document.hidden||BG132.hidden)return;return _fb.apply(this,arguments)}}
+/* --- 5) geri tuşu / kenar kaydırma: önce açık paneli kapat; oyunda "ana menü", menüde "çıkmak istiyor musun?" --- */
+function dlg132(msg,yes,no,yesT,noT){const o=document.getElementById('dlg132');if(o)o.remove();const d=el('div','');d.id='dlg132';const c=el('div','c');c.appendChild(el('div','',msg));const r=el('div','r');const n=el('button','',noT||'Hayır'),y=el('button','y',yesT||'Evet');
+  n.onclick=()=>{d.remove();no&&no()};y.onclick=()=>{d.remove();yes&&yes()};r.appendChild(n);r.appendChild(y);c.appendChild(r);d.appendChild(c);d.onclick=e=>{if(e.target===d)n.onclick()};document.body.appendChild(d);return d}
+function closeTop132(){const on=id=>{const e=document.getElementById(id);return e&&e.classList.contains('on')},rm=id=>{const e=document.getElementById(id);if(e){e.remove();uiPC=false;return true}return false};
+  const dg=document.getElementById('dlg132');if(dg){const n=dg.querySelector('button:not(.y)');n?n.click():dg.remove();return true}
+  if(rm('ios131'))return true;if(document.getElementById('sk105')){rm('sk105');return true}if(document.getElementById('tv127')){rm('tv127');try{TV127.live=0;TV127.cb=null}catch(e){}return true}
+  if(document.getElementById('bld123')&&on('bld123')){try{bldClose123('cancel')}catch(e){}return true}if(on('tyc')){try{PWB.bt.close()}catch(e){}return true}
+  if(on('modal')){closeModal();return true}if(on('styl')){try{STY?styClose():closeAct()}catch(e){$('styl').classList.remove('on');uiPC=false}return true}
+  if(phoneOpen()){togglePhone();return true}if(on('pc')){closePC();return true}if(on('nav')){closeNav();return true}if(on('menu')){closeMenu();return true}
+  const sc=document.getElementById('scnov');if(sc&&sc.classList.contains('on')){const x=sc.querySelector('.no,.cx,button.x');if(x){x.click();return true}}return false}
+const HB132={armed:false,exiting:false};
+function arm132(){try{history.pushState({pw132:1},'',location.href);HB132.armed=true}catch(e){}}
+addEventListener('popstate',()=>{if(HB132.exiting)return;HB132.armed=false;if(closeTop132()){arm132();return}
+  if(mode==='pick'){dlg132('🚪 PixelWorld\'den çıkmak istiyor musun?',()=>{HB132.exiting=true;try{history.back()}catch(e){}setTimeout(()=>{try{window.close()}catch(e){}},300)},()=>arm132(),'Çık','Kal')}
+  else dlg132('🏠 Ana menüye dönmek ister misin?<br><small style="opacity:.75">İlerlemen kaydedilir</small>'.replace(/<[^>]+>/g,m=>m),()=>{try{saveGame()}catch(e){}location.reload()},()=>arm132(),'Ana menü','Oyuna dön');
+  const d=document.getElementById('dlg132');if(d){const m=d.querySelector('.c>div');if(m)m.innerHTML=mode==='pick'?'🚪 PixelWorld\'den çıkmak istiyor musun?':'🏠 Ana menüye dönmek ister misin?<br><small style="opacity:.75">İlerlemen kaydedilir</small>'}});
+setTimeout(()=>{if(!HB132.armed)arm132()},500);
+/* --- 6) pil tasarrufu: 30 fps, gölge ve post-process kapalı; şarj < %20 ise öner --- */
+{const _fc=fpsCap;fpsCap=function(){if(SET.eco)return 30;return _fc.apply(this,arguments)}}
+{const _aq=applyQ;applyQ=function(){const r=_aq.apply(this,arguments);try{if(SET.eco){sun.castShadow=false;isun.castShadow=false}}catch(e){}return r}}
+{const _p=post108;post108=function(sc,cm,inI){if(SET.eco){try{shadowSnap108()}catch(e){}renderer.render(sc,cm);Q108.stats.pp=0;return}return _p.apply(this,arguments)}}
+function eco132(on){SET.eco=!!on;try{saveSet()}catch(e){}try{applyQ()}catch(e){}toast(on?'🔋 Pil tasarrufu açık · 30 FPS, gölge ve efektler kapalı':'⚡ Pil tasarrufu kapalı')}
+function batt132(){try{if(!navigator.getBattery)return;navigator.getBattery().then(b=>{const chk=()=>{if(SET.eco||b.charging||b.level>=.2)return;const k='pw_eco_ask';let d=null;try{d=sessionStorage.getItem(k)}catch(e){}if(d)return;try{sessionStorage.setItem(k,'1')}catch(e){}
+  setTimeout(()=>{try{notify('🔋 Şarj %'+Math.round(b.level*100),'Pil azalıyor. Pil tasarrufunu açalım mı? (30 FPS, gölge ve efektler kapalı)',[{t:'🔋 Aç',fn:()=>eco132(true)},{t:'Şimdi değil',fn:()=>{}}])}catch(e){}},1500)};chk();b.addEventListener('levelchange',chk);b.addEventListener('chargingchange',chk)}).catch(()=>{})}catch(e){}}
+setTimeout(batt132,6000);
+{const _os=openSettings;openSettings=function(){const r=_os.apply(this,arguments);try{const b=$('mbody');if(!b||b.querySelector('#eco132'))return r;const gr=[...b.querySelectorAll('.sg')].find(x=>/Grafik/.test((x.querySelector('h4')||{}).textContent||''));if(!gr)return r;
+  const w=el('div','');w.id='eco132';gr.insertBefore(w,gr.children[1]||null);swRow(w,'🔋 Pil tasarrufu','30 FPS sınırı, gölge ve post-process kapalı','eco',()=>{eco132(SET.eco)});swRow(w,'👆 Dokunma geri bildirimi','Butonlarda tık sesi ve kısa titreşim','tapFx',()=>{saveSet()})}catch(e){showErrOnce(e)}return r}}
+window.__k132={closeTop:closeTop132,back:()=>window.dispatchEvent(new PopStateEvent('popstate',{state:null})),eco:eco132,BG:BG132,HB:HB132,vis:vis132,unlock:unlock132};
 /* ================= v90: bahçe & tarım görsel yenileme — tekrarsız çim, sürülmüş toprak, taş yol, lamba, bank, 3 evreli instanced bitkiler, rüzgâr, hasat animasyonu ================= */
 const U90={t:{value:0}};
 function sway90(col,o,amp){const m=std(col,Object.assign({roughness:.75},o||{}));const A=(amp||.03).toFixed(3);
@@ -13671,7 +13738,7 @@ resize();applyTime(1);frame();
 /* v131: önyükleme — adımlar arasında ekran boyanır (gerçek ilerleme), sonra menüye yumuşak geçiş */
 (function(){const S=window.__splash,step=(p,t)=>new Promise(r=>{try{S&&S.set(p,t)}catch(e){}requestAnimationFrame(()=>setTimeout(r,16))});
  (async function(){await step(.34,'Dünya, dokular ve karakterler oluşturuluyor…');try{window.__pwMain()}catch(e){console.error(e)}
-  await step(.72,'Şirket yazılımı yükleniyor…');await new Promise(r=>{const sc=document.createElement('script');sc.src='tycoon.js?v=131';sc.onload=sc.onerror=()=>r();document.body.appendChild(sc);setTimeout(r,8000)});
+  await step(.72,'Şirket yazılımı yükleniyor…');await new Promise(r=>{const sc=document.createElement('script');sc.src='tycoon.js?v=132';sc.onload=sc.onerror=()=>r();document.body.appendChild(sc);setTimeout(r,8000)});
   await step(.82,'Gölgelendiriciler derleniyor…');try{window.__pwBoot&&__pwBoot.compile()}catch(e){}
   await step(.92,'Kayıtlar okunuyor…');let n=0;try{n=window.__pwBoot?__pwBoot.saves():0}catch(e){}
   await step(1,n?'Hazır · '+n+' kayıt bulundu':'Hazır!');window.__pwBooted=true;setTimeout(()=>{try{S&&S.done()}catch(e){}try{window.__pwBoot&&__pwBoot.afterBoot()}catch(e){}},220)})()})();
