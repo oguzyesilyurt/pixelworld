@@ -13275,6 +13275,71 @@ try{KM72.urla=38;KM72.foca=70}catch(e){}try{NV_CAT.urla=['Eğlence','Yemek','Al�
 {const _sv=save25;save25=function(){const o=_sv.apply(this,arguments);try{o.x129=UF129}catch(e){}return o}}
 {const _ld=load25;load25=function(x){const r=_ld.apply(this,arguments);try{if(x&&x.x129)Object.assign(UF129,x.x129)}catch(e){}return r}}
 window.__uf129={U:UF129,harvest:harvest129,olive:olive129,market:market129,tour:tour129,sun:sunView129,gk:gkBoat129,stock:stock129};
+/* ================= v130: temiz, net, doğal renkli görüntü · MSAA'lı post-process (yoksa FXAA), dengeli ACES, bloom yalnız ışıklarda, nötr gündüz, kısa ve hafif gün batımı, sakin deniz, düşük greli zemin, Ayarlar › Görüntü ================= */
+if(SET.bright==null)SET.bright=1;if(SET.pp==null)SET.pp=true;if(SET.bloom==null)SET.bloom=true;if(SET.sunTone==null)SET.sunTone=true;if(SET.vig==null)SET.vig=false;
+/* --- 1) çözünürlük: masaüstünde dinamik ölçek yok; pixelRatio = min(dpr,2), Orta 1.5; mobilde alt sınır 0.9, yalnız fps<35 --- */
+(function(){const t=isTouch;QL[0].pr=2;QL[1].pr=t?1.75:2;QL[2].pr=1.5;QL[3].pr=t?1.25:1.5;QL[4].pr=1;QL[5].pr=t?.9:1})();
+rsTick117=function(dt){if(!isTouch){if(OPT117.rs!==1){OPT117.rs=1;resize()}return}if(mode!=='world'&&mode!=='int')return;const f=DYN.fps;OPT117.rsLo=f<35?(OPT117.rsLo||0)+dt:0;OPT117.rsHi=f>50?(OPT117.rsHi||0)+dt:0;
+  if(OPT117.rs===1&&OPT117.rsLo>2.5){OPT117.rs=.9;OPT117.rsLo=0;resize()}else if(OPT117.rs<1&&OPT117.rsHi>6){OPT117.rs=1;OPT117.rsHi=0;resize()}};
+OPT117.rs=1;
+{const s=document.createElement('style');s.textContent='.pix canvas,#stage canvas{image-rendering:auto!important}';document.head.appendChild(s)}
+/* --- 2) saatlik ışık: nötr gündüz, gün batımı yalnız 18:00–19:30 ve hafif, pembe sis yok --- */
+function hk130(){const N=NIGHT108,st=SET.sunTone!==false;const L=[[0].concat(N),[4.8].concat(N),
+  [6.2,0x6a7aa8,0x7886aa,0x9aa6c8,0x34384a,.5,0xc8bcd0,.45,[-16,14,-46],0x2a5a90,.55],
+  [7.6,0xa8c8e4,0xbed2e6,0xd0dceb,0x5a5e58,.5,0xffefe0,.7,[-18,24,-40],0x2f7ec4,.08],
+  [9,0x9ccfee,0xc2daee,0xd4e2ef,0x646a58,.5,0xfff8f0,.8,[-22,34,-32],0x2f8ed0,0],
+  [12.5,0x9ccfee,0xc4dcef,0xd8e5f0,0x6a6e5a,.5,0xfffaf4,.82,[-12,56,-10],0x2f93d6,0],
+  [16.6,0x9fcbe8,0xc4daec,0xd6e2ee,0x6a6c58,.5,0xfff5e8,.8,[-26,38,14],0x2f88cc,0],
+  [18,0xa6c4e0,0xc2d4e4,0xd8dfe8,0x66665a,.5,0xfff0de,.76,[-36,26,20],0x2f80c0,.05],
+  st?[18.75,0xe2b896,0xdcc6b4,0xeed8c6,0x5a5258,.56,0xffc696,.86,[-44,16,24],0x3a74b0,.3]:[18.75,0xb4c4d8,0xc6ced8,0xd8dce4,0x5a5a5a,.5,0xffeadc,.68,[-44,16,24],0x2f6aa8,.3],
+  [19.5,0x56628e,0x626c92,0x8a8eb4,0x2a2c44,.55,0xb4a8c8,.45,[-36,24,18],0x1e3a70,.78],[21].concat(N),[24].concat(N)];HK108.length=0;L.forEach(k=>HK108.push(k))}
+hk130();
+/* parlaklık (tüm ışıklar) + iç mekân ışığı daha yumuşak */
+const IH130=iscene.children.find(o=>o.isHemisphereLight);
+{const _at=applyTime;applyTime=function(dt){const r=_at.apply(this,arguments);try{const k=SET.bright||1;hemi.intensity*=k;sun.intensity*=k;if(IH130)IH130.intensity=.85*k;isun.intensity=.74*k}catch(e){}return r}}
+/* --- 3) post-process: MSAA render hedefi (WebGL2), dengeli ACES, doygunluk/kontrast +%3, bloom yalnız gece ışıkları, vinyet kapalı --- */
+const PP130={ms:false};
+{const _pm=ppMake108;ppMake108=function(){const had=!!Q108.pp,P=_pm.apply(this,arguments);if(!P||had||P.v130)return P;P.v130=1;
+  try{if(T.WebGLMultisampleRenderTarget&&renderer.capabilities.isWebGL2){const o={type:P.rt.texture.type,format:T.RGBAFormat,minFilter:T.LinearFilter,magFilter:T.LinearFilter};const ms=new T.WebGLMultisampleRenderTarget(4,4,o);ms.samples=4;P.rt.dispose();P.rt=ms;P.w=0;P.ms=true;PP130.ms=true}}catch(e){P.ms=false}
+  P.comp.fragmentShader=['uniform sampler2D tS,tB,tB2;uniform float uBl,uExp,uAc,uCon,uSat,uVig,uFx;uniform vec2 uPx;varying vec2 vUv;',
+   'vec3 tx(vec2 o){return texture2D(tS,vUv+o*uPx).rgb;}float lu(vec3 c){return dot(min(c,vec3(1.)),vec3(.299,.587,.114));}',
+   'vec3 fxaa(){vec3 M=tx(vec2(0.));float a=lu(tx(vec2(-1.,-1.))),b=lu(tx(vec2(1.,-1.))),c=lu(tx(vec2(-1.,1.))),d=lu(tx(vec2(1.))),m=lu(M);float mn=min(m,min(min(a,b),min(c,d))),mx=max(m,max(max(a,b),max(c,d)));if(mx-mn<max(.0312,mx*.125))return M;',
+   ' vec2 dir=vec2(-((a+b)-(c+d)),(a+c)-(b+d));float dr=max((a+b+c+d)*.03125,1./128.);dir=clamp(dir/(min(abs(dir.x),abs(dir.y))+dr),vec2(-8.),vec2(8.));vec3 A=.5*(tx(dir*(1./3.-.5))+tx(dir*(2./3.-.5)));vec3 B=A*.5+.25*(tx(dir*-.5)+tx(dir*.5));float l=lu(B);return (l<mn||l>mx)?A:B;}',
+   'vec3 acesF(vec3 x){return clamp((x*(2.51*x+.03))/(x*(2.43*x+.59)+.14),0.,1.);}',
+   'void main(){vec3 s=uFx>.5?fxaa():texture2D(tS,vUv).rgb;s=min(s,vec3(1.));vec3 c=s+(texture2D(tB,vUv).rgb*.65+texture2D(tB2,vUv).rgb*.35)*uBl;',
+   ' vec3 lin=pow(max(c,0.),vec3(2.2))*uExp*.6;vec3 tm=pow(acesF(lin),vec3(1./2.2));vec3 m=mix(clamp(c,0.,1.),tm,uAc);',
+   ' m=(m-.5)*uCon+.5;float l=dot(m,vec3(.2126,.7152,.0722));m=mix(vec3(l),m,uSat);',
+   ' vec2 d=(vUv-.5)*vec2(1.,.82);m*=1.-uVig*smoothstep(.35,.85,length(d));gl_FragColor=vec4(clamp(m,0.,1.),1.);}'].join('\n');
+  P.comp.uniforms.uFx={value:P.ms?0:1};P.comp.needsUpdate=true;return P}}
+post108=function(sc,cm,inI){try{shadowSnap108()}catch(e){}
+  const P=(Q108.tier>=2&&!pix&&SET.pp!==false)?ppMake108():null;if(!P){renderer.render(sc,cm);Q108.stats.pp=0;return}
+  try{ppSize108(P);renderer.setRenderTarget(P.rt);renderer.render(sc,cm);const n=inI?0:cur.night,U=P.comp.uniforms;const bl=SET.bloom!==false?(inI?.03:.015+.28*clamp((n-.15)/.6,0,1)):0;
+    if(bl>.02){P.bright.uniforms.uTh.value=inI?.95:.86;P.bright.uniforms.uPx.value.set(1/P.w,1/P.h);ppPass108(P,P.bright,P.rt.texture,P.a);
+      const B=P.blur.uniforms.uD.value;for(let k=0;k<2;k++){B.set((1+k)/P.a.width,0);ppPass108(P,P.blur,P.a.texture,P.b);B.set(0,(1+k)/P.a.height);ppPass108(P,P.blur,P.b.texture,P.a)}
+      B.set(1/P.a2.width,0);ppPass108(P,P.blur,P.a.texture,P.b2);B.set(0,1/P.a2.height);ppPass108(P,P.blur,P.b2.texture,P.a2);U.uBl.value=bl}else U.uBl.value=0;
+    U.tB.value=P.a.texture;U.tB2.value=P.a2.texture;U.uExp.value=1;U.uAc.value=.5;U.uCon.value=1.03;U.uSat.value=1.03;U.uVig.value=SET.vig?.08:0;if(U.uFx)U.uFx.value=P.ms?0:1;
+    ppPass108(P,P.comp,P.rt.texture,null);Q108.stats.pp=1;Q108.stats.ms=P.ms?1:0}
+  catch(e){renderer.setRenderTarget(null);Q108.ppFail=true;showErrOnce(e);renderer.render(sc,cm)}};
+/* --- 4) deniz: eski su malzemesi (mavi, yansımalı, yumuşak dalga normali; kiremit/pürüz yok) --- */
+seaMat.flatShading=false;seaMat.specular.setHex(0xbcd6f2);seaMat.shininess=90;
+{const _ob=seaMat.onBeforeCompile;seaMat.onBeforeCompile=function(sh){_ob(sh);sh.vertexShader=sh.vertexShader.replace('#include <beginnormal_vertex>','vec4 wq0=modelMatrix*vec4(position,1.0);float dYx=.049*cos(wq0.x*.35+uT*1.2)+.048*cos((wq0.x+wq0.z)*.8+uT*2.0);float dYz=.03*cos(wq0.z*.3-uT*.9)+.048*cos((wq0.x+wq0.z)*.8+uT*2.0);vec3 objectNormal=normalize(vec3(-dYx*2.2,1.,-dYz*2.2));\n#ifdef USE_TANGENT\nvec3 objectTangent=vec3(tangent.xyz);\n#endif')}}
+seaMat.needsUpdate=true;
+{const _a=apply108;apply108=function(){const r=_a.apply(this,arguments);try{SEAQ108.value=0}catch(e){}return r}}try{SEAQ108.value=0}catch(e){}
+/* --- 5) zemin dokuları: daha az gren; kiremit yalnız çatılarda --- */
+{const _mk=mk109;mk109=function(m,kind,o){if(kind==='none'&&o&&o.lb!=null&&!o.__130){o=Object.assign({},o,{__130:1,mk:(o.mk!=null?o.mk:.22)*.45,b:(o.b!=null?o.b:.5)*.35})}if(kind==='tile'&&!(m.userData&&m.userData.tile109)&&!(m.userData&&m.userData.roof130)){kind='stucco';o=Object.assign({k:.25},o||{})}return _mk.call(this,m,kind,o)}}
+{const _pr=pyrRoof;pyrRoof=function(){const r=_pr.apply(this,arguments);try{r.material.userData.roof130=1}catch(e){}return r}}
+function asph130(){const c=asphaltTex.image;if(!c||!c.getContext)return;const g=c.getContext('2d'),w=c.width,h=c.height,R=mulberry(1300);g.fillStyle='#4c4958';g.fillRect(0,0,w,h);softBlobs(g,w,h,14,['#524f60','#46434f'],.25);
+  for(let i=0;i<900;i++){g.fillStyle=R()<.5?'rgba(255,255,255,.025)':'rgba(0,0,0,.03)';g.fillRect(R()*w,R()*h,1.2,1.2)}asphaltTex.needsUpdate=true;try{texQ125(asphaltTex)}catch(e){}}
+try{asph130()}catch(e){}
+function texRefresh130(){const done=new Set();scene.traverse(o=>{const ms=o.material?(Array.isArray(o.material)?o.material:[o.material]):[];ms.forEach(m=>{const t=m&&m.map;if(t&&!done.has(t)&&(t.image===asphaltTex.image||t.image===paverTex.image)){done.add(t);t.needsUpdate=true}})})}
+setTimeout(()=>{try{texRefresh130()}catch(e){}},1800);
+/* --- 6) Ayarlar › Görüntü --- */
+{const _os=openSettings;openSettings=function(){const r=_os.apply(this,arguments);try{const b=$('mbody');if(!b||b.querySelector('#vis130'))return r;const g=el('div','sg');g.id='vis130';g.appendChild(el('h4','','🖼️ Görüntü'));
+  rangeRow(g,'☀️ Parlaklık','bright',.8,1.2,.02,()=>{});swRow(g,'✨ Post-process','Kenar yumuşatma (MSAA/FXAA), dengeli renk · Yüksek/Ultra kalitede','pp',()=>{});swRow(g,'💡 Bloom','Gece lamba ve pencere parıltısı','bloom',()=>{});
+  swRow(g,'🌅 Gün batımı rengi','18:00–19:30 arası hafif sıcak ton','sunTone',()=>{hk130()});swRow(g,'🔲 Vinyet','Kenarları çok hafif karart','vig',()=>{});
+  const rs=el('button','btn','↺ Dengeli varsayılanlar');rs.onclick=()=>{SET.bright=1;SET.pp=true;SET.bloom=true;SET.sunTone=true;SET.vig=false;hk130();saveSet();toast('🖼️ Görüntü ayarları varsayılana döndü');try{closeModal&&closeModal()}catch(e){}setTimeout(()=>openSettings(),60)};g.appendChild(rs);
+  const sgs=[...b.querySelectorAll('.sg')],gr=sgs.find(x=>/Grafik/.test((x.querySelector('h4')||{}).textContent||''));if(gr&&gr.nextSibling)b.insertBefore(g,gr.nextSibling);else b.appendChild(g)}catch(e){showErrOnce(e)}return r}}
+window.__v130={PP:PP130,get ms(){return Q108.pp&&Q108.pp.ms},hk:hk130,asph:asph130};
 /* ================= v90: bahçe & tarım görsel yenileme — tekrarsız çim, sürülmüş toprak, taş yol, lamba, bank, 3 evreli instanced bitkiler, rüzgâr, hasat animasyonu ================= */
 const U90={t:{value:0}};
 function sway90(col,o,amp){const m=std(col,Object.assign({roughness:.75},o||{}));const A=(amp||.03).toFixed(3);
@@ -13512,7 +13577,7 @@ resize();applyTime(1);frame();
 }catch(err){const e=document.getElementById('err');e.style.display='block';e.textContent='Hata: '+(err&&err.stack||err)}
 })();
 </script>
-<script src="tycoon.js?v=129"></script>
+<script src="tycoon.js?v=130"></script>
 <script>if("serviceWorker" in navigator&&location.protocol.startsWith("http")){let hadCtl=!!navigator.serviceWorker.controller,shown=false;
 const banner=()=>{if(shown)return;shown=true;const b=document.createElement('div');b.style.cssText='position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 10px);transform:translateX(-50%);z-index:200;display:flex;gap:10px;align-items:center;padding:10px 14px;border-radius:16px;background:rgba(20,15,34,.92);color:#fff;font:14px Trebuchet MS,sans-serif;box-shadow:0 6px 20px rgba(0,0,0,.4)';b.innerHTML='🆕 Yeni sürüm hazır · ilerlemen korunur';const x=document.createElement('button');x.textContent='Kaydet ve güncelle';x.style.cssText='border:0;border-radius:12px;padding:6px 12px;cursor:pointer;font:inherit;background:#ffb347;color:#2a1a0a';x.onclick=()=>{try{window.__pwSave&&window.__pwSave()}catch(e){}setTimeout(()=>location.reload(),150)};b.appendChild(x);document.body.appendChild(b)};
 navigator.serviceWorker.register("sw.js").then(reg=>{const chk=()=>{try{reg.update()}catch(e){}};setInterval(chk,15*60*1000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)chk()});});
