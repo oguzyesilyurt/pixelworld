@@ -12256,7 +12256,7 @@ window.PWB={get GT(){return GT},get day(){return HOME.day},get coins(){return co
 {const _ws=writeSave;writeSave=function(k,obj){try{if(obj&&PWB.bt){const b=PWB.bt.get();if(b)obj.BT=b;else delete obj.BT}}catch(e){}return _ws.apply(this,arguments)}}
 {const _lg=loadGame;loadGame=function(k){const r=_lg.apply(this,arguments);try{const b=SAVE&&SAVE.BT&&typeof SAVE.BT==='object'?SAVE.BT:null;if(PWB.bt)PWB.bt.set(b);else PWB.pendingBT=b}catch(e){}return r}}
 /* bilgisayar: 💼 Buludex Yönetim */
-(function(){const nv=$('pcnav');if(!nv)return;const b=document.createElement('button');b.dataset.a='tyc';b.textContent='💼 Buludex Yönetim';b.style.cssText='background:linear-gradient(90deg,#1f6feb,#58a6ff);color:#fff';b.onclick=()=>{if(!PWB.bt){toast('Yönetim yazılımı yüklenemedi');return}closePC();setTimeout(()=>PWB.bt.open(),80)};nv.appendChild(b)})();
+/* v126: Buludex OS (Halkapınar) ekranından şirket yönetimi açılmaz; Oğuz'un şirketi evdeki bilgisayardan */
 /* ================= v119: Buludex İK köprüsü · referans aramaları, oyun karakterlerini işe alma (LNK.job = Buludex) ================= */
 const BXK119='pw_bx_hire',CHB119={kiz:'ogus',abla:'cicom',esi:'eniste',almira:'almira',berke:'berke'},CHN119={kiz:'Denel',abla:'Çiço',esi:'Gökhan',almira:'Almira',berke:'Berke',sen:'Oğuz'};
 function bxRead119(){try{return JSON.parse(localStorage.getItem(BXK119)||'{}')||{}}catch(e){return {}}}
@@ -12285,13 +12285,13 @@ Object.assign(window.PWB,{notify:(f,t)=>{try{notify(f,t,[{t:'Tamam',fn:()=>{}}])
   hireChar(k,job){const o=bxRead119();o[k]=Object.assign({st:'teklif',day:HOME.day},job);bxWrite119(o)},fireChar(k,why){const o=bxRead119();if(o[k]){o[k].st='ayrildi';o[k].why=why||'';o[k].day2=HOME.day;bxWrite119(o)}},hires:()=>bxRead119(),
   get ceo(){return !!(me&&me.key==='sen')}});
 /* o karakterle oynarken: teklifi gör, gerekirse istifa edip Buludex'e geç */
-function bxJob119(R){return {id:'bx_'+me.key,t:R.t,co:'Buludex',d:'merkez',sal:R.sal,rem:false,bx:1}}
+function bxJob119(R){return {id:'bx_'+me.key,t:R.t,co:bxCoN126(),d:'alsancak',sal:R.sal,rem:false,bx:1}}
 function bxCheck119(){if(!me||me.key==='sen'||me.key==='yegen')return;const o=bxRead119(),R=o[me.key];if(!R)return;
-  if(R.st==='ayrildi'&&LNK.job&&LNK.job.bx){LNK.job=null;try{SAL[me.key]=LNK.old||ECO.sal[me.key]}catch(e){}notify('💼 Buludex',R.why||'Buludex\'teki görevin sona erdi.',[{t:'Tamam',fn:()=>{}}]);delete o[me.key];bxWrite119(o);return}
-  if(R.st!=='teklif')return;const cur=LNK.job?LNK.job.co:CUROF[me.key],same=cur==='Buludex'&&!LNK.job;
-  const take=()=>{if(!LNK.old)LNK.old=SAL[me.key]||ECO.sal[me.key];LNK.job=bxJob119(R);SAL[me.key]=R.sal;R.st='kabul';R.day2=HOME.day;o[me.key]=R;bxWrite119(o);try{memAdd('💼','Oğuz\'un şirketi Buludex\'te '+R.t+' olarak başladım')}catch(e){}toast('💼 Artık Buludex\'te '+R.t+' · '+R.sal.toLocaleString('tr-TR')+'🪙/10 gün');try{saveGame()}catch(e){}};
-  const no=()=>{R.st='red';o[me.key]=R;bxWrite119(o);toast('📨 Buludex teklifini geri çevirdin')};
-  setTimeout(()=>notify('💼 Buludex · Oğuz\'dan teklif',R.t+' pozisyonu · '+R.sal.toLocaleString('tr-TR')+'🪙/10 gün'+(same?'':' · şu anki işin: '+cur),same?[{t:'Kabul et',fn:take},{t:'Reddet',fn:no}]:[{t:'İstifa edip geç',fn:take},{t:'Mevcut işimde kalayım',fn:no}]),2500)}
+  if(R.st==='ayrildi'&&LNK.job&&LNK.job.bx){LNK.job=null;try{SAL[me.key]=LNK.old||ECO.sal[me.key]}catch(e){}notify('💼 '+bxCoN126(),R.why||bxCoN126()+' · görevin sona erdi.',[{t:'Tamam',fn:()=>{}}]);delete o[me.key];bxWrite119(o);return}
+  if(R.st!=='teklif')return;const cur=LNK.job?LNK.job.co:CUROF[me.key],same=cur===bxCoN126()&&!LNK.job;
+  const take=()=>{if(!LNK.old)LNK.old=SAL[me.key]||ECO.sal[me.key];LNK.job=bxJob119(R);SAL[me.key]=R.sal;R.st='kabul';R.day2=HOME.day;o[me.key]=R;bxWrite119(o);try{memAdd('💼','Oğuz\'un şirketi '+bxCoN126()+' · '+R.t+' olarak başladım')}catch(e){}toast('💼 Artık '+bxCoN126()+' · '+R.t+' · '+R.sal.toLocaleString('tr-TR')+'🪙/10 gün');try{saveGame()}catch(e){}};
+  const no=()=>{R.st='red';o[me.key]=R;bxWrite119(o);toast('📨 '+bxCoN126()+' teklifini geri çevirdin')};
+  setTimeout(()=>notify('💼 '+bxCoN126()+' · Oğuz\'dan teklif',R.t+' pozisyonu · '+R.sal.toLocaleString('tr-TR')+'🪙/10 gün'+(same?'':' · şu anki işin: '+cur),same?[{t:'Kabul et',fn:take},{t:'Reddet',fn:no}]:[{t:'İstifa edip geç',fn:take},{t:'Mevcut işimde kalayım',fn:no}]),2500)}
 {const _s=start25;start25=function(){const r=_s.apply(this,arguments);try{bxCheck119()}catch(e){}return r}}
 {const _nd=newDay;newDay=function(){const r=_nd.apply(this,arguments);try{bxCheck119()}catch(e){}return r}}
 /* Buludex çalışanı: işe gidince Buludex ofisine; ofis bilgisayarı kullanılabilir */
@@ -12320,7 +12320,7 @@ const BXN122=['Ev ofisi','Garaj ofis','Küçük ofis','Plaza katı','Buludex Pla
 function bxLook122(e){if(e.char){try{return Object.assign({},lookOf(e.char))}catch(er){}}const r=mulberry(Array.from(String(e.id)).reduce((s,c)=>s*31+c.charCodeAt(0)>>>0,7)),pk=a=>a[Math.floor(r()*a.length)];
   const fem=r()<.5;return {shirt:pk([0x2f6fb0,0xe8833a,0x3a8a4a,0x8a5ad6,0xd8d8dc,0x2b2b33,0xc8322c,0x1e7a8a]),pants:pk([0x23252b,0x3a4a6a,0x5a4a3a,0x2a2a2e]),hair:pk([0x2b1d17,0x5a3a22,0x1a1a1a,0x8a5a2a,0xc8a060]),skin:pk([0xf1c9a0,0xe0b088,0xc89870,0xf6d6b8]),long:fem,shoes:0x1b1b1f}}
 function bxOffice122(I){const B=bxBT122(),tier=B&&B.of?B.of.tier:1,O=[[6,5],[9,7],[12,9],[18,12],[26,16],[34,22]][tier],cs=1.4,Wd=O[0]*cs+2,Dd=O[1]*cs+2;
-  I.G=W;I.title='Buludex · '+BXN122[tier]+(B&&B.product?' · '+B.product.name:'');room(I,Wd,Dd,{wall:tier>=3?'#e6ecf2':'#e8e2d6',tile:tier>=3?['#d9dee6','#c9cfd8']:['#d8cdb8','#c8bca6'],winW:3.2});
+  bxNames126();I.G=W;I.title=bxCoN126()+' · '+BXN122[tier]+(B&&B.product?' · '+B.product.name:'');room(I,Wd,Dd,{wall:tier>=3?'#e6ecf2':'#e8e2d6',tile:tier>=3?['#d9dee6','#c9cfd8']:['#d8cdb8','#c8bca6'],winW:3.2});
   const X=x=>-Wd/2+1+x*cs,Z=y=>-Dd/2+1+y*cs;const seats=[],coffee=[];const items=(B&&B.of&&B.of.items)||[{t:'desk',x:0,y:0,pc:0}];
   const deskList=items.filter(i=>i.t==='desk').sort((a,b)=>a.y-b.y||a.x-b.x);
   items.forEach(it=>{const w=it.r?{desk:1,meet:3,kitchen:2,game:2}[it.t]||1:{desk:2,meet:3,kitchen:2,game:2}[it.t]||1,h=it.r?{desk:2}[it.t]||({meet:3,kitchen:2,game:2}[it.t]||1):({meet:3,kitchen:2,game:2}[it.t]||1);
@@ -12340,14 +12340,14 @@ function bxOffice122(I){const B=bxBT122(),tier=B&&B.of?B.of.tier:1,O=[[6,5],[9,7
     a.brain=(a2,dt)=>{const X2=a2.bx;X2.t-=dt;if(X2.st==='work'&&X2.t<=0&&coffee.length){X2.st='go';const c=coffee[Math.floor(Math.random()*coffee.length)];agentGo(a2,c[0]+(Math.random()-.5)*.6,c[1],()=>{X2.st='coffee';X2.t=6+Math.random()*5;a2.pose='phone'})}
       else if(X2.st==='coffee'&&X2.t<=0){X2.st='back';agentGo(a2,X2.seat.x,X2.seat.z,()=>{agentSit(a2,X2.seat,'work');X2.st='work';X2.t=25+Math.random()*40})}}});
   exitDoor(I,-Wd/2+2.2);I.spawn=[-Wd/2+2.2,-Dd/2+2];
-  if(mySeat){I.spots.push({x:mySeat.x,z:mySeat.z+.4,r:1.8,t:me.key==='sen'?'E: 💼 Masana otur · Buludex Yönetim':'E: 💻 Masanda çalış',fn:()=>{if(me.key==='sen'){if(PWB.bt)PWB.bt.open()}else workShift({x:mySeat.x,z:mySeat.z-1},'Buludex · mesai')}});I.spawn=[mySeat.x+1.2,mySeat.z+1.2]}
+  if(mySeat){I.spots.push({x:mySeat.x,z:mySeat.z+.4,r:1.8,t:me.key==='sen'?'E: 💼 Masana otur · '+bxCoN126()+' yönetimi':'E: 💻 Masanda çalış',fn:()=>{if(me.key==='sen'){if(PWB.bt)PWB.bt.open()}else workShift({x:mySeat.x,z:mySeat.z-1},bxCoN126()+' · mesai')}});I.spawn=[mySeat.x+1.2,mySeat.z+1.2]}
   I.bxTier=tier;return I}
 {const _ri=restInt;restInt=function(I,key){if(key==='bx')return bxOffice122(I);return _ri.apply(this,arguments)}}
 /* --- Halkapınar: kademeye göre şirket binası; gökdelende gece parlayan BULUDEX logosu --- */
 const BXS122={site:null,g:null,boxes:[]};
-function logoMat122(){const t=canvasTex(512,128,(g,w,h)=>{g.fillStyle='#071226';g.fillRect(0,0,w,h);g.fillStyle='#5ab0ff';g.font='bold 86px Trebuchet MS, sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('☁ BULUDEX',w/2,h/2+4)});
+function logoMat122(){const co=bxCo126(),nm=co.name.toLocaleUpperCase('tr-TR');const t=canvasTex(1024,256,(g,w,h)=>{g.fillStyle='#071226';g.fillRect(0,0,w,h);g.fillStyle=co.c;g.beginPath();if(g.roundRect)g.roundRect(18,28,200,200,44);else g.rect(18,28,200,200);g.fill();const ws=co.name.split(/\s+/).filter(Boolean),ini=((ws[0]||'Ş')[0]+(ws[1]?ws[1][0]:'')).toLocaleUpperCase('tr-TR');g.fillStyle='#fff';g.textAlign='center';g.textBaseline='middle';g.font='bold 110px Trebuchet MS, sans-serif';g.fillText(ini,118,132);let fs=150;g.font='bold '+fs+'px Trebuchet MS, sans-serif';while(g.measureText(nm).width>w-280&&fs>40){fs-=6;g.font='bold '+fs+'px Trebuchet MS, sans-serif'}g.fillStyle=co.c;g.fillText(nm,250+(w-250)/2,134)});
   const m=new T.MeshStandardMaterial({map:t,emissiveMap:t,emissive:0xffffff,emissiveIntensity:0,roughness:.4});m.userData.base=.05;m.userData.k=1.9;facades.push(m);return m}
-function bxSiteBuild122(){const A=D.merkez;if(!A||!BXS122.site)return;const s=BXS122.site,tier=bxTier122();if(BXS122.g&&BXS122.g.parent===A.G&&BXS122.g.userData.tier===tier)return;
+function bxSiteBuild122(){const A=D.alsancak;if(!A||!BXS122.site)return;const s=BXS122.site,tier=bxTier122()>=5?5:0;if(BXS122.g&&BXS122.g.parent===A.G&&BXS122.g.userData.tier===tier)return;
   if(BXS122.g){if(BXS122.g.parent)BXS122.g.parent.remove(BXS122.g);A.boxes=A.boxes.filter(b=>BXS122.boxes.indexOf(b)<0);A.spots=A.spots.filter(q=>!q.bx122)}
   const W0=W,C0=C;W=A.G;C=A;const n0=A.G.children.length,b0=A.boxes.length;try{const x=s[0],z=s[1];
     if(tier===1){box(7,3.4,6,std(0xb8b0a2),x,1.7,z);box(5,2.6,.12,std(0x8a8f98),x,1.3,z+3.01);const sg=new T.Mesh(new T.PlaneGeometry(4.6,.7),new T.MeshBasicMaterial({map:textSign('BULUDEX GARAJ',4.6,.7,'#0b3d91','#ffffff')}));sg.position.set(x,3,z+3.05);W.add(sg);A.boxes.push({x:x,z:z,hx:3.6,hz:3.1})}
@@ -12358,13 +12358,13 @@ function bxSiteBuild122(){const A=D.merkez;if(!A||!BXS122.site)return;const s=BX
   catch(e){showErrOnce(e)}finally{W=W0;C=C0}
   const g=new T.Group();g.userData.tier=tier;g.userData.keep120=1;g.name='bx122';const add=A.G.children.slice(n0);add.forEach(o=>{A.G.remove(o);g.add(o)});A.G.add(g);BXS122.g=g;BXS122.boxes=A.boxes.slice(b0);BXS122.boxes.forEach(b=>b.keep120=1);
   try{if(A.G.visible)renderer.compile(scene,cam)}catch(e){}}
-{const _e=endD;endD=function(){try{if(C&&C.name==='merkez'&&!C.bx122){C.bx122=1;BXS122.g=null;const p=rsv57(8,[58,-30]);if(p){BXS122.site=p;C.boxes.push({x:p[0],z:p[1],hx:6.5,hz:6.5,keep120:1,bxres:1})}}}catch(e){}return _e.apply(this,arguments)}}
-{const _sd=setDistrict;setDistrict=function(n){const r=_sd.apply(this,arguments);try{if(n==='merkez'){const A=D.merkez;A.boxes=A.boxes.filter(b=>!b.bxres);bxSiteBuild122()}}catch(e){showErrOnce(e)}return r}}
+{const _e=endD;endD=function(){try{if(C&&C.name==='alsancak'&&!C.bx122){C.bx122=1;BXS122.g=null;const p=rsv57(8,BXP126);if(p){BXS122.site=p;C.boxes.push({x:p[0],z:p[1],hx:6.5,hz:6.5,keep120:1,bxres:1})}}}catch(e){}return _e.apply(this,arguments)}}
+{const _sd=setDistrict;setDistrict=function(n){const r=_sd.apply(this,arguments);try{if(n==='alsancak'){const A=D.alsancak;A.boxes=A.boxes.filter(b=>!b.bxres);bxSiteBuild122()}}catch(e){showErrOnce(e)}return r}}
 /* --- işe gitme: Oğuz kendi şirketine; Buludex'e alınan karakterler ofisteki masalarına --- */
-{const _gj=goJob;goJob=function(){const j=LNK.job;if(j&&j.bx&&bxTier122()>=1){if(mode==='drive'){toast('Önce arabadan in 🚗');return}if(!ret&&mode!=='world'){const d=distOf(HOME.cur)||'cigli',sp=D[d]&&D[d].spawn||[0,0];ret={d:d,x:sp[0],z:sp[1]}}toast('🏢 Buludex ofisine gidiyorsun');enter('rest_bx');return}return _gj.apply(this,arguments)}}
-{const _en=enter;enter=function(kind){if(kind==='of1'&&me&&me.key==='sen'&&mode==='world'&&bxTier122()>=1&&!enter.bxAsk){enter.bxAsk=1;setTimeout(()=>{enter.bxAsk=0},800);
-    actionMenu('🏢 Nereye gidiyorsun?',[['☁️','Kendi şirketim · Buludex ('+BXN122[bxTier122()]+')',()=>_en('rest_bx')],['🏬','Buludex İş Merkezi (eski kat)',()=>_en('of1')]]);return}return _en.apply(this,arguments)}}
-Object.assign(window.PWB,{officeChanged(){try{if(D.merkez)bxSiteBuild122();delete INT.rest_bx}catch(e){}}});
+{const _gj=goJob;goJob=function(){const j=LNK.job;if(j&&j.bx){if(mode==='drive'){toast('Önce arabadan in 🚗');return}if(!ret&&mode!=='world'){const d=distOf(HOME.cur)||'cigli',sp=D[d]&&D[d].spawn||[0,0];ret={d:d,x:sp[0],z:sp[1]}}bxNames126();toast('🏢 '+bxCoN126()+' · '+BXN122[bxTier122()]+' · işe gidiyorsun');enter('rest_bx');return}return _gj.apply(this,arguments)}}
+{const _en=enter;enter=function(kind){if(kind==='of1'&&me&&me.key==='sen'&&mode==='world'&&!enter.bxAsk){enter.bxAsk=1;setTimeout(()=>{enter.bxAsk=0},800);bxNames126();const A=[['👀','Buludex\'e misafir olarak uğra',()=>_en('of1')]];if(bxTier122()>=2)A.unshift(['🏢',bxCoN126()+' · '+BXN122[bxTier122()]+' (ofisine git)',()=>bxGoOffice126()]);
+    toast('🏬 Burası Buludex · Denel, Çiço ve Gökhan\'ın iş yeri');actionMenu('🏬 Buludex İş Merkezi',A);return}return _en.apply(this,arguments)}}
+Object.assign(window.PWB,{officeChanged(){try{bxNames126();if(BXS122.g){BXS122.g.userData.tier=-1}if(D.alsancak)bxSiteBuild122();const o=INT.rest_bx;if(o){if(curI!==o){if(o.G&&o.G.parent)o.G.parent.remove(o.G);delete INT.rest_bx}else o.stale123=1}}catch(e){}}});
 window.__k122={tier:()=>bxTier122(),site:()=>BXS122.site,rebuild:()=>{BXS122.g&&(BXS122.g.userData.tier=-1);bxSiteBuild122()}};
 /* ================= v123+v124: İnşa modu (Sims tarzı) · duvar/oda/kat/zemin + kapı & pencere (5'er model, boyut), merdiven, otomatik çatı (beşik/kırma/düz, renk), cephe (sıva/tuğla/taş), dış alan (çit, yol, havuz, çim, ağaç, tarım, garaj), inşaatı başlat (onay, şantiye, m² → gün), bitince Evlerim + taşınma, ücretli tadilat ================= */
 const BLD123={p:{},on:false,ES:null};/* p[id]={own,paid,st:plan|insaat|tadilat|built,cur:tasarım taslağı,blt:yapılmış tasarım,days} */
@@ -12819,6 +12819,26 @@ function texAll125(){const L=[grassTex,paverTex,asphaltTex,sandTex];try{L.push(c
 setTimeout(()=>{try{texAll125()}catch(e){}},1500);
 {const _sd=setDistrict;setDistrict=function(n){const r=_sd.apply(this,arguments);try{const A=D[n];if(A&&A.G&&!A.G.userData.tq125){A.G.userData.tq125=1;const done=new Set();A.G.traverse(o=>{const m=o.material;(Array.isArray(m)?m:[m]).forEach(mm=>{const t=mm&&mm.map;if(t&&!done.has(t)&&t.wrapS===T.RepeatWrapping&&t.anisotropy!==ANI125){done.add(t);texQ125(t)}})})}}catch(e){}return r}}
 window.__c125={F:F125,ani:ANI125,set off(v){F125.off=!!v;if(activeD&&v)activeD.G.userData.cull=null},rebuild(){if(activeD)activeD.G.userData.cull=null},texAll:texAll125};
+/* ================= v126: Oğuz'un kendi şirketi ↔ Halkapınar Buludex ayrımı · evdeki bilgisayar "Evden çalış (şirketim)" / "Ofise git", şirket adı + logo rengi, ofis: ev/garaj → Bayraklı → Alsancak kulesi, tycoon.js güvenli yükleme ================= */
+const BXP126=[40,-30];
+function bxCo126(){let co=null;try{const B=bxBT122();co=B&&B.co}catch(e){}return {name:(co&&co.name)||'Oğuz Teknoloji',c:(co&&co.c)||'#1f6feb',set:!!co}}
+function bxCoN126(){return bxCo126().name}
+function bxNames126(){const n=bxCoN126();BXN122[0]='Ev ofisi (evde)';BXN122[1]='Garaj ofis (evde)';BXN122[2]='Küçük ofis · Bayraklı';BXN122[3]='Plaza katı · Bayraklı';BXN122[4]='Plaza · Bayraklı';BXN122[5]=n+' Kulesi · Alsancak'}
+bxNames126();
+/* ofise git: Bayraklı (kademe 2–4) ya da Alsancak kulesi (5); ev/garaj evde */
+function bxGoOffice126(){const t=bxTier122();bxNames126();if(t<2){toast('🏠 Şirketin henüz evde · '+BXN122[t]);return}if(mode==='drive'){toast('Önce arabadan in 🚗');return}if(curI&&curI.name==='rest_bx')return;
+  if(mode!=='world'&&!ret){const d=distOf(HOME.cur)||'cigli',sp=D[d]&&D[d].spawn||[0,0];ret={d:d,x:sp[0],z:sp[1]}}toast((t>=5?'🗼 ':'🚇 ')+bxCoN126()+' · '+BXN122[t]+' · yola çıktın');enter('rest_bx')}
+/* evdeki bilgisayar: Oğuz → kendi şirketi (tycoon), diğerleri eskisi gibi */
+{const U=USE.PC,_f=U[1];U[1]=function(){if(!(me&&me.key==='sen'))return _f.apply(this,arguments);bxNames126();const t=bxTier122(),co=bxCo126();
+  const A=[['🏠','Evden çalış (şirketim)'+(co.set?' · '+co.name:''),()=>{if(!PWB.bt){bxLoadTycoon126(true);return}PWB.bt.open()}]];if(t>=2)A.push(['🏢','Ofise git · '+BXN122[t],()=>bxGoOffice126()]);
+  A.push(['🛒','Pazarcık & internet',()=>phoneApp('market')],['🏎️','F1 yarış oyunu',()=>f1Game()]);actionMenu('🖥️ Bilgisayar',A)}}
+/* Halkapınar Buludex OS görev ekranı Oğuz'a kapalı (orada işi yok) */
+{const _op=openPC;openPC=function(tab){if(me&&me.key==='sen'&&(tab==='task'||tab==='dash'||tab==null)){toast('💻 Burada senin masan yok · '+bxCoN126()+' için evdeki bilgisayarını kullan');return}return _op.apply(this,arguments)}}
+/* tycoon.js yüklenmediyse (eski önbellek / ağ hatası) tekrar dene */
+function bxLoadTycoon126(openAfter){if(window.PWB&&PWB.bt){if(openAfter)PWB.bt.open();return}if(bxLoadTycoon126.busy)return;bxLoadTycoon126.busy=1;const sc=document.createElement('script');sc.src='tycoon.js?r='+Date.now();
+  sc.onload=()=>{bxLoadTycoon126.busy=0;if(PWB.bt){try{if(SAVE&&SAVE.BT)PWB.bt.set(SAVE.BT)}catch(e){}if(openAfter)PWB.bt.open()}};sc.onerror=()=>{bxLoadTycoon126.busy=0;toast('⚠️ Şirket yazılımı yüklenemedi · internet bağlantını kontrol et')};document.head.appendChild(sc);if(openAfter)toast('⏳ Şirket yazılımı yükleniyor…')}
+setTimeout(()=>{try{if(!(window.PWB&&PWB.bt))bxLoadTycoon126(false)}catch(e){}},4000);
+window.__k126={co:bxCo126,go:bxGoOffice126,names:()=>{bxNames126();return BXN122.slice()},load:bxLoadTycoon126};
 /* ================= v90: bahçe & tarım görsel yenileme — tekrarsız çim, sürülmüş toprak, taş yol, lamba, bank, 3 evreli instanced bitkiler, rüzgâr, hasat animasyonu ================= */
 const U90={t:{value:0}};
 function sway90(col,o,amp){const m=std(col,Object.assign({roughness:.75},o||{}));const A=(amp||.03).toFixed(3);
@@ -13056,7 +13076,7 @@ resize();applyTime(1);frame();
 }catch(err){const e=document.getElementById('err');e.style.display='block';e.textContent='Hata: '+(err&&err.stack||err)}
 })();
 </script>
-<script src="tycoon.js"></script>
+<script src="tycoon.js?v=126"></script>
 <script>if("serviceWorker" in navigator&&location.protocol.startsWith("http")){let hadCtl=!!navigator.serviceWorker.controller,shown=false;
 const banner=()=>{if(shown)return;shown=true;const b=document.createElement('div');b.style.cssText='position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 10px);transform:translateX(-50%);z-index:200;display:flex;gap:10px;align-items:center;padding:10px 14px;border-radius:16px;background:rgba(20,15,34,.92);color:#fff;font:14px Trebuchet MS,sans-serif;box-shadow:0 6px 20px rgba(0,0,0,.4)';b.innerHTML='🆕 Yeni sürüm hazır · ilerlemen korunur';const x=document.createElement('button');x.textContent='Kaydet ve güncelle';x.style.cssText='border:0;border-radius:12px;padding:6px 12px;cursor:pointer;font:inherit;background:#ffb347;color:#2a1a0a';x.onclick=()=>{try{window.__pwSave&&window.__pwSave()}catch(e){}setTimeout(()=>location.reload(),150)};b.appendChild(x);document.body.appendChild(b)};
 navigator.serviceWorker.register("sw.js").then(reg=>{const chk=()=>{try{reg.update()}catch(e){}};setInterval(chk,15*60*1000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)chk()});});
