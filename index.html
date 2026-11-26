@@ -447,7 +447,7 @@ dscene.background=new T.Color(0xf4a373);dscene.fog=new T.Fog(0xf6b186,70,300);
 const cam=new T.OrthographicCamera(-1,1,1,-1,-300,600);
 const dcam=new T.PerspectiveCamera(62,1,.1,600);
 let zoom=19,zoomT=19,pix=false,mode='pick',busy=false;
-function resize(){const w=innerWidth,h=innerHeight;const pr=pix?Math.min(1,640/Math.max(w,h)):Math.min(devicePixelRatio||1,curPR());renderer.setPixelRatio(pr);renderer.setSize(w,h);dcam.aspect=w/h;dcam.updateProjectionMatrix();$('stage').classList.toggle('pix',pix)}
+function resize(){if(window.__kb135&&__kb135.hold())return;const w=innerWidth,h=innerHeight;const pr=pix?Math.min(1,640/Math.max(w,h)):Math.min(devicePixelRatio||1,curPR());renderer.setPixelRatio(pr);renderer.setSize(w,h);dcam.aspect=w/h;dcam.updateProjectionMatrix();$('stage').classList.toggle('pix',pix)}
 addEventListener('resize',resize);
 
 /* ---------- yardımcılar ---------- */
@@ -557,14 +557,18 @@ let ROADSKIP=[];function buildRoads(defs){
     rs.push({curve:curve,pts:pts,width:d.width,closed:!!d.closed,center:d.center,len:len,from:d.from,to:d.to})});if(C&&W===C.G)(C.roadList||(C.roadList=[])).push(...rs);
   const J=[];rs.forEach(r=>{if(r.from!=null)J.push(r.pts[0]);if(r.to!=null)J.push(r.pts[r.pts.length-1])});
   for(let a=0;a<rs.length;a++)for(let b=a+1;b<rs.length;b++){const A=rs[a],B=rs[b],lim=(A.width+B.width)/2;for(let i=0;i<A.pts.length;i+=2){const p=A.pts[i];let hit=false;for(let k=0;k<B.pts.length;k+=2){const q=B.pts[k];if(Math.abs(q.x-p.x)<lim&&Math.abs(q.z-p.z)<lim&&Math.hypot(q.x-p.x,q.z-p.z)<lim*.8){hit=true;break}}if(hit&&!J.some(j=>Math.hypot(j.x-p.x,j.z-p.z)<2.5))J.push(p)}}
-  rs.forEach((r,i)=>ribbon(r.pts,r.width+2.6,.05+i*.002,walkMat,r.closed,.2));
-  rs.forEach((r,i)=>ribbon(r.pts,r.width,.07+i*.002,asphaltMat,r.closed,.12));
-  rs.forEach(r=>{if(r.center)dashes(r.pts,.2,.1,lineMat,3,2,J)});
-  rs.forEach(r=>{const n=r.pts.length;[-1,1].forEach(sd=>{let run=[];const flush=()=>{if(run.length>2)curbStrip(run);run=[]};
-    for(let i=0;i<n;i++){const p=r.pts[i],a=r.pts[Math.max(0,i-1)],b=r.pts[Math.min(n-1,i+1)];let tx=b.x-a.x,tz=b.z-a.z;const l=Math.hypot(tx,tz)||1;tx/=l;tz/=l;const o=sd*(r.width/2+.14),q={x:p.x-tz*o,z:p.z+tx*o};
+  /* v135 zemin katmanları: kesişen/birleşen yollar farklı kat (0.6 mm adım), aynı yükseklikte iki zemin yok */
+  const ADJ=rs.map(()=>new Set());rs.forEach((r,i)=>{if(r.from!=null){ADJ[i].add(r.from);ADJ[r.from].add(i)}if(r.to!=null){ADJ[i].add(r.to);ADJ[r.to].add(i)}});
+  for(let a=0;a<rs.length;a++)for(let b=a+1;b<rs.length;b++){if(ADJ[a].has(b))continue;const A=rs[a],B=rs[b],lim=(A.width+B.width)/2+2.6;let hit=false;for(let i=0;i<A.pts.length&&!hit;i+=2){const p=A.pts[i];for(let k=0;k<B.pts.length;k+=2){const q=B.pts[k];if(Math.abs(q.x-p.x)<lim&&Math.abs(q.z-p.z)<lim){hit=true;break}}}if(hit){ADJ[a].add(b);ADJ[b].add(a)}}
+  const LV=[];rs.forEach((r,i)=>{let c=0;while([...ADJ[i]].some(j=>j<i&&LV[j]===c))c++;LV[i]=c%6});
+  rs.forEach((r,i)=>{ribbon(r.pts,r.width+2.6,.022+LV[i]*.0006,walkMat,r.closed,.2).userData.lay135=1});
+  rs.forEach((r,i)=>{ribbon(r.pts,r.width,.060+LV[i]*.0006,asphaltMat,r.closed,.12).userData.lay135=1});
+  rs.forEach(r=>{if(r.center)dashes(r.pts,.2,.064,lineMat,3,2,J)});
+  rs.forEach((r,ri)=>{const n=r.pts.length;[-1,1].forEach(sd=>{let run=[],run2=[];const flush=()=>{if(run.length>2){curbStrip(run);curbStrip(run2,.12-LV[ri]*.0004,1.01,walkMat);swMark135(run2,-.62,.62)}run=[];run2=[]};
+    for(let i=0;i<n;i++){const p=r.pts[i],a=r.pts[Math.max(0,i-1)],b=r.pts[Math.min(n-1,i+1)];let tx=b.x-a.x,tz=b.z-a.z;const l=Math.hypot(tx,tz)||1;tx/=l;tz/=l;const o=sd*(r.width/2+.14),q={x:p.x-tz*o,z:p.z+tx*o},o2=sd*(r.width/2+.795);
       let skip=false;for(const j of J){if(Math.hypot(j.x-q.x,j.z-q.z)<4.2){skip=true;break}}for(const s of ROADSKIP){if(Math.hypot(s[0]-q.x,s[1]-q.z)<s[2]){skip=true;break}}
       if(r.from!=null&&Math.hypot(q.x-r.pts[0].x,q.z-r.pts[0].z)<rs[r.from].width/2+1.6)skip=true;if(r.to!=null&&Math.hypot(q.x-r.pts[n-1].x,q.z-r.pts[n-1].z)<rs[r.to].width/2+1.6)skip=true;
-      if(skip)flush();else run.push(q)}flush()})});
+      if(skip)flush();else{run.push(q);run2.push({x:p.x-tz*o2,z:p.z+tx*o2})}}flush()})});
   rs.forEach(r=>r.pts.forEach((p,i)=>{if(i%2===0)C.roadSamples.push({x:p.x,z:p.z,r:r.width/2+1.6})}));
   return rs}
 function zebra(r,u){const p=r.curve.getPointAt(u),t=r.curve.getTangentAt(u),ang=Math.atan2(-t.z,t.x);
@@ -1417,13 +1421,13 @@ function driversTick(A,dt){sigTick(A,dt);honkCd-=dt;const now=performance.now()/
     const q=path.getPointAt(c.u,DV117[2]),tq=path.getTangentAt(c.u,DV117[3]).multiplyScalar(dir);c.c.position.set(q.x-tq.z*lo,.05,q.z+tq.x*lo);c.c.userData.face(tq.x,tq.z);if(c.c.userData.spin)c.c.userData.spin(c.v*dt)})}
 function inVeh(c,x,z,r){const o=c.c.position,th=c.c.rotation.y,dx=x-o.x,dz=z-o.z,fw=dx*Math.cos(th)-dz*Math.sin(th),lt=dx*Math.sin(th)+dz*Math.cos(th);return Math.abs(fw)<(c.len||4.4)/2+r&&Math.abs(lt)<1.15+r}
 function vehBlock(x,z,r){const A=activeD;if(!A||!A.drivers||mode!=='world')return false;for(const c of A.drivers){if(inVeh(c,x,z,r)&&!inVeh(c,pl.x,pl.z,r*.6))return true}return false}
-function curbStrip(pts){const pos=[],nor=[],idx=[];const H=.16,Wd=.3;const n=pts.length;
+function curbStrip(pts,H,Wd,mat){const pos=[],nor=[],idx=[],uv=[];H=H||.12;Wd=Wd||.3;const n=pts.length;let len=0;
   for(let i=0;i<n;i++){const a=pts[Math.max(0,i-1)],b=pts[Math.min(n-1,i+1)];let tx=b.x-a.x,tz=b.z-a.z;const l=Math.hypot(tx,tz)||1;tx/=l;tz/=l;const nx=-tz,nz=tx,p=pts[i];
     const L=[p.x+nx*Wd/2,p.z+nz*Wd/2],Rr=[p.x-nx*Wd/2,p.z-nz*Wd/2];
-    pos.push(L[0],H,L[1],Rr[0],H,Rr[1],L[0],H,L[1],L[0],0,L[1],Rr[0],H,Rr[1],Rr[0],0,Rr[1]);nor.push(0,1,0,0,1,0,nx,0,nz,nx,0,nz,-nx,0,-nz,-nx,0,-nz)}
+    pos.push(L[0],H,L[1],Rr[0],H,Rr[1],L[0],H,L[1],L[0],0,L[1],Rr[0],H,Rr[1],Rr[0],0,Rr[1]);nor.push(0,1,0,0,1,0,nx,0,nz,nx,0,nz,-nx,0,-nz,-nx,0,-nz);if(i>0)len+=Math.hypot(p.x-pts[i-1].x,p.z-pts[i-1].z);const v=len*.2;uv.push(0,v,Wd*.2,v,0,v,.024,v,Wd*.2,v,Wd*.2-.024,v)}
   for(let i=0;i<n-1;i++){const a=i*6,b=a+6;idx.push(a,b,a+1,a+1,b,b+1, a+2,a+3,b+2,b+2,a+3,b+3, a+4,b+4,a+5,a+5,b+4,b+5)}
-  const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setAttribute('normal',new T.Float32BufferAttribute(nor,3));g.setIndex(idx);
-  const m=new T.Mesh(g,CURB_MAT);m.castShadow=true;m.receiveShadow=true;W.add(m)}
+  const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setAttribute('normal',new T.Float32BufferAttribute(nor,3));if(mat)g.setAttribute('uv',new T.Float32BufferAttribute(uv,2));g.setIndex(idx);
+  const m=new T.Mesh(g,mat||CURB_MAT);m.castShadow=!mat;m.receiveShadow=true;m.userData.lay135=1;W.add(m);return m}
 function pathU(path,x,z){let best=0,bd=1e9;for(let i=0;i<=600;i++){const u=i/600,p=path.getPointAt(u),d=(p.x-x)**2+(p.z-z)**2;if(d<bd){bd=d;best=u}}return best}
 /* ---------- raylı sistem: İZBAN viyadüğü + metro + aktarma istasyonu + köprü ---------- */
 function railCar(L,front,back,main,stripe,label){const g=new T.Group();
@@ -3365,7 +3369,7 @@ function pnxDom(root){if(!me||me.key==='kiz'||!root)return;const w=document.crea
 const _sz=new T.Vector2();
 function reFit(){[60,250,700,1500].forEach(d=>setTimeout(resize,d))}
 addEventListener('orientationchange',reFit);document.addEventListener('fullscreenchange',reFit);document.addEventListener('webkitfullscreenchange',reFit);if(window.visualViewport)visualViewport.addEventListener('resize',()=>setTimeout(resize,60));
-let fitN=0;function fitCheck(){if(++fitN%30)return;renderer.getSize(_sz);if(Math.abs(_sz.x-innerWidth)>1||Math.abs(_sz.y-innerHeight)>1)resize()}
+let fitN=0;function fitCheck(){if(++fitN%30)return;if(window.__kb135&&__kb135.hold())return;renderer.getSize(_sz);if(Math.abs(_sz.x-innerWidth)>1||Math.abs(_sz.y-innerHeight)>1)resize()}
 /* ---------- dış mekân performansı: gölge kutusu yakınlığa göre, küçük nesneler gölge düşürmesin ---------- */
 let shExt=0;function shadowFit(){if(mode!=='world')return;const a=innerWidth/innerHeight,e=Math.round(clamp(zoom*Math.max(a,1.9)+5,14,50));if(e!==shExt){shExt=e;const c=sun.shadow.camera;c.left=-e;c.right=e;c.top=e;c.bottom=-e;c.updateProjectionMatrix()}}
 function thinShadows(G){if(!G||G.userData.thin)return;G.userData.thin=true;const v=new T.Vector3();G.traverse(o=>{if(!o.isMesh||!o.castShadow)return;for(let q=o.parent;q;q=q.parent)if(q.userData&&q.userData.legs)return;
@@ -4904,7 +4908,7 @@ function walkersTick38(A,dt,t){const cx=camT.x-A.ox,cz=camT.z-A.oz,far=zoom*2.4+
     if(isFar&&(A.wf+i)%5){n.acc=(n.acc||0)+dt;return}const d=Math.min(.5,dt+(n.acc||0));n.acc=0;
     n.tt-=d;if(n.tt<=0){if(n.st===0&&n.role!=='jog'&&n.role!=='walk'&&rnd()<.6){n.st=1;n.tt=2.5+rnd()*4.5}else{n.st=0;n.tt=5+rnd()*10}}
     const moving=n.st===0||!!n.who;
-    if(moving){n.u+=n.sp*(n.spK||1)*n.dir*d;if(n.u>1){n.u=1;n.dir=-1}if(n.u<0){n.u=0;n.dir=1}const p=n.c.getPointAt(n.u),tg=n.c.getTangentAt(n.u).multiplyScalar(n.dir);n.p.position.set(p.x,0,p.z);n.p.rotation.y=Math.atan2(tg.x,tg.z)}
+    if(moving){n.u+=n.sp*(n.spK||1)*n.dir*d;if(n.u>1){n.u=1;n.dir=-1}if(n.u<0){n.u=0;n.dir=1}const p=n.c.getPointAt(n.u),tg=n.c.getTangentAt(n.u).multiplyScalar(n.dir);n.p.position.set(p.x,swY135(A,p.x,p.z),p.z);n.p.rotation.y=Math.atan2(tg.x,tg.z)}
     if(isFar)return;walkAnim(n.p,moving,t*(n.spK||1)+n.sp*30);const AR=n.p.userData.arms;if(!AR)return;
     if(n.role==='phone'){AR[1].rotation.x=-2.75;AR[1].rotation.z=-.5;if(!moving)n.p.rotation.y+=Math.sin(t*.7+i)*dt*.6}
     else if(n.role==='simit'){AR[0].rotation.x=Math.sin(t*1.4+i)>.75?-2.35:-.95}
@@ -9033,7 +9037,7 @@ function frameBody(){
     if(busy||uiPC){sx=0;sy=0}const l=Math.hypot(sx,sy);if(l>1){sx/=l;sy/=l}
     const wx=sx*CAMR113.x+sy*CAMF113.x,wz=sx*CAMR113.z+sy*CAMF113.z,sp=inI?4.6:6.2,moving=Math.hypot(wx,wz)>.05,bl=inI?blockedI:blockedW;
     const nx=pl.x+wx*sp*spdK()*dt,nz=pl.z+wz*sp*spdK()*dt;const rr=inI?.28:.45;if(!bl(nx,pl.z,rr))pl.x=nx;if(!bl(pl.x,nz,rr))pl.z=nz;if(moving)pl.face=Math.atan2(wx,wz);
-    player.position.set(pl.x,0,pl.z);let d=pl.face-player.rotation.y;d=Math.atan2(Math.sin(d),Math.cos(d));player.rotation.y+=d*Math.min(1,dt*12);walkAnim(player,moving,t);sitPose(dt,t,moving);lifeTick(t);buildTick(t);homeTick(dt);life25(dt,t,inI,moving);
+    player.position.set(pl.x,inI?0:swYw135(pl.x,pl.z),pl.z);let d=pl.face-player.rotation.y;d=Math.atan2(Math.sin(d),Math.cos(d));player.rotation.y+=d*Math.min(1,dt*12);walkAnim(player,moving,t);sitPose(dt,t,moving);lifeTick(t);buildTick(t);homeTick(dt);life25(dt,t,inI,moving);
     if(!inI){
       const tx=pl.x-Math.sin(pl.face)*1.8,tz=pl.z-Math.cos(pl.face)*1.8,ddx=tx-dg.x,ddz=tz-dg.z,dd=Math.hypot(ddx,ddz);let dm=false;
       if(dd>.8){const s=Math.min(dd,(dd>4?9:5.4)*dt),ax=dg.x+ddx/dd*s,az=dg.z+ddz/dd*s;if(!blockedW(ax,az,.3)){dg.x=ax;dg.z=az}dg.face=Math.atan2(ddx,ddz);dm=true}
@@ -11577,12 +11581,12 @@ const K109={
    for(let i=0;i<14;i++){blobs109(g,S,r,1,150,170,.35,.03)}},
  dirt:(g,S,r)=>{blobs109(g,S,r,22,100,150,.5,.2);grain109(g,S,r,9000*(S/256)**2,80,170,.35);for(let i=0;i<260*(S/256)**2;i++){const x=r()*S,y=r()*S,R=(1+r()*2.6)*(S/256);g.fillStyle=cs109(80,0,60,.5);g.beginPath();g.arc(x+R*.3,y+R*.35,R,0,7);g.fill();g.fillStyle=cs109(165+r()*30,0,210);g.beginPath();g.arc(x,y,R,0,7);g.fill()}},
  paver:(g,S,r)=>{const n=8,p=S/n,m=Math.max(1.5,S/150);g.fillStyle=cs109(110,255,60);g.fillRect(0,0,S,S);for(let j=0;j<n;j++){const off=(j%2)*p/2;for(let i=-1;i<n;i++){const x=i*p+off,y=j*p,v=106+r()*44;g.fillStyle=cs109(v,0,200);g.fillRect(x+m/2,y+m/2,p-m,p-m);if(x<0)g.fillRect(x+S+m/2,y+m/2,p-m,p-m);g.fillStyle=cs109(v+22,0,230,.5);g.fillRect(x+m/2,y+m/2,p-m,m)}}grain109(g,S,r,4000*(S/256)**2,90,170,.3)},
- curb:(g,S,r)=>{const n=4,p=S/n,m=Math.max(2,S/100);g.fillStyle=cs109(100,255,60);g.fillRect(0,0,S,S);for(let j=0;j<n;j++)for(let i=0;i<n;i++){const v=118+r()*28;g.fillStyle=cs109(v,0,210);g.fillRect(i*p+m/2,j*p+m/2,p-m,p-m);g.fillStyle=cs109(v+20,0,235,.6);g.fillRect(i*p+m/2,j*p+m/2,p-m,m)}grain109(g,S,r,3500*(S/256)**2,90,170,.3)},
+ curb:(g,S,r)=>{const n=4,p=S/n,m=Math.max(2,S/100);g.fillStyle=cs109(100,255,60);g.fillRect(0,0,S,S);for(let j=0;j<n;j++)for(let i=0;i<n;i++){const v=118+r()*28;g.fillStyle=cs109(v,0,210);g.fillRect(i*p+m/2,j*p+m/2,p-m,p-m);g.fillStyle=cs109(v+20,0,235,.6);g.fillRect(i*p+m/2,j*p+m/2,p-m,m)}/* v135: piksel altı benekler hareket edince pırıldıyordu (gece mavi-turkuaz noktacık) → az, iri, yumuşak */grain109(g,S,r,420*(S/256)**2,118,150,.14,2.5)},
  macro:(g,S,r)=>{blobs109(g,S,r,30,80,176,.5,.2);const d=g.getImageData(0,0,S,S),a=d.data;for(let i=0;i<a.length;i+=4)a[i+1]=Math.random()*255;g.putImageData(d,0,0);g.globalCompositeOperation='source-over'}};
 const tx109=k=>pTex109(k,K109[k],k==='macro'?(isTouch?128:256):null);
 /* tür → ölçek (metre/tekrar), detay gücü, derz rengi, bump */
 const KD109={stucco:{s:6,k:.4,mo:[.8,.78,.74],b:.45},brick:{s:4.4,k:.7,mo:[.82,.79,.74],b:1.2},stone:{s:4.6,k:.45,mo:[.74,.72,.68],b:1.1},glass:{s:6,k:.7,mo:[.86,.89,.92],b:0},tile:{s:3,k:.85,mo:[.5,.4,.36],b:1.4},
-  membrane:{s:9,k:.7,mo:[.5,.5,.5],b:.5},grass:{s:3.2,k:.6,mo:[.5,.5,.5],b:.6},dirt:{s:3,k:.7,mo:[.5,.5,.5],b:.9},paver:{s:3,k:.7,mo:[.42,.4,.37],b:.9},curb:{s:4,k:.55,mo:[.42,.42,.45],b:.8},none:{s:5,k:0,mo:[.5,.5,.5],b:0}};
+  membrane:{s:9,k:.7,mo:[.5,.5,.5],b:.5},grass:{s:3.2,k:.6,mo:[.5,.5,.5],b:.6},dirt:{s:3,k:.7,mo:[.5,.5,.5],b:.9},paver:{s:3,k:.7,mo:[.42,.4,.37],b:.9},curb:{s:4,k:.22,mo:[.66,.66,.68],b:.2}/* v135: ince şeritte derz/kabartma uzakta noktacık gibi kırpışıyordu */,none:{s:5,k:0,mo:[.5,.5,.5],b:0}};
 const NIGHT109={value:0},BON109={value:0},DET109={value:1},GL2_109=!!renderer.capabilities.isWebGL2;
 let OBC109=function(sh){const U=this.userData.u109;if(!U)return;Object.assign(sh.uniforms,U);if(!U.uWin109)sh.uniforms.uWin109={value:new T.Vector4()};sh.uniforms.uNight109=NIGHT109;sh.uniforms.uBon109=BON109;sh.uniforms.uDet109=DET109;
   sh.vertexShader='attribute vec3 aTB109;varying vec3 vW109;varying vec3 vN109;varying vec3 vTB109;\n'+sh.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\n vW109=(modelMatrix*vec4(transformed,1.0)).xyz;vN109=normalize(mat3(modelMatrix)*objectNormal);vTB109=aTB109;');
@@ -12797,7 +12801,7 @@ function bldClose123(how){const ES=BLD123.ES;if(!ES)return;const id=ES.id,P=ES.P
   BLD123.on=false;BLD123.ES=null;uiPC=false;removeEventListener('resize',ES.onRs);try{ES.ro&&ES.ro.disconnect()}catch(e){}const d=$('bld123');if(d){d.classList.remove('on');d.innerHTML=''}
   player.visible=true;pl.x=ES.pl0.x;pl.z=ES.pl0.z;zoomT=ES.zoom0;try{snapCam()}catch(e){}bldDraw123(id);try{plotSigns123(D[P.d])}catch(e){}try{saveGame()}catch(e){}}
 /* inşa modunda klavye: kısayollar, dünya girdisi kapalı */
-addEventListener('keydown',e=>{if(!BLD123.on)return;const ES=BLD123.ES;e.stopImmediatePropagation();e.preventDefault();
+addEventListener('keydown',e=>{if(!BLD123.on||(window.__kb135&&__kb135.ed(e.target)))return;const ES=BLD123.ES;e.stopImmediatePropagation();e.preventDefault();
   if((e.ctrlKey||e.metaKey)&&e.code==='KeyZ'){if(e.shiftKey)ES.redo();else ES.undo();return}if((e.ctrlKey||e.metaKey)&&e.code==='KeyY'){ES.redo();return}
   const tk={Digit1:'wall',Digit2:'del',Digit3:'door',Digit4:'win',Digit5:'stair',Digit6:'floor',Digit7:'out',Digit8:'look'}[e.code];if(tk)ES.setTool(tk);if(e.code==='KeyR'){ES.sr=(ES.sr+1)%4;ES.gr=(ES.gr+1)%4;ES.opts()}
   if(e.code==='PageUp')ES.setK(ES.k+1);if(e.code==='PageDown')ES.setK(ES.k-1);if(e.code==='Escape')bldClose123('cancel')},true);
@@ -13550,7 +13554,7 @@ function gpKey133(code){try{window.dispatchEvent(new KeyboardEvent('keydown',{co
 function gpTick133(){if(!navigator.getGamepads)return;let pad=null;try{pad=[...navigator.getGamepads()].find(p=>p&&p.connected)}catch(e){}if(!pad){if(DV133.gp.held.size)gpRelease133();return}
   const B=i=>!!(pad.buttons[i]&&(pad.buttons[i].pressed||pad.buttons[i].value>.5)),Bv=i=>pad.buttons[i]?pad.buttons[i].value:0,ax=pad.axes[0]||0,ay=pad.axes[1]||0,dz=.35,want=new Set();
   if(mode==='drive'){if(Bv(7)>.25||ay<-dz||B(12))want.add('ArrowUp');if(Bv(6)>.25||ay>dz||B(13))want.add('ArrowDown');if(ax<-dz||B(14))want.add('ArrowLeft');if(ax>dz||B(15))want.add('ArrowRight')}
-  else if(!uiPC){if(ay<-dz||B(12))want.add('KeyW');if(ay>dz||B(13))want.add('KeyS');if(ax<-dz||B(14))want.add('KeyA');if(ax>dz||B(15))want.add('KeyD');if(B(10))want.add('ShiftLeft')}
+  else if(!uiPC&&!(window.__kb135&&__kb135.ed(document.activeElement))){if(ay<-dz||B(12))want.add('KeyW');if(ay>dz||B(13))want.add('KeyS');if(ax<-dz||B(14))want.add('KeyA');if(ax>dz||B(15))want.add('KeyD');if(B(10))want.add('ShiftLeft')}
   DV133.gp.held.forEach(k=>{if(!want.has(k)){keys[k]=false;DV133.gp.held.delete(k)}});want.forEach(k=>{keys[k]=true;DV133.gp.held.add(k)});
   const P=DV133.gp.prev,edge=i=>B(i)&&!P[i];
   if(edge(0)){const dg=document.getElementById('dlg132');if(dg){const y=dg.querySelector('button.y');y&&y.click()}else gpKey133(mode==='drive'?'KeyF':'KeyE')}
@@ -13631,6 +13635,95 @@ persist134();
   const E=SQ134.est,mb=v=>(v/1048576).toFixed(1)+' MB';sqAll134().then(L=>{s.textContent=(online134()?'🟢 Çevrimiçi':'📴 Çevrimdışı')+' · kalıcı depolama: '+(SQ134.persist?'✅ izinli (tarayıcı silmez)':SQ134.persist===false?'⚠️ izin verilmedi':'—')+(E?' · kullanılan '+mb(E.usage||0)+' / '+mb(E.quota||0):'')+' · eşitleme kuyruğu: '+L.length+' iş'});
   const fb=el('button','btn','☁️ Şimdi eşitle');fb.onclick=()=>{if(!online134()){toast('📴 Çevrimdışı · bağlantı gelince otomatik eşitlenecek');return}flush134('manual').then(()=>{})};g.appendChild(fb)}}catch(e){}return r}}
 window.__sq134={S:SQ134,add:sqAdd134,all:sqAll134,flush:flush134,ui:offUI134,cacheCheck:()=>new Promise(res=>{if(!navigator.serviceWorker||!navigator.serviceWorker.controller)return res(null);const h=e=>{if(e.data&&e.data.pw==='cacheReport'){navigator.serviceWorker.removeEventListener('message',h);res(e.data)}};navigator.serviceWorker.addEventListener('message',h);navigator.serviceWorker.controller.postMessage({pw:'cacheCheck'});setTimeout(()=>res(null),8000)})};
+/* ================= v135: titreyen kaplamalar (z-fighting) + iPhone'da metin alanı/klavye ================= */
+/* --- A1) kök neden: post-process render hedefi 16 bit derinlik kullanıyordu (three r128: derinlik dokusu yoksa DEPTH_COMPONENT16 → 900 m'lik
+       ortografik aralıkta ~1.4 cm adım). UnsignedInt derinlik dokusu ile 24 bit (~0.05 mm). Ana kanvas zaten 24 bit. --- */
+const Z135={rt:null};
+{const _pm=ppMake108;ppMake108=function(){const P=_pm.apply(this,arguments);if(P&&!P.v135){P.v135=1;try{const o={type:P.rt.texture.type,format:T.RGBAFormat,minFilter:T.LinearFilter,magFilter:T.LinearFilter,depthBuffer:true,stencilBuffer:false};
+    let n;if(P.ms&&T.WebGLMultisampleRenderTarget){n=new T.WebGLMultisampleRenderTarget(4,4,o);n.samples=4}else n=new T.WebGLRenderTarget(4,4,o);/* derinlik dokusu UnsignedInt → DEPTH_COMPONENT24 (stencil'li D24S8 bu GPU'da ~%25 yavaştı) */n.depthTexture=new T.DepthTexture(4,4);n.depthTexture.type=T.UnsignedIntType;n.texture.encoding=P.rt.texture.encoding;P.rt.dispose();P.rt=n;P.w=0;Z135.rt=P.ms?'msaa4+d24':'d24'}catch(e){Z135.rt='hata'}}return P}}
+/* --- A4) kamera: ortografik, near -300 / far 600 (doğrusal derinlik). 24 bitte adım 900/2^24 ≈ 0.054 mm; en ince katman farkı 0.6 mm → ~11×
+       pay. logarithmicDepthBuffer yalnız perspektif kamerada anlamlı (ortografikte doğrusal derinliği bozar) → kullanılmadı. --- */
+Z135.depthStep=()=>(cam.far-cam.near)/16777216;
+/* --- A3) katman yardımcıları: yükseltilmiş kaldırım hücreleri (yürüyen ayaklar 0.12'ye çıkar, gömülmez) --- */
+function swMark135(pts,inner,outer){if(!C||W!==C.G)return;const S=C.sw135||(C.sw135=new Set());
+  for(let i=0;i<pts.length-1;i++){const a=pts[i],b=pts[i+1],L=Math.hypot(b.x-a.x,b.z-a.z)||1,tx=(b.x-a.x)/L,tz=(b.z-a.z)/L,nx=-tz,nz=tx;
+    for(let s=0;s<=L;s+=.25)for(let o=inner;o<=outer;o+=.2){const x=a.x+tx*s+nx*o,z=a.z+tz*s+nz*o;S.add(Math.floor(x*4)*100003+Math.floor(z*4))}}}
+function swY135(A,lx,lz){if(!A||!A.sw135)return 0;return A.sw135.has(Math.floor(lx*4)*100003+Math.floor(lz*4))?.12:0}
+function swYw135(x,z){const A=activeD;if(!A||!A.G||mode!=='world')return 0;return swY135(A,x-A.G.position.x,z-A.G.position.z)}
+/* katmanı yapı gereği belirlenen yol meshleri zemin denetiminden çıkar (bilerek farklı yükseklikte) */
+{const _g=grounds107;grounds107=function(A){return _g.apply(this,arguments).filter(q=>{const m=q.o.material;return !(q.o.userData&&q.o.userData.lay135)&&!(m&&(m.depthWrite===false||m.blending===T.AdditiveBlending))})}}/* derinlik yazmayan (ışık halkası) titremez */
+/* polygonOffset'li malzemeler birleştirmede ayrı tutulsun */
+{const _mk=matKey;matKey=function(m){return _mk(m)+(m.polygonOffset?'|po'+m.polygonOffsetFactor+','+m.polygonOffsetUnits:'')}}
+/* --- A1b) dikey yüzey denetimi: cephedeki ince plakalar (tabela arkası, kaplama, kasa, bant) duvarla aynı düzlemde mi;
+       aynı yöne bakan iki duvar yüzü üst üste mi --- */
+const _q135=new T.Quaternion(),_e135=new T.Euler(),_b135=new T.Box3();
+function vparts135(A){const Pl=[],Wl=[];A.G.updateMatrixWorld(true);const inv=new T.Matrix4().copy(A.G.matrixWorld).invert();
+  A.G.traverse(o=>{if(!o.isMesh||o.isInstancedMesh||!o.geometry||!o.visible||o.isSprite)return;let p=o;while(p&&p!==A.G){if(p.userData&&(p.userData.legs||p.userData.wheels||p.userData.cullHid))return;p=p.parent}
+    const m=Array.isArray(o.material)?o.material[0]:o.material;if(m&&(m.transparent&&m.opacity<.6||m.depthWrite===false||m.blending===T.AdditiveBlending))return;
+    o.getWorldQuaternion(_q135);_e135.setFromQuaternion(_q135,'YXZ');if(Math.abs(_e135.x)>.02&&Math.abs(Math.abs(_e135.x)-Math.PI/2)>.02)return;if(Math.abs(_e135.z)>.02)return;if(Math.abs(Math.sin(2*_e135.y))>.03)return;
+    const g=o.geometry;if(!g.boundingBox)g.computeBoundingBox();_b135.copy(g.boundingBox).applyMatrix4(o.matrixWorld).applyMatrix4(inv);
+    const b=_b135,sx=b.max.x-b.min.x,sy=b.max.y-b.min.y,sz=b.max.z-b.min.z;if(sy<.12||b.max.y<.25||sx>60||sz>60)return;
+    const r={o:o,x0:b.min.x,x1:b.max.x,y0:b.min.y,y1:b.max.y,z0:b.min.z,z1:b.max.z,sx:sx,sy:sy,sz:sz};
+    if(Math.min(sx,sz)<.09&&Math.max(sx,sz)>.2)Pl.push(r);else if(g.type==='BoxGeometry'&&sy>=1&&sx>=.9&&sz>=.9)Wl.push(r)});return {Pl:Pl,Wl:Wl}}
+const ov135=(a0,a1,b0,b1)=>Math.min(a1,b1)-Math.max(a0,b0);
+function vert135(A){const out=[];if(!A||!A.G)return out;const {Pl,Wl}=vparts135(A);
+  Pl.forEach(p=>{const ax=p.sx<p.sz?'x':'z',o2=ax==='x'?'z':'x';for(const w of Wl){if(w.o===p.o)continue;if(ov135(p.y0,p.y1,w.y0,w.y1)<.05||ov135(p[o2+'0'],p[o2+'1'],w[o2+'0'],w[o2+'1'])<.05)continue;
+      const f1=w[ax+'1'],f0=w[ax+'0'];
+      /* + yüz: plaka yüzeye yapışık (iç kenarı yüzün 3 cm içinden 10 cm dışına) ve dış yüzü 0.015'ten az dışarıda */
+      if(p[ax+'0']>=f1-.03&&p[ax+'0']<=f1+.1&&p[ax+'1']-f1<.015){out.push({k:'plaka',p:p,w:w,ax:ax,s:1,d:+(p[ax+'1']-f1).toFixed(3),at:[+((p.x0+p.x1)/2).toFixed(1),+((p.y0+p.y1)/2).toFixed(1),+((p.z0+p.z1)/2).toFixed(1)]});break}
+      if(p[ax+'1']<=f0+.03&&p[ax+'1']>=f0-.1&&f0-p[ax+'0']<.015){out.push({k:'plaka',p:p,w:w,ax:ax,s:-1,d:+(f0-p[ax+'0']).toFixed(3),at:[+((p.x0+p.x1)/2).toFixed(1),+((p.y0+p.y1)/2).toFixed(1),+((p.z0+p.z1)/2).toFixed(1)]});break}}});
+  for(let i=0;i<Wl.length;i++)for(let j=i+1;j<Wl.length;j++){const a=Wl[i],b=Wl[j];if(ov135(a.y0,a.y1,b.y0,b.y1)<.05)continue;
+    for(const ax of ['x','z']){const o2=ax==='x'?'z':'x';if(ov135(a[o2+'0'],a[o2+'1'],b[o2+'0'],b[o2+'1'])<.05||ov135(a[ax+'0'],a[ax+'1'],b[ax+'0'],b[ax+'1'])<.05)continue;
+      if(Math.abs(a[ax+'1']-b[ax+'1'])<.012||Math.abs(a[ax+'0']-b[ax+'0'])<.012){out.push({k:'duvar',a:a,b:b,ax:ax,at:[+((a.x0+a.x1)/2).toFixed(1),+((a.y0+a.y1)/2).toFixed(1),+((a.z0+a.z1)/2).toFixed(1)]});break}}}
+  return out}
+/* düzelt: plaka duvardan 0.02 dışarı + polygonOffset(-1,-4); çakışan iki duvardan küçüğü o eksende 4 cm daralır (yüzü 2 cm içeri) */
+function mvW135(o,ax,d){o.updateMatrixWorld(true);const wp=o.getWorldPosition(new T.Vector3());wp[ax]+=d;o.parent.updateMatrixWorld(true);o.parent.worldToLocal(wp);o.position.copy(wp);o.updateMatrixWorld(true)}
+const PO135=new Set();function po135(m){(Array.isArray(m)?m:[m]).forEach(x=>{if(!x||x.polygonOffset)return;x.polygonOffset=true;x.polygonOffsetFactor=-1;x.polygonOffsetUnits=-4;PO135.add(x)})}
+function fixV135(A){if(!A||!A.G)return {n:0};let n=0,wv=0;const done=new Set();
+  for(let pass=0;pass<3;pass++){const L=vert135(A);if(!L.length)break;L.forEach(q=>{if(q.k==='plaka'){const o=q.p.o;if(done.has(o))return;done.add(o);const need=.02-q.d;mvW135(o,q.ax,q.s*need);po135(o.material);n++}
+      else{const s=(q.a.sx*q.a.sy*q.a.sz<=q.b.sx*q.b.sy*q.b.sz)?q.a:q.b,o=s.o;if(done.has(o))return;done.add(o);const yaw=o.getWorldQuaternion(_q135)&&_e135.setFromQuaternion(_q135,'YXZ').y,sw=Math.abs(Math.sin(yaw))>.7;
+        const la=(q.ax==='x')!==sw?'x':'z',size=s[q.ax+'1']-s[q.ax+'0'];if(size<.2)return;const k=(size-.04)/size;const c0=(s[q.ax+'0']+s[q.ax+'1'])/2;o.scale[la]*=k;o.updateMatrixWorld(true);
+        const bb=new T.Box3().setFromObject(o);const inv=new T.Matrix4().copy(A.G.matrixWorld).invert();bb.applyMatrix4(inv);const c1=(bb.min[q.ax]+bb.max[q.ax])/2;mvW135(o,q.ax,c0-c1);wv++}});A.G.updateMatrixWorld(true)}
+  const R={n:n,wall:wv,left:vert135(A).length};(AUD107.fix[A.name]||(AUD107.fix[A.name]={})).zfv=R;return R}
+{const _ao=auditOverlaps;auditOverlaps=function(A,quiet){const R=_ao.apply(this,arguments);if(R){try{R.zfv=vert135(A||activeD)}catch(e){R.zfv=[]}
+  if(!quiet&&R.zfv.length){console.groupCollapsed('🧱 dikey z-fighting · '+R.zfv.length);R.zfv.forEach(q=>console.log(q.k,q.at,q.k==='plaka'?'dışarıda '+q.d:''));console.groupEnd()}}return R}}
+window.auditOverlaps=auditOverlaps;
+{const _e=endD;endD=function(){const A=C;const r=_e.apply(this,arguments);try{if(A&&A.G&&!A.fv135){A.fv135=1;fixV135(A)}}catch(e){showErrOnce(e)}return r}}
+{const _sd=setDistrict;setDistrict=function(n){const r=_sd.apply(this,arguments);try{const A=activeD;if(A&&!A.fv135){A.fv135=1;setTimeout(()=>{try{fixV135(A);if(auditOverlaps(A,true).zf.length)fixOverlaps107(A)}catch(e){}},1700)}}catch(e){}return r}}
+/* --- A2) v114 tabela arka panelleri ve dükkân arkası plakaları: polygonOffset (factor -1, units -4) --- */
+try{if(typeof signMats!=='undefined')signMats.forEach(m=>{if(m&&!m.transparent)po135(m)})}catch(e){}
+window.__z135={Z:Z135,audit:n=>vert135(n?D[n]:activeD),fix:n=>fixV135(n?D[n]:activeD),sw:(x,z)=>swYw135(x,z),get rt(){return Q108.pp&&Q108.pp.rt?{d24:!!(Q108.pp.rt.depthTexture&&Q108.pp.rt.depthTexture.type===T.UnsignedIntType),ms:!!Q108.pp.ms,tag:Z135.rt}:null},step:()=>Z135.depthStep(),po:PO135};
+
+/* ================= B) metin alanları (iPhone klavyesi): oyunun klavye/dokunma dinleyicileri çalışmaz, odaklıyken canvas boyutu değişmez,
+   panel visualViewport ile klavyenin üstüne kayar, Enter/"Bitti" onaylar ve klavyeyi kapatır ================= */
+const KB135={hold:false,pend:false,shift:null,log:[]};
+function ed135(t){if(!t||t.nodeType!==1)return false;if(t.isContentEditable)return true;const n=t.tagName;if(n==='TEXTAREA'||n==='SELECT')return true;if(n!=='INPUT')return false;return !/^(button|checkbox|radio|range|color|submit|reset|file|image|hidden)$/i.test(t.type||'text')}
+const coarse135=()=>{try{return matchMedia('(pointer:coarse)').matches||(navigator.maxTouchPoints||0)>0}catch(e){return false}};
+/* 1) olaylar hedefte/üst öğelerde işlenir, pencereye (oyuna) ulaşmaz */
+['keydown','keyup','keypress','pointerdown','pointerup','pointermove','pointercancel','touchstart','touchend','touchmove','mousedown','mouseup','click','dblclick','contextmenu','wheel','gesturestart'].forEach(k=>document.addEventListener(k,e=>{if(!ed135(e.target))return;
+  e.stopPropagation()},{passive:true}));
+/* Enter / klavyede "Bitti": pencere yakalama aşamasında (alanın kendi dinleyicisi stopPropagation yapsa da çalışır) → varsa data-enter düğmesi, sonra klavye kapanır */
+addEventListener('keydown',e=>{if(e.key!=='Enter'||e.isComposing||!ed135(e.target)||e.target.tagName!=='INPUT')return;const t=e.target;setTimeout(()=>{try{const s=t.getAttribute('data-enter');if(s&&document.contains(t)){const b=document.querySelector(s);if(b&&!b.disabled)b.click()}}catch(er){}try{if(document.activeElement===t&&!t.hasAttribute('data-keep'))t.blur()}catch(er){}},0)},true);
+/* oyun tuşları (pencere dinleyicileri) yazarken basılı kalmasın */
+document.addEventListener('focusin',e=>{if(!ed135(e.target))return;try{for(const k in keys)keys[k]=false}catch(er){}KB135.hold=coarse135();KB135.el=e.target;setTimeout(vv135,60);setTimeout(vv135,350)});
+document.addEventListener('focusout',e=>{if(!ed135(e.target))return;setTimeout(()=>{if(ed135(document.activeElement))return;KB135.hold=false;KB135.el=null;unshift135();if(KB135.pend){KB135.pend=false;try{resize()}catch(er){}}},250)});
+/* 2) odaklıyken resize/fitCheck canvas'a dokunmaz (index: resize() başında __kb135.hold() denetimi) */
+function kbHold135(){if(KB135.hold&&ed135(document.activeElement)){KB135.pend=true;return true}return false}
+/* 3) paneli klavyenin üstüne kaydır (CSS translate; transform'a dokunmaz) */
+function panel135(t){let p=t;while(p&&p!==document.body){try{const cs=getComputedStyle(p);if(cs.position==='fixed'||cs.position==='absolute'&&p.parentElement===document.body)return p}catch(e){}p=p.parentElement}return null}
+function unshift135(){const s=KB135.shift;if(s){s.el.style.translate=s.prev;KB135.shift=null}}
+function vv135(){const t=KB135.el,V=window.visualViewport;if(!t||!V||document.activeElement!==t)return;const kb=innerHeight-(V.height+V.offsetTop);
+  const p=panel135(t);if(!p)return;if(kb<60){unshift135();return}const r=t.getBoundingClientRect(),cur=KB135.shift&&KB135.shift.el===p?KB135.shift.dy:0,bottom=r.bottom-cur,lim=V.offsetTop+V.height-12;
+  let dy=bottom>lim?-(bottom-lim):0;const top=r.top-cur+dy;if(top<V.offsetTop+8)dy+=V.offsetTop+8-top;
+  if(!KB135.shift||KB135.shift.el!==p){unshift135();KB135.shift={el:p,prev:p.style.translate||'',dy:0}}KB135.shift.dy=dy;p.style.translate=dy?('0 '+Math.round(dy)+'px'):KB135.shift.prev;KB135.log.push(Math.round(dy))}
+if(window.visualViewport){visualViewport.addEventListener('resize',()=>{if(KB135.el)vv135()});visualViewport.addEventListener('scroll',()=>{if(KB135.el)vv135()})}
+/* 4) CSS: seçilebilir, dokunma tarayıcıya ait; iOS odakta yakınlaştırmasın (16px) */
+{const s=document.createElement('style');s.textContent='input:not([type=range]):not([type=checkbox]):not([type=radio]):not([type=button]),textarea,[contenteditable]{-webkit-user-select:text!important;user-select:text!important;touch-action:auto!important;-webkit-touch-callout:default!important;pointer-events:auto}'+
+  '@media (pointer:coarse){input:not([type=range]):not([type=checkbox]):not([type=radio]):not([type=button]),textarea,select{font-size:max(16px,1em)!important}}';document.head.appendChild(s)}
+/* 5) klavyede "Bitti/Ara/Gönder" düğmesi: enterkeyhint */
+function hint135(n){if(!n||n.nodeType!==1)return;const L=n.matches&&n.matches('input,textarea')?[n]:n.querySelectorAll?n.querySelectorAll('input,textarea'):[];L.forEach(i=>{if(!ed135(i)||i.hasAttribute('enterkeyhint'))return;i.setAttribute('enterkeyhint',i.tagName==='TEXTAREA'?'enter':(i.type==='search'||/srch|ara/i.test(i.className+' '+(i.placeholder||'')))?'search':i.hasAttribute('data-enter')?'go':'done')})}
+try{new MutationObserver(M=>M.forEach(m=>m.addedNodes.forEach(hint135))).observe(document.body,{childList:true,subtree:true});hint135(document.body)}catch(e){}
+window.__kb135={K:KB135,hold:kbHold135,ed:ed135,vv:vv135};
 /* ================= v90: bahçe & tarım görsel yenileme — tekrarsız çim, sürülmüş toprak, taş yol, lamba, bank, 3 evreli instanced bitkiler, rüzgâr, hasat animasyonu ================= */
 const U90={t:{value:0}};
 function sway90(col,o,amp){const m=std(col,Object.assign({roughness:.75},o||{}));const A=(amp||.03).toFixed(3);
@@ -13872,7 +13965,7 @@ resize();applyTime(1);frame();
 /* v131: önyükleme — adımlar arasında ekran boyanır (gerçek ilerleme), sonra menüye yumuşak geçiş */
 (function(){const S=window.__splash,step=(p,t)=>new Promise(r=>{try{S&&S.set(p,t)}catch(e){}requestAnimationFrame(()=>setTimeout(r,16))});
  (async function(){await step(.34,'Dünya, dokular ve karakterler oluşturuluyor…');try{window.__pwMain()}catch(e){console.error(e)}
-  await step(.72,'Şirket yazılımı yükleniyor…');await new Promise(r=>{const sc=document.createElement('script');sc.src='tycoon.js?v=134';sc.onload=sc.onerror=()=>r();document.body.appendChild(sc);setTimeout(r,8000)});
+  await step(.72,'Şirket yazılımı yükleniyor…');await new Promise(r=>{const sc=document.createElement('script');sc.src='tycoon.js?v=135';sc.onload=sc.onerror=()=>r();document.body.appendChild(sc);setTimeout(r,8000)});
   await step(.82,'Gölgelendiriciler derleniyor…');try{window.__pwBoot&&__pwBoot.compile()}catch(e){}
   await step(.92,'Kayıtlar okunuyor…');let n=0;try{n=window.__pwBoot?__pwBoot.saves():0}catch(e){}
   await step(1,n?'Hazır · '+n+' kayıt bulundu':'Hazır!');window.__pwBooted=true;setTimeout(()=>{try{S&&S.done()}catch(e){}try{window.__pwBoot&&__pwBoot.afterBoot()}catch(e){}},220)})()})();
