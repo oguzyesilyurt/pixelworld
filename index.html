@@ -3,20 +3,45 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
-<title>Buludex PixelWorld</title>
+<title>PixelWorld</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#1a1328">
+<meta name="theme-color" content="#1a1530">
+<meta name="apple-mobile-web-app-title" content="PixelWorld">
+<meta name="application-name" content="PixelWorld">
+<meta name="format-detection" content="telephone=no">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/1290x2796.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)" href="icons/splash/2796x1290.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/1179x2556.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)" href="icons/splash/2556x1179.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/1284x2778.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)" href="icons/splash/2778x1284.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/1170x2532.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)" href="icons/splash/2532x1170.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/1125x2436.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)" href="icons/splash/2436x1125.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/1242x2688.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)" href="icons/splash/2688x1242.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="icons/splash/828x1792.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="icons/splash/1792x828.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/1242x2208.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)" href="icons/splash/2208x1242.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="icons/splash/750x1334.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="icons/splash/1334x750.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="icons/splash/640x1136.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="icons/splash/1136x640.png">
+<script>window.__bipEarly=null;addEventListener("beforeinstallprompt",function(e){e.preventDefault();window.__bipEarly=e});</script>
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <style>
 :root{--ink:#fff4e0;--panel:rgba(20,15,34,.82);--edge:#ffb347;--hunger:#ff8a3d;--mood:#ff5c8a;--stress:#e8483a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root{--ink:#fff4e0;--panel:rgba(20,15,34,.82)}}
 :root:not([data-theme="light"]){color-scheme:dark}
 html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
-body{margin:0;height:100%;background:#f2a272;overflow:hidden;font-family:'Trebuchet MS','Segoe UI',system-ui,sans-serif;color:var(--ink);-webkit-user-select:none;user-select:none}
+html{background:#1a1530}
+body{margin:0;height:100%;background:#1a1530;overflow:hidden;font-family:'Trebuchet MS','Segoe UI',system-ui,sans-serif;color:var(--ink);-webkit-user-select:none;user-select:none}
 #stage{position:fixed;inset:0}
 #stage canvas{display:block;width:100%;height:100%;touch-action:none}
 .pix canvas{image-rendering:pixelated}
@@ -301,9 +326,26 @@ body.pick #hud,body.pick #topr,body.pick #actb,body.pick #bar,body.pick #where,b
 #phbody .apps{grid-template-columns:repeat(auto-fill,minmax(70px,1fr))}#phbody .apps .app{overflow-wrap:normal;word-break:normal;font-size:11.5px;letter-spacing:-.2px;min-width:0}
 #notif{max-width:calc(100vw - 20px);box-sizing:border-box;overflow-wrap:anywhere;word-break:break-word}#notif .a{flex-wrap:wrap}#notif .a button{min-width:0;white-space:normal}
 @media (max-height:500px){#phone{width:min(560px,calc(100vw - 24px))!important;max-height:calc(100vh - 16px)!important;max-height:calc(100dvh - 16px)!important;border-radius:20px}#phbody .apps{grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px 6px}}
+#splash{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#1a1530 0%,#2e1a4e 60%,#5a2660 100%);color:#fff4e0;font-family:'Trebuchet MS','Segoe UI',system-ui,sans-serif;transition:opacity .7s ease,visibility .7s;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);box-sizing:border-box}
+#splash.out{opacity:0;visibility:hidden;pointer-events:none}#splash .sp-in{display:flex;flex-direction:column;align-items:center;gap:10px;width:min(360px,80vw)}
+#splash .sp-logo{width:min(150px,30vh);height:min(150px,30vh);overflow:visible;animation:spIn .9s cubic-bezier(.2,.9,.3,1.3) both}#splash .sp-glow{animation:spPulse 2.4s ease-in-out infinite;transform-origin:0 -12px}
+#splash .sp-cube{animation:spFloat 2.8s ease-in-out infinite}#splash .sp-wave{stroke-dasharray:14 7;animation:spWave 1.6s linear infinite}
+#splash .sp-name{font-size:clamp(22px,4.4vh,34px);letter-spacing:.5px;animation:spIn 1s .15s both}#splash .sp-bar{width:100%;height:8px;border-radius:5px;background:rgba(255,255,255,.12);overflow:hidden}
+#splash .sp-bar i{display:block;height:100%;width:0;border-radius:5px;background:linear-gradient(90deg,#ffb347,#ff5fa2);transition:width .35s ease}#splash small{opacity:.75;font-size:13px;min-height:16px}
+@keyframes spIn{from{opacity:0;transform:translateY(10px) scale(.92)}to{opacity:1;transform:none}}@keyframes spPulse{50%{transform:scale(1.12);opacity:.8}}@keyframes spFloat{50%{transform:translateY(-4px)}}@keyframes spWave{to{stroke-dashoffset:-42}}
 </style>
 </head>
 <body class="pick">
+<div id="splash" role="status" aria-live="polite"><div class="sp-in">
+<svg class="sp-logo" viewBox="-60 -60 120 120" aria-hidden="true"><defs><radialGradient id="spg" cx="0" cy="-12" r="44" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffd678" stop-opacity=".95"/><stop offset=".45" stop-color="#ff8c5a" stop-opacity=".55"/><stop offset="1" stop-color="#ff7878" stop-opacity="0"/></radialGradient></defs>
+<circle class="sp-glow" cx="0" cy="-12" r="44" fill="url(#spg)"/><circle class="sp-sun" cx="0" cy="-13" r="18" fill="#ffd27a"/>
+<g class="sp-cube"><polygon points="0,-17 22,-4 0,9 -22,-4" fill="#fff4e0"/><polygon points="-22,-4 0,9 0,35 -22,22" fill="#ff7a8a"/><polygon points="22,-4 0,9 0,35 22,22" fill="#ffb347"/></g>
+<path class="sp-wave" d="M-44 44 q5.5 -5 11 0 t11 0 t11 0 t11 0 t11 0 t11 0 t11 0 t11 0" fill="none" stroke="#7ad0ff" stroke-width="4" stroke-linecap="round"/></svg>
+<b class="sp-name">PixelWorld</b><div class="sp-bar"><i id="spbar"></i></div><small id="sptxt">Başlatılıyor…</small></div></div>
+<script>(function(){const el=document.getElementById('splash'),bar=document.getElementById('spbar'),tx=document.getElementById('sptxt'),t0=performance.now(),log=[];
+window.__splash={log:log,set(p,t){p=Math.max(0,Math.min(1,p));bar.style.width=(p*100).toFixed(1)+'%';if(t)tx.textContent=t;log.push([Math.round(performance.now()-t0),Math.round(p*100),t||''])},
+  done(){if(!el.parentNode)return;el.classList.add('out');setTimeout(()=>{try{el.remove()}catch(e){}},750)}};window.__splash.set(.1,'Sayfa yüklendi');})();</script>
+
 <div id="stage"></div>
 <canvas id="rain"></canvas>
 <div id="hud" class="panel">
@@ -380,8 +422,9 @@ body.pick #hud,body.pick #topr,body.pick #actb,body.pick #bar,body.pick #where,b
 <div id="rot"><div class="rph">📱</div><b>Telefonu yan çevir</b><span>PixelWorld yatay ekranda oynanır</span></div>
 <div id="err"></div>
 <script src="lib/three.min.js"></script>
+<script>window.__splash&&__splash.set(.3,"3D motor hazır");</script>
 <script>
-(function(){
+window.__pwMain=function(){
 try{
 const T=THREE,$=id=>document.getElementById(id);
 function hudMoney(v){v=Math.floor(+v||0);const sg=v<0?'-':'',n=Math.abs(v),f=(x,d)=>x.toFixed(d).replace('.',',');if(n<1e5)return sg+n.toLocaleString('tr-TR');if(n<1e6)return sg+f(Math.floor(n/100)/10,1)+'B';return sg+f(Math.floor(n/1e4)/100,2)+'M'}
@@ -13340,6 +13383,53 @@ setTimeout(()=>{try{texRefresh130()}catch(e){}},1800);
   const rs=el('button','btn','↺ Dengeli varsayılanlar');rs.onclick=()=>{SET.bright=1;SET.pp=true;SET.bloom=true;SET.sunTone=true;SET.vig=false;hk130();saveSet();toast('🖼️ Görüntü ayarları varsayılana döndü');try{closeModal&&closeModal()}catch(e){}setTimeout(()=>openSettings(),60)};g.appendChild(rs);
   const sgs=[...b.querySelectorAll('.sg')],gr=sgs.find(x=>/Grafik/.test((x.querySelector('h4')||{}).textContent||''));if(gr&&gr.nextSibling)b.insertBefore(g,gr.nextSibling);else b.appendChild(g)}catch(e){showErrOnce(e)}return r}}
 window.__v130={PP:PP130,get ms(){return Q108.pp&&Q108.pp.ms},hk:hk130,asph:asph130};
+/* ================= v131: PWA · yerel uygulama hissi — açılış ekranı (gerçek ilerleme), kurulum (Android istemi / iOS rehberi), sessiz güncelleme + oyun içi rozet, kısayollar (Devam et / Telefon / Harita), güvenli alanlar ================= */
+const APP131={upd:false,bip:window.__bipEarly||null};
+const standalone131=()=>{try{return matchMedia('(display-mode: standalone)').matches||matchMedia('(display-mode: fullscreen)').matches||navigator.standalone===true}catch(e){return false}};
+const ios131=()=>/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const iosSafari131=()=>ios131()&&!/CriOS|FxiOS|EdgiOS|OPiOS/.test(navigator.userAgent);
+window.__pwBoot={
+  compile(){try{renderer.compile(scene,cam)}catch(e){}try{renderer.compile(iscene,cam)}catch(e){}},
+  saves(){let n=0;try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(/^pw_save_/.test(k)){const v=localStorage.getItem(k);if(v){try{openSave(v)}catch(e){}n++}}}}catch(e){}return n},
+  get mode(){return mode},inGame(){return !!me&&mode!=='pick'},save(){try{saveGame()}catch(e){}},
+  updBadge(){APP131.upd=true;badge131()},afterBoot(){try{installUI131()}catch(e){}try{shortcut131()}catch(e){}}};
+/* --- kurulum: Android (beforeinstallprompt) --- */
+function installBtn131(par,cls){if(!APP131.bip||standalone131()||par.querySelector('.inst131'))return;const b=el('button',(cls||'')+' inst131','📲 Uygulamayı yükle');b.onclick=async()=>{const e=APP131.bip;if(!e)return;try{e.prompt();const r=await e.userChoice;if(r&&r.outcome==='accepted'){toast('📲 PixelWorld ana ekranına ekleniyor');APP131.bip=null;document.querySelectorAll('.inst131').forEach(x=>x.remove())}}catch(er){}};par.appendChild(b)}
+function installUI131(){if(standalone131())return;const row=document.querySelector('#pkmenu .pk-row');if(row&&APP131.bip)installBtn131(row);if(iosSafari131())iosCard131()}
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();APP131.bip=e;try{installUI131()}catch(er){}});
+window.addEventListener('appinstalled',()=>{APP131.bip=null;document.querySelectorAll('.inst131').forEach(x=>x.remove());try{toast('📲 PixelWorld yüklendi! Ana ekranından açabilirsin')}catch(e){}});
+/* --- iOS Safari: "Paylaş → Ana Ekrana Ekle" rehberi (bir kez) --- */
+function iosCard131(force){if(standalone131())return;let seen=null;try{seen=localStorage.getItem('pw_a2hs_ios')}catch(e){}if(seen&&!force)return;if(document.getElementById('ios131'))return;
+  const o=el('div','');o.id='ios131';o.style.cssText='position:fixed;inset:0;z-index:180;background:rgba(10,8,20,.6);display:flex;align-items:flex-end;justify-content:center;padding:0 12px calc(14px + env(safe-area-inset-bottom,0px));box-sizing:border-box';
+  const c=el('div','');c.style.cssText='width:min(420px,100%);background:#1d1830;color:#fff;border-radius:22px;padding:16px;font:14px Trebuchet MS,sans-serif;border:1px solid rgba(255,255,255,.15);box-shadow:0 10px 40px rgba(0,0,0,.5)';
+  c.innerHTML='<b style="font-size:17px">📲 PixelWorld\'ü ana ekrana ekle</b><p style="opacity:.85;margin:6px 0 10px">Tam ekran, çentiksiz ve daha akıcı oynamak için uygulama gibi yükle:</p>'+
+   '<div style="display:flex;gap:10px;align-items:center;margin:8px 0"><span style="display:inline-grid;place-items:center;width:42px;height:42px;border-radius:12px;background:#2a2442"><svg width="24" height="28" viewBox="0 0 24 28"><path d="M12 2v15M6 8l6-6 6 6" fill="none" stroke="#4aa3ff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 12H3v14h18V12h-2" fill="none" stroke="#4aa3ff" stroke-width="2.4" stroke-linejoin="round"/></svg></span><span><b>1.</b> Safari\'nin alt çubuğundaki <b>Paylaş</b> düğmesine dokun</span></div>'+
+   '<div style="display:flex;gap:10px;align-items:center;margin:8px 0"><span style="display:inline-grid;place-items:center;width:42px;height:42px;border-radius:12px;background:#2a2442"><svg width="26" height="26" viewBox="0 0 26 26"><rect x="3" y="3" width="20" height="20" rx="5" fill="none" stroke="#fff" stroke-width="2.2"/><path d="M13 8v10M8 13h10" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg></span><span><b>2.</b> Listede <b>"Ana Ekrana Ekle"</b>yi seç</span></div>'+
+   '<div style="display:flex;gap:10px;align-items:center;margin:8px 0"><span style="display:inline-grid;place-items:center;width:42px;height:42px;border-radius:12px;overflow:hidden"><img src="icons/apple-touch-icon.png" width="42" height="42" alt=""></span><span><b>3.</b> <b>Ekle</b>\'ye dokun · PixelWorld simgesinden aç</span></div>';
+  const ok=el('button','','Anladım');ok.style.cssText='margin-top:8px;width:100%;border:0;border-radius:14px;padding:11px;font:bold 15px Trebuchet MS;background:linear-gradient(90deg,#ff8a5c,#ff5fa2);color:#fff;cursor:pointer';ok.onclick=()=>{try{localStorage.setItem('pw_a2hs_ios','1')}catch(e){}o.remove()};c.appendChild(ok);o.appendChild(c);o.onclick=e=>{if(e.target===o)ok.onclick()};document.body.appendChild(o)}
+/* --- güncelleme: oyun içinde küçük rozet + Ayarlar'da "Güncelle" --- */
+function badge131(){const g=$('setb');if(g&&!g.querySelector('.upd131')){g.style.position='relative';const d=el('span','upd131','🆕');d.style.cssText='position:absolute;top:-6px;right:-6px;font-size:11px;background:#ff3b5c;border-radius:9px;padding:1px 4px;line-height:14px;box-shadow:0 0 0 2px #1a1530';g.appendChild(d)}}
+function doUpdate131(){toast('🔄 Kaydediliyor ve güncelleniyor…');try{saveGame()}catch(e){}setTimeout(()=>location.reload(),350)}
+{const _os=openSettings;openSettings=function(){const r=_os.apply(this,arguments);try{const b=$('mbody');if(!b||b.querySelector('#app131'))return r;const g=el('div','sg');g.id='app131';g.appendChild(el('h4','','📱 Uygulama'));
+  const inf=el('div','sub',(standalone131()?'✅ Uygulama olarak çalışıyor':'🌐 Tarayıcıda çalışıyor')+(APP131.upd?' · 🆕 yeni sürüm hazır':''));g.appendChild(inf);const row=el('div','');row.style.cssText='display:flex;gap:8px;flex-wrap:wrap;margin-top:6px';g.appendChild(row);
+  const up=el('button','btn'+(APP131.upd?' pri':''),APP131.upd?'🔄 Güncelle (ilerlemen kaydedilir)':'🔄 Güncellemeleri denetle');up.onclick=()=>{if(APP131.upd)return doUpdate131();try{navigator.serviceWorker.getRegistration().then(rg=>{if(rg)rg.update();toast('🔎 Güncelleme denetleniyor…');setTimeout(()=>{if(!APP131.upd)toast('✅ En güncel sürümü kullanıyorsun')},3500)})}catch(e){toast('Güncelleme denetlenemedi')}};row.appendChild(up);
+  installBtn131(row,'btn');if(iosSafari131()&&!standalone131()){const ib=el('button','btn','📲 Ana ekrana ekle (iOS)');ib.onclick=()=>iosCard131(true);row.appendChild(ib)}
+  const sgs=[...b.querySelectorAll('.sg')];b.insertBefore(g,sgs[0]||null)}catch(e){showErrOnce(e)}return r}}
+/* --- uygulama kısayolları: ?go=continue | phone | map --- */
+function shortcut131(){let go=null;try{go=new URLSearchParams(location.search).get('go')}catch(e){}if(!go)return;try{history.replaceState(null,'',location.pathname+location.search.replace(/([?&])go=[^&]*&?/,'$1').replace(/[?&]$/,''))}catch(e){}
+  const cont=$('pkcont');if(mode==='pick'&&cont&&!cont.disabled&&cont.offsetParent!==null)setTimeout(()=>cont.click(),250);else if(mode==='pick'){toast('Önce bir karakter seç ▶');return}
+  if(go==='continue')return;let n=0;const iv=setInterval(()=>{n++;if(n>480){clearInterval(iv);return}if(mode==='world'&&!busy){clearInterval(iv);setTimeout(()=>{try{if(go==='phone'){if(!$('phone').classList.contains('on'))togglePhone()}else if(go==='map')openNav()}catch(e){}},700)}},250)}
+/* --- güvenli alanlar (çentik / Dynamic Island / ana ekran çubuğu) --- */
+{const s=document.createElement('style');s.textContent=`
+#hud{left:calc(8px + env(safe-area-inset-left,0px))!important}#topr{right:calc(8px + env(safe-area-inset-right,0px))!important}
+#bar{left:calc(10px + env(safe-area-inset-left,0px))!important;bottom:calc(12px + env(safe-area-inset-bottom,0px))!important}#actb{right:calc(16px + env(safe-area-inset-right,0px))!important;bottom:calc(18px + env(safe-area-inset-bottom,0px))!important}
+#notif{right:calc(8px + env(safe-area-inset-right,0px))!important}#prompt{bottom:calc(22px + env(safe-area-inset-bottom,0px))!important}
+#pick .pk-l{padding-left:calc(24px + env(safe-area-inset-left,0px))!important;padding-top:calc(16px + env(safe-area-inset-top,0px))!important;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))!important}
+#modal .mc{max-height:calc(100vh - 24px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))!important}
+#tyc{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px);box-sizing:border-box}
+#bld123 .pn{left:calc(12px + env(safe-area-inset-left,0px))!important}
+#sk105,#tv127,#scnov{padding-left:max(10px,env(safe-area-inset-left,0px))!important;padding-right:max(10px,env(safe-area-inset-right,0px))!important}`;document.head.appendChild(s)}
+window.__app131={A:APP131,ios:iosCard131,standalone:standalone131,badge:badge131,update:doUpdate131,install:installUI131};
 /* ================= v90: bahçe & tarım görsel yenileme — tekrarsız çim, sürülmüş toprak, taş yol, lamba, bank, 3 evreli instanced bitkiler, rüzgâr, hasat animasyonu ================= */
 const U90={t:{value:0}};
 function sway90(col,o,amp){const m=std(col,Object.assign({roughness:.75},o||{}));const A=(amp||.03).toFixed(3);
@@ -13575,12 +13665,21 @@ window.__f90={AN90,parts90,P90};
 initMenu();
 resize();applyTime(1);frame();
 }catch(err){const e=document.getElementById('err');e.style.display='block';e.textContent='Hata: '+(err&&err.stack||err)}
-})();
+};
 </script>
-<script src="tycoon.js?v=130"></script>
-<script>if("serviceWorker" in navigator&&location.protocol.startsWith("http")){let hadCtl=!!navigator.serviceWorker.controller,shown=false;
-const banner=()=>{if(shown)return;shown=true;const b=document.createElement('div');b.style.cssText='position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 10px);transform:translateX(-50%);z-index:200;display:flex;gap:10px;align-items:center;padding:10px 14px;border-radius:16px;background:rgba(20,15,34,.92);color:#fff;font:14px Trebuchet MS,sans-serif;box-shadow:0 6px 20px rgba(0,0,0,.4)';b.innerHTML='🆕 Yeni sürüm hazır · ilerlemen korunur';const x=document.createElement('button');x.textContent='Kaydet ve güncelle';x.style.cssText='border:0;border-radius:12px;padding:6px 12px;cursor:pointer;font:inherit;background:#ffb347;color:#2a1a0a';x.onclick=()=>{try{window.__pwSave&&window.__pwSave()}catch(e){}setTimeout(()=>location.reload(),150)};b.appendChild(x);document.body.appendChild(b)};
-navigator.serviceWorker.register("sw.js").then(reg=>{const chk=()=>{try{reg.update()}catch(e){}};setInterval(chk,15*60*1000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)chk()});});
-navigator.serviceWorker.addEventListener('controllerchange',()=>{if(hadCtl)banner();hadCtl=true});}</script>
+<script>
+/* v131: önyükleme — adımlar arasında ekran boyanır (gerçek ilerleme), sonra menüye yumuşak geçiş */
+(function(){const S=window.__splash,step=(p,t)=>new Promise(r=>{try{S&&S.set(p,t)}catch(e){}requestAnimationFrame(()=>setTimeout(r,16))});
+ (async function(){await step(.34,'Dünya, dokular ve karakterler oluşturuluyor…');try{window.__pwMain()}catch(e){console.error(e)}
+  await step(.72,'Şirket yazılımı yükleniyor…');await new Promise(r=>{const sc=document.createElement('script');sc.src='tycoon.js?v=131';sc.onload=sc.onerror=()=>r();document.body.appendChild(sc);setTimeout(r,8000)});
+  await step(.82,'Gölgelendiriciler derleniyor…');try{window.__pwBoot&&__pwBoot.compile()}catch(e){}
+  await step(.92,'Kayıtlar okunuyor…');let n=0;try{n=window.__pwBoot?__pwBoot.saves():0}catch(e){}
+  await step(1,n?'Hazır · '+n+' kayıt bulundu':'Hazır!');window.__pwBooted=true;setTimeout(()=>{try{S&&S.done()}catch(e){}try{window.__pwBoot&&__pwBoot.afterBoot()}catch(e){}},220)})()})();
+</script>
+<script>/* v131: güncelleme — açılışta/menüde sessiz (kayıt sonrası yeniden yükle), oyun sırasında yalnız küçük rozet + Ayarlar › Güncelle */
+if("serviceWorker" in navigator&&location.protocol.startsWith("http")){let hadCtl=!!navigator.serviceWorker.controller,reloading=false;
+ navigator.serviceWorker.register("sw.js").then(reg=>{const chk=()=>{try{reg.update()}catch(e){}};chk();setInterval(chk,15*60*1000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)chk()})}).catch(()=>{});
+ navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!hadCtl){hadCtl=true;return}const B=window.__pwBoot,inGame=!!(B&&B.inGame());
+  if(!inGame){if(reloading)return;reloading=true;try{B&&B.save()}catch(e){}try{window.__splash&&__splash.set(1,'Yeni sürüm yükleniyor…')}catch(e){}location.reload()}else{try{B.updBadge()}catch(e){}}})}</script>
 </body>
 </html>
