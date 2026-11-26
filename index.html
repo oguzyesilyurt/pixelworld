@@ -12768,6 +12768,57 @@ window.__b123={P:PLOTS123,get B(){return BLD123},open:bldOpen123,close:bldClose1
   tool(t,o){const ES=BLD123.ES;Object.assign(ES,o||{});ES.setTool(t)},wall(a,b){this.tool('wall');BLD123.ES.apply(a,b,{x:a[0],y:a[1]})},del(a,b){this.tool('del');BLD123.ES.apply(a,b,{x:a[0],y:a[1]})},
   op(t,x,y,o){this.tool(t,o);BLD123.ES.apply([0,0],[0,0],{x:x,y:y})},floor(i,j,m){this.tool('floor',{mat:m});BLD123.ES.apply([i,j],[i,j],{x:i+.5,y:j+.5})},stair(i,j,r){this.tool('stair',{sr:r});BLD123.ES.apply([i,j],[i,j],{x:i+.5,y:j+.5})},
   out(om,c0,c1,o){this.tool('out',Object.assign({om:om},o||{}));BLD123.ES.apply(c0,c1||c0,{x:c0[0]+.5,y:c0[1]+.5},c0,c1||c0)},look(o){const dz=BLD123.ES.dz;Object.assign(dz.ext,o.ext||{});Object.assign(dz.roof,o.roof||{});BLD123.ES.upd()}};
+/* ================= v125: görünürlük düzeltmesi — mesafe dairesi yerine kameranın gerçek frustum'u (zoom + 360°), nesnenin gerçek dünya sınırı, histerezis; InstancedMesh sınırları tüm örnekleri kapsar; sakin kaldırım dokusu + mipmap/anizotropi ================= */
+const F125={fr:new T.Frustum(),m:new T.Matrix4(),s:new T.Sphere(),b:new T.Box3(),b2:new T.Box3(),v:new T.Vector3(),v2:new T.Vector3(),m4:new T.Matrix4(),off:false,st:{vis:0,hid:0,inst:0,geo:0}};
+function frUpd125(){cam.updateMatrixWorld();F125.m.multiplyMatrices(cam.projectionMatrix,cam.matrixWorldInverse);F125.fr.setFromProjectionMatrix(F125.m)}
+function inFr125(x,y,z,r){F125.s.center.set(x,y,z);F125.s.radius=r;return F125.fr.intersectsSphere(F125.s)}
+/* InstancedMesh: geometri sınırı tüm örnekleri kapsasın (geometri başka mesh ile paylaşılıyorsa ayıklama kapatılır) */
+const IB125=new WeakMap();
+function instBounds125(im){if(!im.isInstancedMesh||!im.frustumCulled)return;const g=im.geometry;if(!g)return;const own=IB125.get(g);if(own&&own!==im){im.frustumCulled=false;return}IB125.set(g,im);
+  if(!g.userData.gs125){if(!g.boundingSphere)g.computeBoundingSphere();g.userData.gs125=g.boundingSphere.clone()}const gs=g.userData.gs125,B=F125.b2.makeEmpty(),n=im.count;if(!n)return;
+  for(let i=0;i<n;i++){im.getMatrixAt(i,F125.m4);const c=F125.v.copy(gs.center).applyMatrix4(F125.m4),r=gs.radius*F125.m4.getMaxScaleOnAxis();B.expandByPoint(F125.v2.set(c.x-r,c.y-r,c.z-r));B.expandByPoint(F125.v2.set(c.x+r,c.y+r,c.z+r))}
+  g.boundingBox=B.clone();g.boundingSphere=B.getBoundingSphere(new T.Sphere());F125.st.inst++}
+/* tüm mesh'lerde sınırları tazele (birleşik geometriler dahil) */
+function boundsFix125(root){const seen=new Set();root.traverse(q=>{if(q.isInstancedMesh){instBounds125(q);return}if((q.isMesh||q.isLine||q.isPoints)&&q.geometry&&!seen.has(q.geometry)){seen.add(q.geometry);try{q.geometry.computeBoundingSphere();q.geometry.computeBoundingBox();F125.st.geo++}catch(e){}}})}
+/* ayıklama listesi: grup/sprite için dünya sınır küresi (konuma göre ofset; hareket eden yayalar da izlenir) */
+const _cb125=cullBuild,_ct125=cullTick;
+cullBuild=function(G){if(G.userData.cull)return;G.updateMatrixWorld(true);boundsFix125(G);const L=[];
+  G.children.forEach(o=>{if(o===player||o===dog||o===myCar||(OG.p&&o===OG.p)||o.userData.noCull||o.userData.dyn64)return;
+    if(o.userData&&o.userData.legs&&o!==player){o.traverse(q=>{if(q.isMesh)q.castShadow=false})}
+    if(!(o.isGroup||o.isSprite))return;let n=0,unsafe=false;o.traverse(q=>{if(q.isMesh)n++;if(q!==o&&(q.frustumCulled===false||(q.userData&&(q.userData.noCull||q.userData.dyn64))))unsafe=true});if(!(n>=3||o.isSprite)||unsafe)return;
+    F125.b.setFromObject(o);if(F125.b.isEmpty())return;const sp=F125.b.getBoundingSphere(F125.s),wp=o.getWorldPosition(F125.v);
+    o.userData.cs125={dx:sp.center.x-wp.x,dy:sp.center.y,dz:sp.center.z-wp.z,r:Math.max(o.isSprite?1.5:1,sp.radius)};L.push(o)});G.userData.cull=L};
+cullTick=function(dt){if(F125.off)return _ct125.apply(this,arguments);if(mode!=='world'||!activeD)return;CULL.t-=dt;if(CULL.t>0)return;CULL.t=.1;const G=activeD.G;if(!G.userData.cull)cullBuild(G);frUpd125();
+  const gx=G.position.x,gz=G.position.z;let nv=0,nh=0;
+  for(const o of G.userData.cull){if(!o.parent)continue;const s=o.userData.cs125;if(!s){if(o.userData.cullHid){o.visible=true;o.userData.cullHid=false}continue}if(o.userData.hiddenByGame){nh++;continue}
+    const ch=o.userData.cullHid,x=gx+o.position.x+s.dx,z=gz+o.position.z+s.dz,v=ch?inFr125(x,s.dy,z,s.r*1.12+5):inFr125(x,s.dy,z,s.r*1.3+9);
+    /* yalnızca ayıklayıcının gizlediğini geri aç; oyun mantığının gizlediğine dokunma */if(v){if(ch){o.visible=true;o.userData.cullHid=false}nv++}else{if(o.visible){o.visible=false;o.userData.cullHid=true}nh++}}F125.st.vis=nv;F125.st.hid=nh};
+/* hayvanlar: daire yerine frustum + histerezis (kaybolma yok) */
+{const _wt=wildTick69;wildTick69=function(dt,t){const r=_wt.apply(this,arguments);try{const A=activeD;if(F125.off||mode!=='world'||!A||!A.wild69)return r;frUpd125();A.wild69.an.forEach(a=>{const x=A.ox+a.x,z=A.oz+a.z,v=a.vis125?inFr125(x,.4,z,4):inFr125(x,.4,z,2);a.vis125=v;a.m.visible=v})}catch(e){}return r}}
+/* iç mekânlar: kurulunca sınırları tazele */
+{const _in=interior;interior=function(kind){const I=_in.apply(this,arguments);try{if(I&&I.G&&!I.G.userData.b125){I.G.userData.b125=1;boundsFix125(I.G)}}catch(e){}return I}}
+/* sonradan eklenen InstancedMesh'ler (park araçları vb.) için mahalle girişinde tazele */
+{const _sd=setDistrict;setDistrict=function(n){const r=_sd.apply(this,arguments);try{const A=D[n];if(A&&A.G){A.G.traverse(q=>{if(q.isInstancedMesh&&q.frustumCulled)instBounds125(q)})}}catch(e){}return r}}
+/* --- dokular: maksimum anizotropi (mobilde 4), mipmap --- */
+const ANI125=(()=>{try{const m=renderer.capabilities.getMaxAnisotropy();return isTouch?Math.min(4,m):m}catch(e){return 4}})();
+function texQ125(t){if(!t||!t.isTexture)return;t.anisotropy=ANI125;if(t.minFilter!==T.LinearMipmapLinearFilter&&t.magFilter!==T.NearestFilter){t.minFilter=T.LinearMipmapLinearFilter;t.generateMipmaps=true}t.needsUpdate=true}
+{const _ct=canvasTex;canvasTex=function(){const t=_ct.apply(this,arguments);try{if(t.wrapS===T.RepeatWrapping)texQ125(t)}catch(e){}return t}}
+{const _pt=pTex109;pTex109=function(){const t=_pt.apply(this,arguments);try{if(t.anisotropy!==ANI125)texQ125(t)}catch(e){}return t}}
+/* kaldırım: büyük taşlar, düşük kontrast, yumuşak derz (aynı canvas → tüm kopyalar güncellenir) */
+function paverDraw125(){const c=paverTex.image;if(!c||!c.getContext)return;const w=512,h=512;if(c.width!==w){c.width=w;c.height=h}const R=mulberry(12509),tc=document.createElement('canvas');tc.width=w;tc.height=h;const t=tc.getContext('2d');
+  t.fillStyle='#c4b8a2';t.fillRect(0,0,w,h);const rows=5,rh=h/rows,cols=4,cw=w/cols,base=['#d9cdb7','#d5c9b2','#dccfba','#d7cbb4','#d3c7b0'];
+  for(let r=0;r<rows;r++){const off=(r%2)*cw/2;for(let k=-1;k<=cols;k++){const x=k*cw+off,y=r*rh;[x,x-w,x+w].forEach(X=>{if(X+cw<0||X>w)return;t.fillStyle=base[(r*3+k*7+50)%5];t.beginPath();if(t.roundRect)t.roundRect(X+3,y+3,cw-6,rh-6,9);else t.rect(X+3,y+3,cw-6,rh-6);t.fill();
+      const gr=t.createLinearGradient(0,y,0,y+rh);gr.addColorStop(0,'rgba(255,255,255,.05)');gr.addColorStop(1,'rgba(0,0,0,.035)');t.fillStyle=gr;t.fillRect(X+3,y+3,cw-6,rh-6)})}}
+  for(let i=0;i<1400;i++){t.fillStyle=R()<.5?'rgba(255,255,255,.03)':'rgba(70,55,35,.03)';t.beginPath();t.arc(R()*w,R()*h,2+R()*5,0,7);t.fill()}
+  const g=c.getContext('2d');g.clearRect(0,0,w,h);if('filter' in g)g.filter='blur(1.3px)';for(let ox=-1;ox<=1;ox++)for(let oy=-1;oy<=1;oy++)g.drawImage(tc,ox*w,oy*h);if('filter' in g)g.filter='none';
+  paverTex.needsUpdate=true;texQ125(paverTex)}
+try{paverDraw125()}catch(e){showErrOnce(e)}
+/* mevcut zemin dokuları ve kopyaları: çizimden sonra tazele */
+function texAll125(){const L=[grassTex,paverTex,asphaltTex,sandTex];try{L.push(concreteTex)}catch(e){}L.forEach(texQ125);
+  const done=new Set();scene.traverse(o=>{const ms=o.material?(Array.isArray(o.material)?o.material:[o.material]):[];ms.forEach(m=>{const t=m&&m.map;if(t&&!done.has(t)&&t.wrapS===T.RepeatWrapping){done.add(t);if(t.image===paverTex.image||t.anisotropy!==ANI125)texQ125(t)}})});try{Object.values(TX109.cache).forEach(texQ125)}catch(e){}}
+setTimeout(()=>{try{texAll125()}catch(e){}},1500);
+{const _sd=setDistrict;setDistrict=function(n){const r=_sd.apply(this,arguments);try{const A=D[n];if(A&&A.G&&!A.G.userData.tq125){A.G.userData.tq125=1;const done=new Set();A.G.traverse(o=>{const m=o.material;(Array.isArray(m)?m:[m]).forEach(mm=>{const t=mm&&mm.map;if(t&&!done.has(t)&&t.wrapS===T.RepeatWrapping&&t.anisotropy!==ANI125){done.add(t);texQ125(t)}})})}}catch(e){}return r}}
+window.__c125={F:F125,ani:ANI125,set off(v){F125.off=!!v;if(activeD&&v)activeD.G.userData.cull=null},rebuild(){if(activeD)activeD.G.userData.cull=null},texAll:texAll125};
 /* ================= v90: bahçe & tarım görsel yenileme — tekrarsız çim, sürülmüş toprak, taş yol, lamba, bank, 3 evreli instanced bitkiler, rüzgâr, hasat animasyonu ================= */
 const U90={t:{value:0}};
 function sway90(col,o,amp){const m=std(col,Object.assign({roughness:.75},o||{}));const A=(amp||.03).toFixed(3);
