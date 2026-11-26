@@ -13724,6 +13724,9 @@ if(window.visualViewport){visualViewport.addEventListener('resize',()=>{if(KB135
 function hint135(n){if(!n||n.nodeType!==1)return;const L=n.matches&&n.matches('input,textarea')?[n]:n.querySelectorAll?n.querySelectorAll('input,textarea'):[];L.forEach(i=>{if(!ed135(i)||i.hasAttribute('enterkeyhint'))return;i.setAttribute('enterkeyhint',i.tagName==='TEXTAREA'?'enter':(i.type==='search'||/srch|ara/i.test(i.className+' '+(i.placeholder||'')))?'search':i.hasAttribute('data-enter')?'go':'done')})}
 try{new MutationObserver(M=>M.forEach(m=>m.addedNodes.forEach(hint135))).observe(document.body,{childList:true,subtree:true});hint135(document.body)}catch(e){}
 window.__kb135={K:KB135,hold:kbHold135,ed:ed135,vv:vv135};
+/* v136: kendiliğinden (kullanıcı tıklaması olmadan) gelen panel yeniden çizimleri yazı yazılırken ertelenir; odak çıkınca bir kez çizilir (oda kodu alanı vb.) */
+function defer136(fn){return function(root){try{const a=document.activeElement;if(root&&a&&root.contains(a)&&ed135(a)&&!window.event){if(!root.__pend136){root.__pend136=1;const self=this,args=arguments;root.addEventListener('focusout',function f(){setTimeout(()=>{if(ed135(document.activeElement)&&root.contains(document.activeElement))return;root.removeEventListener('focusout',f);root.__pend136=0;try{fn.apply(self,args)}catch(e){}},60)})}return}}catch(e){}return fn.apply(this,arguments)}}
+mpView=defer136(mpView);chatView=defer136(chatView);
 /* ================= v90: bahçe & tarım görsel yenileme — tekrarsız çim, sürülmüş toprak, taş yol, lamba, bank, 3 evreli instanced bitkiler, rüzgâr, hasat animasyonu ================= */
 const U90={t:{value:0}};
 function sway90(col,o,amp){const m=std(col,Object.assign({roughness:.75},o||{}));const A=(amp||.03).toFixed(3);
@@ -13965,7 +13968,7 @@ resize();applyTime(1);frame();
 /* v131: önyükleme — adımlar arasında ekran boyanır (gerçek ilerleme), sonra menüye yumuşak geçiş */
 (function(){const S=window.__splash,step=(p,t)=>new Promise(r=>{try{S&&S.set(p,t)}catch(e){}requestAnimationFrame(()=>setTimeout(r,16))});
  (async function(){await step(.34,'Dünya, dokular ve karakterler oluşturuluyor…');try{window.__pwMain()}catch(e){console.error(e)}
-  await step(.72,'Şirket yazılımı yükleniyor…');await new Promise(r=>{const sc=document.createElement('script');sc.src='tycoon.js?v=135';sc.onload=sc.onerror=()=>r();document.body.appendChild(sc);setTimeout(r,8000)});
+  await step(.72,'Şirket yazılımı yükleniyor…');await new Promise(r=>{const sc=document.createElement('script');sc.src='tycoon.js?v=136';sc.onload=sc.onerror=()=>r();document.body.appendChild(sc);setTimeout(r,8000)});
   await step(.82,'Gölgelendiriciler derleniyor…');try{window.__pwBoot&&__pwBoot.compile()}catch(e){}
   await step(.92,'Kayıtlar okunuyor…');let n=0;try{n=window.__pwBoot?__pwBoot.saves():0}catch(e){}
   await step(1,n?'Hazır · '+n+' kayıt bulundu':'Hazır!');window.__pwBooted=true;setTimeout(()=>{try{S&&S.done()}catch(e){}try{window.__pwBoot&&__pwBoot.afterBoot()}catch(e){}},220)})()})();

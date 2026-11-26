@@ -4,7 +4,7 @@
 //       indirir, eskisini siler; sayfa açılış/menüdeyse sessizce yenilenir (index.html v131/v134).
 // Kayıtlar localStorage + IndexedDB'de; service worker onlara dokunmaz, güncellemede silinmez.
 // Liste testi: node tools/check-offline.js (diskte olmayan ya da listede unutulmuş yerel dosya varsa hata verir).
-const CACHE='pixelworld-v135';
+const CACHE='pixelworld-v136';
 const CORE=['./','./index.html','./tycoon.js','./manifest.json','./lib/three.min.js','./lib/peerjs.min.js','./lib/qrcode.js',
   './icons/icon-192.png','./icons/icon-512.png','./icons/icon-1024.png','./icons/maskable-192.png','./icons/maskable-512.png','./icons/maskable-1024.png','./icons/apple-touch-icon.png',
   './icons/sc-continue.png','./icons/sc-phone.png','./icons/sc-map.png'];
