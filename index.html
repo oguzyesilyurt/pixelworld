@@ -13497,6 +13497,97 @@ setTimeout(batt132,6000);
 {const _os=openSettings;openSettings=function(){const r=_os.apply(this,arguments);try{const b=$('mbody');if(!b||b.querySelector('#eco132'))return r;const gr=[...b.querySelectorAll('.sg')].find(x=>/Grafik/.test((x.querySelector('h4')||{}).textContent||''));if(!gr)return r;
   const w=el('div','');w.id='eco132';gr.insertBefore(w,gr.children[1]||null);swRow(w,'🔋 Pil tasarrufu','30 FPS sınırı, gölge ve post-process kapalı','eco',()=>{eco132(SET.eco)});swRow(w,'👆 Dokunma geri bildirimi','Butonlarda tık sesi ve kısa titreşim','tapFx',()=>{saveSet()})}catch(e){showErrOnce(e)}return r}}
 window.__k132={closeTop:closeTop132,back:()=>window.dispatchEvent(new PopStateEvent('popstate',{state:null})),eco:eco132,BG:BG132,HB:HB132,vis:vis132,unlock:unlock132};
+/* ================= v133: cihaz özellikleri (desteklenmiyorsa sessizce atlanır) · uygulama rozeti, sistem bildirimleri, ekranı açık tut, görsel paylaşma, oda daveti, gamepad, kayıt yedeği (dosya + QR ile cihazdan cihaza) ================= */
+if(SET.sysNotif==null)SET.sysNotif=true;
+const DV133={nc:0,lock:null,bgMsg:0,gp:{held:new Set(),prev:[],on:false}};
+/* --- 1) uygulama rozeti: okunmamış mesaj + bildirim --- */
+function pendChats133(){try{return contacts().filter(q=>CHT[q[0]]&&CHT[q[0]].pend).length}catch(e){return 0}}
+function badge133(){const n=DV133.nc+pendChats133();try{if(n>0&&navigator.setAppBadge)navigator.setAppBadge(n).catch(()=>{});else if(navigator.clearAppBadge)navigator.clearAppBadge().catch(()=>{})}catch(e){}DV133.last=n;return n}
+const seen133=()=>{DV133.nc=0;badge133()};
+{const _tp=togglePhone;togglePhone=function(){const r=_tp.apply(this,arguments);try{if(phoneOpen())seen133()}catch(e){}return r}}
+{const _pa=phoneApp;phoneApp=function(){const r=_pa.apply(this,arguments);try{seen133()}catch(e){}return r}}
+setInterval(()=>{try{badge133()}catch(e){}},3000);
+/* --- 2) sistem bildirimleri: oyun gizliyken mesaj/arama → service worker showNotification; dokununca ilgili ekran --- */
+function sysOK133(){return SET.sysNotif!==false&&'Notification' in window&&Notification.permission==='granted'&&'serviceWorker' in navigator}
+function sysNotify133(title,body,open){if(!document.hidden||!sysOK133())return;try{navigator.serviceWorker.ready.then(reg=>reg.showNotification(title,{body:String(body||'').slice(0,180),icon:'icons/icon-192.png',badge:'icons/maskable-192.png',tag:'pw-'+open,renotify:true,vibrate:[80,40,80],data:{open:open}})).catch(()=>{})}catch(e){}}
+function askNotif133(why){if(!('Notification' in window)||Notification.permission!=='default'||SET.notifAsked)return;SET.notifAsked=true;try{saveSet()}catch(e){}
+  setTimeout(()=>{try{dlg132('🔔 Oyun arka plandayken gelen <b>arama ve mesajları</b> telefonuna bildirim olarak gönderelim mi?<br><small style="opacity:.75">'+(why||'Böylece hiçbir mesajı kaçırmazsın.')+' İstediğin an Ayarlar\'dan kapatabilirsin.</small>',()=>{try{Notification.requestPermission().then(p=>toast(p==='granted'?'🔔 Bildirimler açık':'🔕 Bildirim izni verilmedi'))}catch(e){}},()=>{},'İzin ver','Şimdi değil');const m=document.querySelector('#dlg132 .c>div');if(m)m.innerHTML=m.textContent.replace('arama ve mesajları','<b>arama ve mesajları</b>')}catch(e){}},900)}
+{const _n=notify;notify=function(from,text,acts){const r=_n.apply(this,arguments);try{DV133.nc++;badge133();sysNotify133(String(from||'PixelWorld'),text,'chat')}catch(e){}return r}}
+{const _rm=randomMessage;randomMessage=function(){const r=_rm.apply(this,arguments);try{askNotif133('İlk mesajın geldi! 💬')}catch(e){}return r}}
+{const _sc=scnCall;scnCall=function(o){const r=_sc.apply(this,arguments);try{o=o||{};DV133.nc++;badge133();sysNotify133('📞 '+(o.from||'Biri')+' arıyor',(o.msg&&o.msg[0])||'Gelen arama · cevaplamak için dokun','calls')}catch(e){}return r}}
+/* gizliyken (sekme açık) ara sıra mesaj gelir → sistem bildirimi */
+setInterval(()=>{try{if(!document.hidden||!me||mode==='pick'||DV133.bgMsg>=3||!sysOK133())return;if(Math.random()<.3){DV133.bgMsg++;randomMessage()}}catch(e){}},30000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)DV133.bgMsg=0});
+if('serviceWorker' in navigator)navigator.serviceWorker.addEventListener('message',e=>{const d=e.data||{};if(d.pw!=='open')return;try{window.focus()}catch(er){}const go=()=>{try{if(d.open==='calls')phoneApp('calls');else phoneApp('chat')}catch(er){}};if(me&&mode!=='pick')go();else{let n=0;const iv=setInterval(()=>{if(me&&mode!=='pick'){clearInterval(iv);setTimeout(go,600)}else if(++n>120)clearInterval(iv)},500)}});
+/* --- 3) ekranı açık tut: sürüş, sinema, vapur, yolculuk --- */
+function wakeWant133(){if(document.visibilityState!=='visible')return false;if(mode==='drive')return true;if(mode==='int'&&curI&&/ferry|ride|x99car|tekne|boat|sinema|cine/.test(curI.name||''))return true;try{if(ACT&&ACT.on&&/film|sinema|vapur|yolculuk|tekne|ada turu/i.test(ACT.name||''))return true}catch(e){}return false}
+setInterval(()=>{try{if(!('wakeLock' in navigator))return;const w=wakeWant133();if(w&&!DV133.lock&&!DV133.req){DV133.req=1;navigator.wakeLock.request('screen').then(l=>{DV133.lock=l;DV133.req=0;l.addEventListener('release',()=>{DV133.lock=null})}).catch(()=>{DV133.req=0})}
+  else if(!w&&DV133.lock){DV133.lock.release().catch(()=>{});DV133.lock=null}}catch(e){}},1500);
+/* --- 4) görsel paylaşma: PixelGram gönderisi ve başarım kartı (canvas → dosya) --- */
+function shareCanvas133(cv,name,text){return new Promise(res=>{cv.toBlob(async b=>{if(!b)return res(false);const f=new File([b],name,{type:'image/png'});try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'PixelWorld',text:text});return res('share')}}catch(e){if(e&&e.name==='AbortError')return res('cancel')}
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);toast('⬇️ Görsel indirildi · WhatsApp/Instagram\'da paylaşabilirsin');res('download')},'image/png')})}
+function cardBase133(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');const gr=g.createLinearGradient(0,0,0,h);gr.addColorStop(0,'#1a1530');gr.addColorStop(1,'#5a2660');g.fillStyle=gr;g.fillRect(0,0,w,h);return [c,g]}
+function brand133(g,w,h){g.fillStyle='rgba(255,244,224,.85)';g.font='bold 34px Trebuchet MS, sans-serif';g.textAlign='left';g.fillText('🎮 PixelWorld',48,h-48);g.textAlign='right';g.font='26px Trebuchet MS, sans-serif';g.fillText('İzmir · yaşam & sürüş',w-48,h-50)}
+function wrap133(g,t,x,y,mw,lh,max){const ws=String(t).split(' ');let line='',n=0;for(const w of ws){const tt=line?line+' '+w:w;if(g.measureText(tt).width>mw&&line){g.fillText(line,x,y);y+=lh;line=w;if(++n>=max-1){line+='…';break}}else line=tt}g.fillText(line,x,y);return y}
+async function postCard133(p){const [c,g]=cardBase133(1080,1350);const src=p.photo||p.img||(p.img=pgImg(PG_SC[p.sc]||PG_SC[0]));const im=new Image();im.src=src;await im.decode().catch(()=>{});
+  g.fillStyle='#fff';g.font='bold 40px Trebuchet MS, sans-serif';g.textAlign='left';g.fillText('📸 PixelGram',48,80);g.font='30px Trebuchet MS, sans-serif';g.fillStyle='rgba(255,255,255,.75)';g.fillText((p.n||'')+' · Gün '+p.d+' · '+p.h,48,124);
+  const X=48,Y=160,Wd=984,Hd=840;g.save();g.beginPath();if(g.roundRect)g.roundRect(X,Y,Wd,Hd,36);else g.rect(X,Y,Wd,Hd);g.clip();if(im.width){const s=Math.max(Wd/im.width,Hd/im.height);g.drawImage(im,X+(Wd-im.width*s)/2,Y+(Hd-im.height*s)/2,im.width*s,im.height*s)}else{g.fillStyle='#2a2442';g.fillRect(X,Y,Wd,Hd)}g.restore();
+  g.fillStyle='#fff';g.font='34px Trebuchet MS, sans-serif';wrap133(g,p.cap||'',48,1060,984,46,3);g.fillStyle='#ff7aa8';g.font='30px Trebuchet MS, sans-serif';g.fillText('❤️ '+(p.lk||0)+' beğeni',48,1210);brand133(g,1080,1350);return c}
+function achCard133(a){const [c,g]=cardBase133(1080,1080);g.textAlign='center';g.font='240px Segoe UI Emoji, Apple Color Emoji, sans-serif';g.fillText(a[1],540,420);g.fillStyle='#ffd27a';g.font='bold 38px Trebuchet MS, sans-serif';g.fillText('🏆 BAŞARIM AÇILDI',540,520);
+  g.fillStyle='#fff';g.font='bold 72px Trebuchet MS, sans-serif';g.fillText(a[2],540,620);g.fillStyle='rgba(255,255,255,.8)';g.font='36px Trebuchet MS, sans-serif';wrap133(g,a[3],540,700,880,48,3);g.font='30px Trebuchet MS, sans-serif';g.fillStyle='rgba(255,244,224,.7)';g.fillText((me&&me.n||'')+' · Gün '+(ACHV[a[0]]||HOME.day),540,850);brand133(g,1080,1080);return c}
+async function sharePost133(p){const c=await postCard133(p);return shareCanvas133(c,'pixelgram-'+p.id+'.png',(p.cap||'')+' · PixelWorld 🎮')}
+async function shareAch133(a){return shareCanvas133(achCard133(a),'basarim-'+a[0]+'.png','PixelWorld\'de "'+a[2]+'" başarımını açtım! 🏆')}
+{const _pv=pgView;pgView=function(b,tab){const r=_pv.apply(this,arguments);try{if(tab==='me'){const P=[...b.querySelectorAll('.pg-p')];P.forEach((d,i)=>{const p=SOC.posts[i];if(!p)return;const a=d.querySelector('.pg-a');if(!a)return;const s=el('button','','📤');s.title='WhatsApp / Instagram\'da paylaş';s.onclick=()=>sharePost133(p);a.appendChild(s)})}}catch(e){}return r}}
+{const _av=achView;achView=function(root){const r=_av.apply(this,arguments);try{const L=ACH.filter(a=>ACHV[a[0]]);if(!L.length)return r;const w=el('div','');w.style.marginTop='10px';w.appendChild(el('div','sub','📤 Başarı kartını paylaş (WhatsApp, Instagram…)'));
+  L.forEach(a=>{const b=el('button','btn',a[1]+' '+a[2]);b.style.margin='3px';b.onclick=()=>shareAch133(a);w.appendChild(b)});root.appendChild(w)}catch(e){}return r}}
+/* --- 5) oda daveti: sistem paylaşım menüsü --- */
+shareWA=function(){const l=inviteLink(),t='PixelWorld\'de buluşalım! 🎮 Tıkla, karakterini seç ve odaya gel (oda: '+MP.code+')';if(navigator.share){navigator.share({title:'PixelWorld daveti',text:t,url:l}).catch(e=>{if(!(e&&e.name==='AbortError'))window.open('https://wa.me/?text='+encodeURIComponent(t+' '+l),'_blank')});return}window.open('https://wa.me/?text='+encodeURIComponent(t+' '+l),'_blank')};
+/* --- 6) gamepad: yürüme, sürüş, etkileşim --- */
+addEventListener('gamepadconnected',e=>{DV133.gp.on=true;try{toast('🎮 '+(e.gamepad.id||'Kontrolcü').split('(')[0].trim().slice(0,30)+' bağlandı · A: etkileşim · B: geri · Y: telefon · ☰: ayarlar')}catch(er){}});
+addEventListener('gamepaddisconnected',()=>{DV133.gp.on=false;gpRelease133();try{toast('🎮 Kontrolcü ayrıldı')}catch(e){}});
+function gpRelease133(){DV133.gp.held.forEach(k=>{keys[k]=false});DV133.gp.held.clear()}
+function gpKey133(code){try{window.dispatchEvent(new KeyboardEvent('keydown',{code:code,key:code.replace('Key','').toLowerCase(),bubbles:true}));setTimeout(()=>window.dispatchEvent(new KeyboardEvent('keyup',{code:code,bubbles:true})),60)}catch(e){}}
+function gpTick133(){if(!navigator.getGamepads)return;let pad=null;try{pad=[...navigator.getGamepads()].find(p=>p&&p.connected)}catch(e){}if(!pad){if(DV133.gp.held.size)gpRelease133();return}
+  const B=i=>!!(pad.buttons[i]&&(pad.buttons[i].pressed||pad.buttons[i].value>.5)),Bv=i=>pad.buttons[i]?pad.buttons[i].value:0,ax=pad.axes[0]||0,ay=pad.axes[1]||0,dz=.35,want=new Set();
+  if(mode==='drive'){if(Bv(7)>.25||ay<-dz||B(12))want.add('ArrowUp');if(Bv(6)>.25||ay>dz||B(13))want.add('ArrowDown');if(ax<-dz||B(14))want.add('ArrowLeft');if(ax>dz||B(15))want.add('ArrowRight')}
+  else if(!uiPC){if(ay<-dz||B(12))want.add('KeyW');if(ay>dz||B(13))want.add('KeyS');if(ax<-dz||B(14))want.add('KeyA');if(ax>dz||B(15))want.add('KeyD');if(B(10))want.add('ShiftLeft')}
+  DV133.gp.held.forEach(k=>{if(!want.has(k)){keys[k]=false;DV133.gp.held.delete(k)}});want.forEach(k=>{keys[k]=true;DV133.gp.held.add(k)});
+  const P=DV133.gp.prev,edge=i=>B(i)&&!P[i];
+  if(edge(0)){const dg=document.getElementById('dlg132');if(dg){const y=dg.querySelector('button.y');y&&y.click()}else gpKey133(mode==='drive'?'KeyF':'KeyE')}
+  if(edge(1)){try{if(!closeTop132()&&mode==='drive')gpKey133('Escape')}catch(e){}}if(edge(2))gpKey133('KeyF');if(edge(3))gpKey133('KeyM');
+  if(edge(9)){try{if($('modal').classList.contains('on'))closeModal();else openSettings()}catch(e){}}
+  DV133.gp.prev=pad.buttons.map((b,i)=>B(i))}
+{const _fb=frameBody;frameBody=function(){try{if(DV133.gp.on||DV133.gp.held.size)gpTick133()}catch(e){}return _fb.apply(this,arguments)}}
+/* --- 7) kayıt yedeği: dosya + QR ile başka cihaza (PeerJS, kısa link) --- */
+function collect133(){const o={app:'PixelWorld',fmt:1,t:Date.now(),day:HOME.day,data:{}};try{saveGame()}catch(e){}for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(/^pw_/.test(k)&&!/^pw_(bak_|eco_ask|a2hs)/.test(k))o.data[k]=localStorage.getItem(k)}return o}
+function apply133(o,src){if(!o||o.app!=='PixelWorld'||!o.data){toast('⚠️ Geçerli bir PixelWorld kaydı değil');return false}const n=Object.keys(o.data).filter(k=>/^pw_save_/.test(k)&&!/_b\d$/.test(k)).length;
+  dlg132('📥 '+(src||'Kayıt')+' alındı · '+n+' karakter kaydı ('+new Date(o.t).toLocaleString('tr-TR')+').<br><small style="opacity:.75">Bu cihazdaki kayıtların üzerine yazılsın mı?</small>',()=>{try{Object.keys(localStorage).filter(k=>/^pw_save_/.test(k)).forEach(k=>localStorage.removeItem(k));Object.keys(o.data).forEach(k=>localStorage.setItem(k,o.data[k]))}catch(e){toast('⚠️ Yazılamadı: '+e.message);return}
+    try{window.removeEventListener('beforeunload',saveGame)}catch(e){}window.__noSave133=true;toast('✅ Kayıt içe aktarıldı · yeniden başlatılıyor');setTimeout(()=>location.replace(location.pathname),700)},()=>{},'Üzerine yaz','Vazgeç');
+  const m=document.querySelector('#dlg132 .c>div');if(m)m.innerHTML='📥 '+(src||'Kayıt')+' alındı · <b>'+n+'</b> karakter kaydı<br><small style="opacity:.75">'+new Date(o.t).toLocaleString('tr-TR')+' · bu cihazdaki kayıtların üzerine yazılsın mı?</small>';return true}
+{const _sg=saveGame;saveGame=function(){if(window.__noSave133)return;return _sg.apply(this,arguments)}}
+function exportFile133(){const o=collect133(),s=JSON.stringify(o),d=new Date().toISOString().slice(0,10),name='PixelWorld-kayit-'+d+'.pwsave',b=new Blob([s],{type:'application/json'});const f=new File([b],name,{type:'application/json'});
+  (async()=>{try{if(isTouch&&navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'PixelWorld kaydı'});return}}catch(e){if(e&&e.name==='AbortError')return}
+    const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);toast('💾 '+name+' indirildi ('+Math.round(s.length/1024)+' KB)')})()}
+function importFile133(){const i=document.createElement('input');i.type='file';i.accept='.pwsave,.json,application/json';i.onchange=()=>{const f=i.files&&i.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{let o=null;try{o=JSON.parse(r.result)}catch(e){}apply133(o,'Dosya')};r.readAsText(f)};i.click()}
+function qrLib133(cb){if(window.qrcode)return cb();const s=document.createElement('script');s.src='lib/qrcode.js';s.onload=cb;s.onerror=()=>toast('⚠️ QR kütüphanesi yüklenemedi');document.head.appendChild(s)}
+const XF133={peer:null};
+function qrSend133(){const code=Math.random().toString(36).slice(2,8).toUpperCase().replace(/[^A-Z0-9]/g,'7'),url=location.origin+location.pathname+'?pwxfer='+code;
+  openModal('📱 Kaydı başka cihaza gönder',b=>{b.appendChild(el('div','sub','Diğer cihazın kamerasıyla QR\'ı okut (ya da linki aç / kodu gir). Kayıt doğrudan bu cihazdan aktarılır · iki cihaz da internete bağlı olmalı.'));const q=el('div','');q.style.cssText='display:flex;justify-content:center;margin:10px 0';b.appendChild(q);
+    const cd=el('div','');cd.style.cssText='text-align:center;font:bold 26px monospace;letter-spacing:4px';cd.textContent=code;b.appendChild(cd);const st=el('div','sub','⏳ Bağlantı bekleniyor…');st.id='xf133st';b.appendChild(st);
+    qrLib133(()=>{try{const qr=qrcode(0,'M');qr.addData(url);qr.make();const im=new Image();im.src=qr.createDataURL(6,12);im.alt='QR';im.style.cssText='width:min(240px,60vw);image-rendering:pixelated;border-radius:12px;background:#fff';q.appendChild(im)}catch(e){q.textContent=url}});
+    try{XF133.peer&&XF133.peer.destroy()}catch(e){}const payload=JSON.stringify(collect133());
+    mpLoad(()=>{const p=new Peer('buludexpwx-'+code);XF133.peer=p;p.on('connection',c=>{const S=document.getElementById('xf133st');if(S)S.textContent='🔗 Cihaz bağlandı · gönderiliyor…';c.on('open',()=>{c.send({pw133:1,data:payload})});c.on('data',d=>{if(d&&d.ack){const S2=document.getElementById('xf133st');if(S2)S2.textContent='✅ Kayıt diğer cihaza aktarıldı';toast('✅ Kayıt aktarıldı');setTimeout(()=>{try{p.destroy()}catch(e){}},1500)}})});p.on('error',e=>{const S=document.getElementById('xf133st');if(S)S.textContent='⚠️ '+(e.type||e)})})})}
+function qrRecv133(code){code=String(code||'').toUpperCase().replace(/[^A-Z0-9]/g,'');if(!code){toast('Kodu yaz');return}toast('🔗 Diğer cihaza bağlanılıyor…');
+  mpLoad(()=>{const p=new Peer();XF133.peer=p;let got=false;p.on('open',()=>{const c=p.connect('buludexpwx-'+code,{reliable:true});c.on('data',d=>{if(!d||!d.pw133||got)return;got=true;let o=null;try{o=JSON.parse(d.data)}catch(e){}try{c.send({ack:1})}catch(e){}apply133(o,'Diğer cihazdan kayıt')});setTimeout(()=>{if(!got)toast('⚠️ Bağlanılamadı · gönderen cihazda ekran açık mı?')},15000)});p.on('error',e=>toast('⚠️ '+(e.type==='peer-unavailable'?'Bu kodla gönderen bulunamadı':(e.type||e))))})}
+{let xf=null;try{xf=new URLSearchParams(location.search).get('pwxfer')}catch(e){}if(xf){try{history.replaceState(null,'',location.pathname)}catch(e){}setTimeout(()=>dlg132('📱 Başka bir cihazdan PixelWorld kaydı gönderiliyor (kod '+xf+'). Alınsın mı?',()=>qrRecv133(xf),()=>{},'Kaydı al','Vazgeç'),2600)}}
+/* --- Ayarlar: kayıt yedeği + bildirimler --- */
+{const _os=openSettings;openSettings=function(){const r=_os.apply(this,arguments);try{const b=$('mbody');if(!b||b.querySelector('#bk133'))return r;const g=el('div','sg');g.id='bk133';g.appendChild(el('h4','','💾 Kayıt yedeği'));g.appendChild(el('div','sub','Telefon ↔ bilgisayar arasında taşı: dosya olarak dışa/içe aktar ya da QR ile doğrudan gönder.'));
+  const row=el('div','');row.style.cssText='display:flex;gap:8px;flex-wrap:wrap;margin-top:6px';const bt=(t,fn)=>{const x=el('button','btn',t);x.onclick=fn;row.appendChild(x)};bt('📤 Dışa aktar (dosya)',exportFile133);bt('📥 İçe aktar (dosya)',importFile133);bt('📱 QR ile gönder',qrSend133);g.appendChild(row);
+  const r2=el('div','');r2.style.cssText='display:flex;gap:8px;margin-top:8px';const inp=document.createElement('input');inp.placeholder='Aktarım kodu (ör. K7Q2XA)';inp.maxLength=8;inp.style.cssText='flex:1;min-width:0;font:inherit;padding:8px 10px;border-radius:12px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:inherit;text-transform:uppercase';inp.addEventListener('keydown',e=>e.stopPropagation());
+  const ib=el('button','btn','⌨️ Kodla al');ib.onclick=()=>qrRecv133(inp.value);r2.appendChild(inp);r2.appendChild(ib);g.appendChild(r2);
+  if('Notification' in window){swRow(g,'🔔 Sistem bildirimleri','Oyun arka plandayken arama ve mesajlar · izin: '+({granted:'verildi',denied:'reddedildi',default:'sorulmadı'})[Notification.permission],'sysNotif',()=>{if(SET.sysNotif&&Notification.permission==='default')Notification.requestPermission();saveSet()})}
+  const ap=b.querySelector('#app131');if(ap&&ap.nextSibling)b.insertBefore(g,ap.nextSibling);else b.appendChild(g)}catch(e){showErrOnce(e)}return r}}
+window.__dv133={D:DV133,badge:badge133,sys:sysNotify133,ask:askNotif133,wake:wakeWant133,post:postCard133,ach:achCard133,share:shareCanvas133,collect:collect133,apply:apply133,send:qrSend133,recv:qrRecv133,gp:gpTick133};
 /* ================= v90: bahçe & tarım görsel yenileme — tekrarsız çim, sürülmüş toprak, taş yol, lamba, bank, 3 evreli instanced bitkiler, rüzgâr, hasat animasyonu ================= */
 const U90={t:{value:0}};
 function sway90(col,o,amp){const m=std(col,Object.assign({roughness:.75},o||{}));const A=(amp||.03).toFixed(3);
@@ -13738,7 +13829,7 @@ resize();applyTime(1);frame();
 /* v131: önyükleme — adımlar arasında ekran boyanır (gerçek ilerleme), sonra menüye yumuşak geçiş */
 (function(){const S=window.__splash,step=(p,t)=>new Promise(r=>{try{S&&S.set(p,t)}catch(e){}requestAnimationFrame(()=>setTimeout(r,16))});
  (async function(){await step(.34,'Dünya, dokular ve karakterler oluşturuluyor…');try{window.__pwMain()}catch(e){console.error(e)}
-  await step(.72,'Şirket yazılımı yükleniyor…');await new Promise(r=>{const sc=document.createElement('script');sc.src='tycoon.js?v=132';sc.onload=sc.onerror=()=>r();document.body.appendChild(sc);setTimeout(r,8000)});
+  await step(.72,'Şirket yazılımı yükleniyor…');await new Promise(r=>{const sc=document.createElement('script');sc.src='tycoon.js?v=133';sc.onload=sc.onerror=()=>r();document.body.appendChild(sc);setTimeout(r,8000)});
   await step(.82,'Gölgelendiriciler derleniyor…');try{window.__pwBoot&&__pwBoot.compile()}catch(e){}
   await step(.92,'Kayıtlar okunuyor…');let n=0;try{n=window.__pwBoot?__pwBoot.saves():0}catch(e){}
   await step(1,n?'Hazır · '+n+' kayıt bulundu':'Hazır!');window.__pwBooted=true;setTimeout(()=>{try{S&&S.done()}catch(e){}try{window.__pwBoot&&__pwBoot.afterBoot()}catch(e){}},220)})()})();
